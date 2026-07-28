@@ -338,13 +338,8 @@ def api_update_settings():
 
 FRONTEND_DIR = Path(__file__).parent
 
-ADMIN_HOSTS = {h.strip().lower() for h in os.getenv("ADMIN_HOSTS", "admin.yourdomain.com,crm.yourdomain.com").split(",") if h.strip()}
-
 @app.route("/")
 def serve_index():
-    host = request.host.split(":")[0].lower()
-    if host in ADMIN_HOSTS:
-        return send_from_directory(str(FRONTEND_DIR), "oillog-admin.html")
     return send_from_directory(str(FRONTEND_DIR), "oillog-mobile.html")
 
 @app.route("/admin")
@@ -360,4 +355,3 @@ def serve_static(filename):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=True)
-
