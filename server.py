@@ -8,7 +8,6 @@ from pathlib import Path
 from functools import wraps
 
 from flask import Flask, jsonify, request, session, redirect, send_from_directory
-from werkzeug.security import generate_password_hash, check_password_hash
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -77,138 +76,113 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# ── Agent accounts + Telegram OTP login ────────────────────────────────────
-# users.json: [{"username","password_hash","telegram_chat_id","role","first_name","link_token"}]
-OTP_TTL = 300          # seconds a code stays valid
-_pending_otp = {}      # username -> {"code","expires","attempts"}
+# ── Whitelist-based access control for the Telegram Login Widget ───────────
+# allowed_users.json: [{"telegram_username","telegram_id","chat_id","role","added_by"}]
+ADMIN_CHAT_IDS = {c.strip() for c in os.getenv("ADMIN_CHAT_IDS", "").split(",") if c.strip()}
 
-def load_users():
-    return _read_json("users.json")
+def load_allowed():
+    return _read_json("allowed_users.json")
 
-def save_users(users):
-    _write_json("users.json", users)
+def save_allowed(users):
+    _write_json("allowed_users.json", users)
 
-def find_user(username):
-    username = (username or "").strip().lower()
-    for u in load_users():
-        if u.get("username", "").lower() == username:
+def find_allowed(username=None, telegram_id=None, chat_id=None):
+    username = (username or "").lstrip("@").lower() or None
+    for u in load_allowed():
+        if username and (u.get("telegram_username") or "").lower() == username:
+            return u
+        if telegram_id and str(u.get("telegram_id")) == str(telegram_id):
+            return u
+        if chat_id and str(u.get("chat_id")) == str(chat_id):
             return u
     return None
 
-def tg_send_message(chat_id, text):
-    """Fire a DM via the Telegram Bot API. Silently logs failures."""
+def tg_api(method, payload):
     try:
-        payload = json.dumps({"chat_id": chat_id, "text": text}).encode()
         req = urllib.request.Request(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            data=payload, headers={"Content-Type": "application/json"}, method="POST",
+            f"https://api.telegram.org/bot{BOT_TOKEN}/{method}",
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"}, method="POST",
         )
-        urllib.request.urlopen(req, timeout=10)
-        return True
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read())
     except Exception as e:
-        logger.error(f"telegram send failed: {e}")
-        return False
+        logger.error(f"telegram {method} failed: {e}")
+        return None
+
+def tg_send_message(chat_id, text):
+    return tg_api("sendMessage", {"chat_id": chat_id, "text": text})
+
+# ── Bot commands (admin manages the whitelist from inside Telegram) ────────
+
+def handle_bot_command(chat_id, from_user, text):
+    is_admin = str(chat_id) in ADMIN_CHAT_IDS
+    parts = text.split()
+    cmd = parts[0].lower()
+
+    if cmd == "/start":
+        token = parts[1].strip() if len(parts) > 1 else ""
+        username = (from_user.get("username") or "").lower()
+        # Auto-link if this Telegram user (by username or numeric id) is on the whitelist
+        entry = find_allowed(username=username, telegram_id=from_user.get("id"))
+        if entry:
+            entry["chat_id"] = chat_id
+            entry["telegram_id"] = from_user.get("id")
+            users = load_allowed()
+            for i, u in enumerate(users):
+                if u is entry or u.get("telegram_username") == entry.get("telegram_username"):
+                    users[i] = entry
+            save_allowed(users)
+            tg_send_message(chat_id, "✅ You're linked. You can now log in on the OILLOG website with your Telegram username.")
+        else:
+            tg_send_message(chat_id, f"Your Telegram ID is {from_user.get('id')}, username @{username or 'none'}. Ask an admin to whitelist you before you can log in.")
+        return
+
+    if not is_admin:
+        return  # ignore management commands from non-admins
+
+    if cmd == "/adduser" and len(parts) >= 2:
+        username = parts[1].lstrip("@").lower()
+        role = parts[2] if len(parts) > 2 else "agent"
+        users = load_allowed()
+        if find_allowed(username=username):
+            tg_send_message(chat_id, f"@{username} is already whitelisted.")
+            return
+        users.append({"telegram_username": username, "telegram_id": None, "chat_id": None, "role": role, "added_by": chat_id})
+        save_allowed(users)
+        tg_send_message(chat_id, f"✅ @{username} added ({role}). They need to message me with /start to finish linking.")
+
+    elif cmd == "/removeuser" and len(parts) >= 2:
+        username = parts[1].lstrip("@").lower()
+        users = load_allowed()
+        new_users = [u for u in users if (u.get("telegram_username") or "").lower() != username]
+        if len(new_users) < len(users):
+            save_allowed(new_users)
+            tg_send_message(chat_id, f"🗑 @{username} removed.")
+        else:
+            tg_send_message(chat_id, f"@{username} wasn't found.")
+
+    elif cmd == "/listusers":
+        users = load_allowed()
+        if not users:
+            tg_send_message(chat_id, "No whitelisted users yet.")
+        else:
+            lines = [f"@{u.get('telegram_username')} — {u.get('role')} — {'linked' if u.get('chat_id') else 'not linked yet'}" for u in users]
+            tg_send_message(chat_id, "\n".join(lines))
 
 @app.route("/telegram/webhook/<secret>", methods=["POST"])
 def telegram_webhook(secret):
-    """Receives updates from Telegram. Register with setWebhook once (see notes)."""
     if secret != TELEGRAM_WEBHOOK_SECRET:
         return jsonify({"ok": False}), 403
     update = request.json or {}
     msg = update.get("message") or {}
     text = (msg.get("text") or "").strip()
     chat_id = msg.get("chat", {}).get("id")
-    if text.startswith("/start") and chat_id:
-        parts = text.split(maxsplit=1)
-        token = parts[1].strip() if len(parts) > 1 else ""
-        users = load_users()
-        linked = False
-        for u in users:
-            if token and u.get("link_token") == token:
-                u["telegram_chat_id"] = chat_id
-                u["link_token"] = None
-                linked = True
-                break
-        if linked:
-            save_users(users)
-            tg_send_message(chat_id, "✅ Telegram linked to your OILLOG account. You can now log in with your username and password.")
-        else:
-            tg_send_message(chat_id, f"Your Telegram chat ID is {chat_id}. Ask an admin to link it to your account, or use the link they sent you.")
+    from_user = msg.get("from", {})
+    if text.startswith("/") and chat_id:
+        handle_bot_command(chat_id, from_user, text)
     return jsonify({"ok": True})
 
-@app.route("/auth/agents", methods=["POST"])
-@login_required
-def create_agent():
-    """Admin creates an agent account and gets a one-time Telegram link URL back."""
-    if session["user"].get("role") != "admin":
-        return jsonify({"error": "forbidden"}), 403
-    data = request.json or {}
-    username = (data.get("username") or "").strip().lower()
-    password = data.get("password") or ""
-    if not username or len(password) < 8:
-        return jsonify({"error": "username required, password min 8 chars"}), 400
-    if find_user(username):
-        return jsonify({"error": "username_taken"}), 400
-    link_token = secrets.token_urlsafe(16)
-    users = load_users()
-    users.append({
-        "username": username,
-        "password_hash": generate_password_hash(password),
-        "telegram_chat_id": None,
-        "role": data.get("role", "agent"),
-        "first_name": data.get("first_name", username),
-        "link_token": link_token,
-    })
-    save_users(users)
-    return jsonify({
-        "ok": True,
-        "username": username,
-        "telegram_link": f"https://t.me/{BOT_USERNAME}?start={link_token}",
-    }), 201
-
-@app.route("/auth/login", methods=["POST"])
-def password_login():
-    """Step 1: verify username/password, then text a 6-digit code to Telegram."""
-    data = request.json or {}
-    user = find_user(data.get("username"))
-    if not user or not check_password_hash(user.get("password_hash", ""), data.get("password", "")):
-        return jsonify({"ok": False, "error": "invalid_credentials"}), 401
-    if not user.get("telegram_chat_id"):
-        return jsonify({"ok": False, "error": "telegram_not_linked"}), 400
-    code = f"{secrets.randbelow(1_000_000):06d}"
-    _pending_otp[user["username"]] = {"code": code, "expires": time.time() + OTP_TTL, "attempts": 0}
-    tg_send_message(user["telegram_chat_id"], f"Your OILLOG login code is {code}. It expires in 5 minutes.")
-    return jsonify({"ok": True, "stage": "otp_required"})
-
-@app.route("/auth/verify", methods=["POST"])
-def password_login_verify():
-    """Step 2: check the code the agent got via Telegram, then start the session."""
-    data = request.json or {}
-    username = (data.get("username") or "").strip().lower()
-    code = (data.get("code") or "").strip()
-    pending = _pending_otp.get(username)
-    if not pending:
-        return jsonify({"ok": False, "error": "no_pending_login"}), 400
-    if time.time() > pending["expires"]:
-        _pending_otp.pop(username, None)
-        return jsonify({"ok": False, "error": "code_expired"}), 400
-    pending["attempts"] += 1
-    if pending["attempts"] > 5:
-        _pending_otp.pop(username, None)
-        return jsonify({"ok": False, "error": "too_many_attempts"}), 429
-    if not hmac.compare_digest(pending["code"], code):
-        return jsonify({"ok": False, "error": "invalid_code"}), 401
-    _pending_otp.pop(username, None)
-    user = find_user(username)
-    session["user"] = {
-        "id": user["username"],
-        "first_name": user.get("first_name", username),
-        "username": username,
-        "photo_url": "",
-        "auth_date": str(int(time.time())),
-        "role": user.get("role", "agent"),
-    }
-    return jsonify({"ok": True, "user": session["user"]})
 
 
 # ── Auth routes ──────────────────────────────────────────────────────────
@@ -219,18 +193,32 @@ def telegram_auth():
     if not data.get("hash"):
         return jsonify({"ok": False, "error": "no_hash"}), 400
 
-    if verify_telegram_login(data):
-        user_id = int(data.get("id", 0))
-        session["user"] = {
-            "id": user_id,
-            "first_name": data.get("first_name", ""),
-            "username": data.get("username", ""),
-            "photo_url": data.get("photo_url", ""),
-            "auth_date": data.get("auth_date", ""),
-            "role": "admin",
-        }
-        return jsonify({"ok": True, "user": session["user"]})
-    return jsonify({"ok": False, "error": "invalid"}), 401
+    if not verify_telegram_login(data):
+        return jsonify({"ok": False, "error": "invalid"}), 401
+
+    telegram_id = data.get("id")
+    username = data.get("username", "")
+    entry = find_allowed(username=username, telegram_id=telegram_id)
+    if not entry:
+        return jsonify({"ok": False, "error": "not_whitelisted"}), 403
+
+    # Keep the whitelist entry's telegram_id fresh for future lookups/bot commands
+    if not entry.get("telegram_id"):
+        users = load_allowed()
+        for u in users:
+            if u.get("telegram_username", "").lower() == (username or "").lower():
+                u["telegram_id"] = telegram_id
+        save_allowed(users)
+
+    session["user"] = {
+        "id": telegram_id,
+        "first_name": data.get("first_name", ""),
+        "username": username,
+        "photo_url": data.get("photo_url", ""),
+        "auth_date": data.get("auth_date", ""),
+        "role": entry.get("role", "agent"),
+    }
+    return jsonify({"ok": True, "user": session["user"]})
 
 @app.route("/auth/guest", methods=["POST"])
 def guest_auth():
