@@ -2,20 +2,22 @@
 OILLOG — Flask server for Railway deployment
 Serves mobile + admin PWA, Telegram auth, JSON-file storage on Railway volume, real-time sync API.
 """
-import hashlib, hmac, json, logging, os, re, time
+import hashlib, hmac, json, logging, os, re, secrets, time, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from functools import wraps
 
 from flask import Flask, jsonify, request, session, redirect, send_from_directory
+from werkzeug.security import generate_password_hash, check_password_hash
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.getenv("OILLOG_SECRET", "oillog-secret-change-me")
 
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8783000783:AAH0nsNC0Mh0egLVdKd9i5lm1-fZuQ7Ltos")
 BOT_USERNAME = os.getenv("BOT_USERNAME", "kurtexalertsbot")  # ← SET THIS
+TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "change-me-too")
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -74,6 +76,140 @@ def login_required(f):
             return jsonify({"error": "unauthorized"}), 401
         return f(*args, **kwargs)
     return wrapper
+
+# ── Agent accounts + Telegram OTP login ────────────────────────────────────
+# users.json: [{"username","password_hash","telegram_chat_id","role","first_name","link_token"}]
+OTP_TTL = 300          # seconds a code stays valid
+_pending_otp = {}      # username -> {"code","expires","attempts"}
+
+def load_users():
+    return _read_json("users.json")
+
+def save_users(users):
+    _write_json("users.json", users)
+
+def find_user(username):
+    username = (username or "").strip().lower()
+    for u in load_users():
+        if u.get("username", "").lower() == username:
+            return u
+    return None
+
+def tg_send_message(chat_id, text):
+    """Fire a DM via the Telegram Bot API. Silently logs failures."""
+    try:
+        payload = json.dumps({"chat_id": chat_id, "text": text}).encode()
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            data=payload, headers={"Content-Type": "application/json"}, method="POST",
+        )
+        urllib.request.urlopen(req, timeout=10)
+        return True
+    except Exception as e:
+        logger.error(f"telegram send failed: {e}")
+        return False
+
+@app.route("/telegram/webhook/<secret>", methods=["POST"])
+def telegram_webhook(secret):
+    """Receives updates from Telegram. Register with setWebhook once (see notes)."""
+    if secret != TELEGRAM_WEBHOOK_SECRET:
+        return jsonify({"ok": False}), 403
+    update = request.json or {}
+    msg = update.get("message") or {}
+    text = (msg.get("text") or "").strip()
+    chat_id = msg.get("chat", {}).get("id")
+    if text.startswith("/start") and chat_id:
+        parts = text.split(maxsplit=1)
+        token = parts[1].strip() if len(parts) > 1 else ""
+        users = load_users()
+        linked = False
+        for u in users:
+            if token and u.get("link_token") == token:
+                u["telegram_chat_id"] = chat_id
+                u["link_token"] = None
+                linked = True
+                break
+        if linked:
+            save_users(users)
+            tg_send_message(chat_id, "✅ Telegram linked to your OILLOG account. You can now log in with your username and password.")
+        else:
+            tg_send_message(chat_id, f"Your Telegram chat ID is {chat_id}. Ask an admin to link it to your account, or use the link they sent you.")
+    return jsonify({"ok": True})
+
+@app.route("/auth/agents", methods=["POST"])
+@login_required
+def create_agent():
+    """Admin creates an agent account and gets a one-time Telegram link URL back."""
+    if session["user"].get("role") != "admin":
+        return jsonify({"error": "forbidden"}), 403
+    data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
+    password = data.get("password") or ""
+    if not username or len(password) < 8:
+        return jsonify({"error": "username required, password min 8 chars"}), 400
+    if find_user(username):
+        return jsonify({"error": "username_taken"}), 400
+    link_token = secrets.token_urlsafe(16)
+    users = load_users()
+    users.append({
+        "username": username,
+        "password_hash": generate_password_hash(password),
+        "telegram_chat_id": None,
+        "role": data.get("role", "agent"),
+        "first_name": data.get("first_name", username),
+        "link_token": link_token,
+    })
+    save_users(users)
+    return jsonify({
+        "ok": True,
+        "username": username,
+        "telegram_link": f"https://t.me/{BOT_USERNAME}?start={link_token}",
+    }), 201
+
+@app.route("/auth/login", methods=["POST"])
+def password_login():
+    """Step 1: verify username/password, then text a 6-digit code to Telegram."""
+    data = request.json or {}
+    user = find_user(data.get("username"))
+    if not user or not check_password_hash(user.get("password_hash", ""), data.get("password", "")):
+        return jsonify({"ok": False, "error": "invalid_credentials"}), 401
+    if not user.get("telegram_chat_id"):
+        return jsonify({"ok": False, "error": "telegram_not_linked"}), 400
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    _pending_otp[user["username"]] = {"code": code, "expires": time.time() + OTP_TTL, "attempts": 0}
+    tg_send_message(user["telegram_chat_id"], f"Your OILLOG login code is {code}. It expires in 5 minutes.")
+    return jsonify({"ok": True, "stage": "otp_required"})
+
+@app.route("/auth/verify", methods=["POST"])
+def password_login_verify():
+    """Step 2: check the code the agent got via Telegram, then start the session."""
+    data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
+    code = (data.get("code") or "").strip()
+    pending = _pending_otp.get(username)
+    if not pending:
+        return jsonify({"ok": False, "error": "no_pending_login"}), 400
+    if time.time() > pending["expires"]:
+        _pending_otp.pop(username, None)
+        return jsonify({"ok": False, "error": "code_expired"}), 400
+    pending["attempts"] += 1
+    if pending["attempts"] > 5:
+        _pending_otp.pop(username, None)
+        return jsonify({"ok": False, "error": "too_many_attempts"}), 429
+    if not hmac.compare_digest(pending["code"], code):
+        return jsonify({"ok": False, "error": "invalid_code"}), 401
+    _pending_otp.pop(username, None)
+    user = find_user(username)
+    session["user"] = {
+        "id": user["username"],
+        "first_name": user.get("first_name", username),
+        "username": username,
+        "photo_url": "",
+        "auth_date": str(int(time.time())),
+        "role": user.get("role", "agent"),
+    }
+    return jsonify({"ok": True, "user": session["user"]})
+
 
 # ── Auth routes ──────────────────────────────────────────────────────────
 
@@ -202,8 +338,13 @@ def api_update_settings():
 
 FRONTEND_DIR = Path(__file__).parent
 
+ADMIN_HOSTS = {h.strip().lower() for h in os.getenv("ADMIN_HOSTS", "admin.yourdomain.com,crm.yourdomain.com").split(",") if h.strip()}
+
 @app.route("/")
 def serve_index():
+    host = request.host.split(":")[0].lower()
+    if host in ADMIN_HOSTS:
+        return send_from_directory(str(FRONTEND_DIR), "oillog-admin.html")
     return send_from_directory(str(FRONTEND_DIR), "oillog-mobile.html")
 
 @app.route("/admin")
