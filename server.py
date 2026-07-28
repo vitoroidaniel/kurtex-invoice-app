@@ -15,7 +15,7 @@ app.secret_key = os.getenv("OILLOG_SECRET", "oillog-secret-change-me")
 
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8783000783:AAH0nsNC0Mh0egLVdKd9i5lm1-fZuQ7Ltos")
-BOT_USERNAME = os.getenv("BOT_USERNAME", "kurtexalertsbot")  # ← SET THIS
+BOT_USERNAME = os.getenv("BOT_USERNAME", "kurtexsecuritybot")  # ← SET THIS
 TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "change-me-too")
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
