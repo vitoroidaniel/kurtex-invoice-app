@@ -1,22 +1,30 @@
 """
 OILLOG — Flask server for Railway deployment
 Serves mobile + admin PWA, Telegram auth, JSON-file storage on Railway volume, real-time sync API.
+
+User accounts/roles are NOT managed here — they live in the shared user_store
+(storage/user_store.py), the same store used by the Kurtex Alert Bot. That bot
+is the single source of truth: an admin adds/removes people and sets roles
+there (via /adduser, /removeuser, /editrole in Telegram), and this app just
+reads that same data to decide who gets in. See storage/user_store.py.
 """
-import hashlib, hmac, json, logging, os, re, secrets, time, urllib.request
-from datetime import datetime, timezone
+import hashlib, hmac, json, logging, os, time
 from pathlib import Path
 from functools import wraps
 
 from flask import Flask, jsonify, request, session, redirect, send_from_directory
+
+from storage.user_store import get_user
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.getenv("OILLOG_SECRET", "oillog-secret-change-me")
 
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8783000783:AAH0nsNC0Mh0egLVdKd9i5lm1-fZuQ7Ltos")
-BOT_USERNAME = os.getenv("BOT_USERNAME", "kurtexsecuritybot")  # ← SET THIS
-TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "change-me-too")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")  # ← SET THIS to the SAME bot token as the alert bot
+
+# Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
+ADMIN_ROLES = {"developer", "super_admin"}
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -76,166 +84,42 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# ── Whitelist-based access control for the Telegram Login Widget ───────────
-# allowed_users.json: [{"telegram_username","telegram_id","chat_id","role","added_by"}]
-ADMIN_CHAT_IDS = {c.strip() for c in os.getenv("ADMIN_CHAT_IDS", "").split(",") if c.strip()}
+# ── Auth routes ─────────────────────────────────────────────────────────────
+# Access is controlled entirely by the shared user_store (see storage/user_store.py),
+# the same file the Kurtex Alert Bot manages via /adduser, /removeuser, /editrole.
+# There is no separate whitelist or Telegram webhook here anymore — the bot is
+# the single place admins manage who's allowed in and with what role.
 
-def load_allowed():
-    return _read_json("allowed_users.json")
-
-def save_allowed(users):
-    _write_json("allowed_users.json", users)
-
-def find_allowed(username=None, telegram_id=None, chat_id=None):
-    username = (username or "").lstrip("@").lower() or None
-    for u in load_allowed():
-        if username and (u.get("telegram_username") or "").lower() == username:
-            return u
-        if telegram_id and str(u.get("telegram_id")) == str(telegram_id):
-            return u
-        if chat_id and str(u.get("chat_id")) == str(chat_id):
-            return u
-    return None
-
-def tg_api(method, payload):
-    try:
-        req = urllib.request.Request(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/{method}",
-            data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json"}, method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=10) as r:
-            return json.loads(r.read())
-    except Exception as e:
-        logger.error(f"telegram {method} failed: {e}")
-        return None
-
-def tg_send_message(chat_id, text):
-    return tg_api("sendMessage", {"chat_id": chat_id, "text": text})
-
-# ── Bot commands (admin manages the whitelist from inside Telegram) ────────
-
-def handle_bot_command(chat_id, from_user, text):
-    is_admin = str(chat_id) in ADMIN_CHAT_IDS
-    parts = text.split()
-    cmd = parts[0].lower()
-
-    if cmd == "/start":
-        token = parts[1].strip() if len(parts) > 1 else ""
-        username = (from_user.get("username") or "").lower()
-        # Auto-link if this Telegram user (by username or numeric id) is on the whitelist
-        entry = find_allowed(username=username, telegram_id=from_user.get("id"))
-        if entry:
-            entry["chat_id"] = chat_id
-            entry["telegram_id"] = from_user.get("id")
-            users = load_allowed()
-            for i, u in enumerate(users):
-                if u is entry or u.get("telegram_username") == entry.get("telegram_username"):
-                    users[i] = entry
-            save_allowed(users)
-            tg_send_message(chat_id, "✅ You're linked. You can now log in on the OILLOG website with your Telegram username.")
-        else:
-            tg_send_message(chat_id, f"Your Telegram ID is {from_user.get('id')}, username @{username or 'none'}. Ask an admin to whitelist you before you can log in.")
-        return
-
-    if not is_admin:
-        return  # ignore management commands from non-admins
-
-    if cmd == "/adduser" and len(parts) >= 2:
-        username = parts[1].lstrip("@").lower()
-        role = parts[2] if len(parts) > 2 else "agent"
-        users = load_allowed()
-        if find_allowed(username=username):
-            tg_send_message(chat_id, f"@{username} is already whitelisted.")
-            return
-        users.append({"telegram_username": username, "telegram_id": None, "chat_id": None, "role": role, "added_by": chat_id})
-        save_allowed(users)
-        tg_send_message(chat_id, f"✅ @{username} added ({role}). They need to message me with /start to finish linking.")
-
-    elif cmd == "/removeuser" and len(parts) >= 2:
-        username = parts[1].lstrip("@").lower()
-        users = load_allowed()
-        new_users = [u for u in users if (u.get("telegram_username") or "").lower() != username]
-        if len(new_users) < len(users):
-            save_allowed(new_users)
-            tg_send_message(chat_id, f"🗑 @{username} removed.")
-        else:
-            tg_send_message(chat_id, f"@{username} wasn't found.")
-
-    elif cmd == "/listusers":
-        users = load_allowed()
-        if not users:
-            tg_send_message(chat_id, "No whitelisted users yet.")
-        else:
-            lines = [f"@{u.get('telegram_username')} — {u.get('role')} — {'linked' if u.get('chat_id') else 'not linked yet'}" for u in users]
-            tg_send_message(chat_id, "\n".join(lines))
-
-@app.route("/telegram/webhook/<secret>", methods=["POST"])
-def telegram_webhook(secret):
-    if secret != TELEGRAM_WEBHOOK_SECRET:
-        return jsonify({"ok": False}), 403
-    update = request.json or {}
-    msg = update.get("message") or {}
-    text = (msg.get("text") or "").strip()
-    chat_id = msg.get("chat", {}).get("id")
-    from_user = msg.get("from", {})
-    if text.startswith("/") and chat_id:
-        handle_bot_command(chat_id, from_user, text)
-    return jsonify({"ok": True})
-
-
-
-# ── Auth routes ──────────────────────────────────────────────────────────
-
-@app.route("/auth/telegram", methods=["POST"])
+@app.route("/auth/telegram")
 def telegram_auth():
-    data = dict(request.json or {})
+    data = dict(request.args)
+    next_url = data.pop("next", "/") or "/"
+    if not next_url.startswith("/"):
+        next_url = "/"  # never redirect off-site
+
     if not data.get("hash"):
-        return jsonify({"ok": False, "error": "no_hash"}), 400
-
+        return redirect(f"{next_url}?error=missing")
     if not verify_telegram_login(data):
-        return jsonify({"ok": False, "error": "invalid"}), 401
+        return redirect(f"{next_url}?error=invalid")
 
-    telegram_id = data.get("id")
-    username = data.get("username", "")
-    entry = find_allowed(username=username, telegram_id=telegram_id)
+    telegram_id = int(data.get("id", 0))
+    u = get_user(telegram_id)
+    if not u:
+        return redirect(f"{next_url}?error=not_whitelisted")
 
-    if not entry:
-        # Bootstrap: if nobody is whitelisted yet, the first person to log in
-        # via Telegram becomes admin automatically. This avoids the chicken-
-        # and-egg problem of needing an admin to whitelist the first admin.
-        if not load_allowed():
-            entry = {
-                "telegram_username": (username or "").lower(),
-                "telegram_id": telegram_id,
-                "chat_id": None,
-                "role": "admin",
-                "added_by": "bootstrap",
-            }
-            users = load_allowed()
-            users.append(entry)
-            save_allowed(users)
-            logger.info(f"Bootstrapped first admin: @{username} ({telegram_id})")
-        else:
-            return jsonify({"ok": False, "error": "not_whitelisted"}), 403
-
-    # Keep the whitelist entry's telegram_id fresh for future lookups/bot commands
-    if not entry.get("telegram_id"):
-        users = load_allowed()
-        for u in users:
-            if u.get("telegram_username", "").lower() == (username or "").lower():
-                u["telegram_id"] = telegram_id
-        save_allowed(users)
+    role = u.get("role", "agent")
+    if next_url.startswith("/admin") and role not in ADMIN_ROLES:
+        return redirect("/admin?error=forbidden_role")
 
     session["user"] = {
         "id": telegram_id,
-        "first_name": data.get("first_name", ""),
-        "username": username,
+        "first_name": data.get("first_name", "") or u.get("name", ""),
+        "username": data.get("username", "") or u.get("username", ""),
         "photo_url": data.get("photo_url", ""),
         "auth_date": data.get("auth_date", ""),
-        "role": entry.get("role", "agent"),
+        "role": role,
     }
-    return jsonify({"ok": True, "user": session["user"]})
+    return redirect(next_url)
 
 @app.route("/auth/guest", methods=["POST"])
 def guest_auth():

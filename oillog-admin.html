@@ -194,7 +194,7 @@
         data-telegram-login="kurtexsecuritybot"
         data-size="large"
         data-radius="8"
-        data-onauth="onTelegramAuth"
+        data-auth-url="/auth/telegram?next=/admin"
         data-request-access="write"></script></div>
       <p style="font-size:10px;color:var(--faint);">Doar administratorii au acces.</p>
     </div>
@@ -202,7 +202,7 @@
       <i data-lucide="help-circle"></i>Nu poți să te loghezi?
     </button>
     <div id="login-hint" class="login-hint hidden">
-      Butonul Telegram deschide un popup dar nu se întâmplă nimic? Domeniul site-ului nu e setat pe bot. Trimite botului <b>/setdomain</b> din <b>@BotFather</b>, alege bot-ul, apoi lipește domeniul exact al acestui site (fără https://). Dacă apare eroare „not whitelisted", trimite botului <b>/start</b> — primul cont autentificat devine automat admin dacă lista e goală, altfel cere unui admin să te adauge cu <b>/adduser @username</b>.
+      Butonul Telegram nu face nimic la click? Domeniul site-ului nu e setat pe bot. Trimite botului <b>/setdomain</b> din <b>@BotFather</b>, alege bot-ul, apoi lipește domeniul exact al acestui site (fără https://). Accesul de admin se dă din botul de alerte, cu <b>/adduser &lt;id&gt; &lt;nume&gt; super_admin</b> (sau <b>developer</b>) — rolul <b>agent</b> nu poate intra în panoul de admin.
     </div>
   </div>
 </div>
@@ -390,10 +390,13 @@ async function api(method, path, body){
 }
 
 // ── Telegram Login ─────────────────────────────────────────────────────────
+// Login now happens via full-page redirect (Telegram widget → /auth/telegram
+// → server checks role → redirects back with ?error=... on failure).
 const LOGIN_ERROR_MESSAGES = {
-  not_whitelisted: 'Contul tău Telegram nu e încă autorizat ca admin. Trimite /start botului, apoi cere unui admin să te adauge cu /adduser.',
+  not_whitelisted: 'Contul tău Telegram nu e încă autorizat ca admin. Accesul se dă din botul de alerte, cu /adduser <id> <nume> <rol>.',
+  forbidden_role: 'Contul tău e autorizat, dar rolul "agent" nu are acces la panoul de admin — ai nevoie de super_admin sau developer.',
   invalid: 'Autentificare Telegram invalidă. Verifică dacă domeniul acestui site e setat corect în BotFather (/setdomain).',
-  no_hash: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
+  missing: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
 };
 function showLoginError(code, raw){
   const box = document.getElementById('login-error');
@@ -405,26 +408,14 @@ function clearLoginError(){
   const box = document.getElementById('login-error');
   if(box){ box.classList.add('hidden'); box.textContent=''; }
 }
-
-async function onTelegramAuth(tgUser) {
-  clearLoginError();
-  try {
-    const res = await api('POST', '/auth/telegram', tgUser);
-    if(res.ok) {
-      adminUser = {
-        method: 'telegram',
-        id: res.user.id,
-        name: res.user.first_name,
-        username: res.user.username,
-        photo_url: res.user.photo_url,
-      };
-      saveAdminUser(adminUser);
-      enterAdmin();
-    } else {
-      showLoginError(res.error);
-    }
-  } catch(e) {
-    showLoginError(null, 'Eroare la autentificare: ' + e.message);
+function checkUrlLoginError(){
+  const params = new URLSearchParams(window.location.search);
+  const err = params.get('error');
+  if(err){
+    showLoginError(err);
+    params.delete('error');
+    const clean = window.location.pathname + (params.toString() ? '?'+params.toString() : '');
+    window.history.replaceState({}, '', clean);
   }
 }
 
@@ -780,23 +771,35 @@ async function exportXLSX(){
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async function init(){
-  adminUser = loadAdminUser();
-  if(adminUser) {
-    // Verify server session — if expired, re-login is required (admin only)
-    try {
-      const status = await api('GET', '/auth/status');
-      if(status.ok && status.user) {
-        await enterAdmin();
-      } else {
-        // Session expired — admins must re-auth via Telegram widget
-        adminUser = null; localStorage.removeItem(ADMIN_USER_KEY); icons();
+  checkUrlLoginError();
+  try {
+    const status = await api('GET', '/auth/status');
+    if(status.ok && status.user) {
+      const su = status.user;
+      if(su.role !== 'developer' && su.role !== 'super_admin') {
+        // Valid login, but not an admin-tier role — don't let them into the panel.
+        await fetch('/logout', {method:'POST'}).catch(()=>{});
+        showLoginError('forbidden_role');
+        icons();
+        return;
       }
-    } catch(e) {
-      // Server unreachable — still allow
+      adminUser = {
+        method: 'telegram',
+        id: su.id,
+        name: su.first_name,
+        username: su.username || '',
+        photo_url: su.photo_url || '',
+        role: su.role || 'agent',
+      };
+      saveAdminUser(adminUser);
       await enterAdmin();
+    } else {
+      adminUser = null; localStorage.removeItem(ADMIN_USER_KEY); icons();
     }
-  } else {
-    icons();
+  } catch(e) {
+    // Server unreachable — fall back to any cached admin so the panel still opens
+    adminUser = loadAdminUser();
+    if(adminUser) await enterAdmin(); else icons();
   }
 })();
 </script>
