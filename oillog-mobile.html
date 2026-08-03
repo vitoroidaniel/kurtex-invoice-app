@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="OILLOG">
 <!-- Telegram widget script loaded in login div below -->
 <script src="https://unpkg.com/lucide@1.27.0/dist/umd/lucide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -141,26 +142,77 @@
   .toast.show{opacity:1;}
 
   .login-tg-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;}
-  .login-tg-btn:hover{background:var(--surface-2);border-color:var(--border-2);}
+  .login-tg-btn:hover{background:var(--surface-2);border-color:var(--border-2);box-shadow:0 2px 10px rgba(0,0,0,0.05);transform:translateY(-1px);}
   .login-tg-btn i, .login-tg-btn svg{width:18px;height:18px;color:#0088CC;}
 
+  .login-card{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px 28px 32px 28px;box-shadow:0 8px 30px rgba(0,0,0,0.06);}
+  .login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,0.25);color:var(--red);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:var(--r);margin-bottom:18px;text-align:left;}
+  .login-hint-toggle{margin-top:22px;background:none;border:none;color:var(--faint);font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-body);}
+  .login-hint-toggle:hover{color:var(--dim);}
+  .login-hint-toggle i, .login-hint-toggle svg{width:13px;height:13px;}
+  .login-hint{margin-top:14px;text-align:left;font-size:12px;line-height:1.6;color:var(--dim);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+  .login-hint b{color:var(--white);}
+
   .hidden{display:none !important;}
+
+  /* ── Desktop / wide-screen adaptation ──────────────────────────────────── */
+  @media (min-width: 860px){
+    body{background:var(--surface-3);}
+    #app{max-width:1080px;min-height:100vh;box-shadow:0 0 0 1px var(--border);}
+    #screen-login{min-height:100vh;background:var(--surface-3);}
+    .login-card{max-width:400px;padding:52px 40px 40px 40px;}
+
+    .screen{padding:28px 40px 40px 40px;}
+    .topbar{padding:22px 40px;}
+
+    /* Two-column layout: form/content on the left, quick summary rail on the right */
+    #screen-add form{max-width:520px;}
+    #screen-add .card{padding:26px;}
+
+    #screen-list.active{display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto auto 1fr auto;gap:0 28px;align-content:start;}
+    #screen-list .topbar{grid-column:1/-1;margin:-28px -40px 20px -40px;padding:22px 40px;}
+    #screen-list .summary-bar{grid-column:2;grid-row:2/4;flex-direction:column;align-items:flex-start;gap:18px;height:fit-content;padding:20px;}
+    #screen-list .summary-bar > div{text-align:left !important;}
+    #screen-list .filters{grid-column:1;}
+    #screen-list #list-container{grid-column:1;}
+    #screen-list .btn-row, #screen-list > button.btn{grid-column:1;}
+
+    .bottomnav{position:sticky;bottom:auto;top:0;left:auto;right:auto;justify-content:flex-start;}
+    .bottomnav-inner{max-width:none;width:auto;background:transparent;backdrop-filter:none;border-top:none;box-shadow:none;padding:0;gap:6px;}
+    .navbtn{flex:none;flex-direction:row;padding:10px 16px;border-radius:var(--r);gap:7px;}
+    .navbtn:hover{background:var(--surface-2);}
+    .navbtn.active{background:#1A1A1A;color:#fff;}
+    #bottomnav{order:-1;border-bottom:1px solid var(--border);}
+
+    button.btn{width:auto;padding:14px 22px;}
+    #screen-add .btn-primary{width:100%;max-width:520px;}
+    .btn-row{max-width:520px;}
+  }
 </style>
 </head>
 <body>
 <div id="app">
 
   <div class="screen active" id="screen-login">
-    <div class="login-title">OIL<span>LOG</span></div>
-    <div class="login-sub">Evidența oil change-urilor de pe yard. Data, tipul unității, unit#-ul și mileage / engine hours.</div>
-    <div class="login-actions">
-      <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
-        data-telegram-login="kurtexsecuritybot"
-        data-size="large"
-        data-radius="8"
-        data-onauth="onTelegramAuth"
-        data-request-access="write"></script></div>
-      <button class="login-tg-btn" onclick="loginGuest()"><i data-lucide="user"></i>Continuă ca Guest</button>
+    <div class="login-card">
+      <div class="login-title">OIL<span>LOG</span></div>
+      <div class="login-sub">Evidența oil change-urilor de pe yard. Data, tipul unității, unit#-ul și mileage / engine hours.</div>
+      <div id="login-error" class="login-error hidden"></div>
+      <div class="login-actions">
+        <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
+          data-telegram-login="kurtexsecuritybot"
+          data-size="large"
+          data-radius="8"
+          data-onauth="onTelegramAuth"
+          data-request-access="write"></script></div>
+        <button class="login-tg-btn" onclick="loginGuest()"><i data-lucide="user"></i>Continuă ca Guest</button>
+      </div>
+      <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
+        <i data-lucide="help-circle"></i>Nu poți să te loghezi?
+      </button>
+      <div id="login-hint" class="login-hint hidden">
+        Butonul Telegram deschide un popup dar nu se întâmplă nimic? Domeniul site-ului nu e setat pe bot. Trimite botului <b>/setdomain</b> din <b>@BotFather</b> și alege bot-ul, apoi lipește domeniul exact al acestui site (fără https://). Dacă primești eroare de „not whitelisted", trimite botului <b>/start</b> și cere unui admin să te adauge cu <b>/adduser @username</b>.
+      </div>
     </div>
   </div>
 
@@ -228,7 +280,7 @@
     <div id="list-container"></div>
 
     <div class="btn-row" style="margin-top:6px;">
-      <button class="btn btn-secondary" onclick="exportCSV()"><i data-lucide="download"></i>CSV</button>
+      <button class="btn btn-secondary" onclick="exportXLSX()"><i data-lucide="download"></i>Excel</button>
       <button class="btn btn-secondary" onclick="copyList()"><i data-lucide="copy"></i>Copiază</button>
     </div>
     <button class="btn btn-primary" style="margin-top:10px;" onclick="sendTelegram()"><i data-lucide="send"></i>Trimite lista pe Telegram</button>
@@ -298,7 +350,24 @@ async function api(method, path, body){
 }
 
 // ── Telegram Login ─────────────────────────────────────────────────────────
+const LOGIN_ERROR_MESSAGES = {
+  not_whitelisted: 'Contul tău Telegram nu e încă autorizat. Trimite /start botului, apoi cere unui admin să te adauge cu /adduser.',
+  invalid: 'Autentificare Telegram invalidă. Verifică dacă domeniul acestui site e setat corect în BotFather (/setdomain).',
+  no_hash: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
+};
+function showLoginError(code, raw){
+  const box = document.getElementById('login-error');
+  if(!box) return;
+  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Autentificare eșuată. Încearcă din nou.');
+  box.classList.remove('hidden');
+}
+function clearLoginError(){
+  const box = document.getElementById('login-error');
+  if(box){ box.classList.add('hidden'); box.textContent=''; }
+}
+
 async function onTelegramAuth(tgUser) {
+  clearLoginError();
   try {
     const res = await api('POST', '/auth/telegram', tgUser);
     if(res.ok) {
@@ -312,10 +381,10 @@ async function onTelegramAuth(tgUser) {
       saveUserLocal(user);
       enterApp();
     } else {
-      toast('Autentificare eșuată');
+      showLoginError(res.error);
     }
   } catch(e) {
-    toast('Eroare la autentificare: ' + e.message);
+    showLoginError(null, 'Eroare la autentificare: ' + e.message);
   }
 }
 
@@ -526,21 +595,63 @@ function getVisibleList(){
   return filtered;
 }
 
-function exportCSV(){
+async function exportXLSX(){
   const list = getVisibleList();
   if(list.length===0){ toast('Nu ai nicio înregistrare'); return; }
-  let csv = 'Date,Unit Type,Unit Number,Hours,Miles,Added By\n';
-  [...list].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
-    const hours = e.unitOfValue==='hr' ? e.value : '';
-    const miles = e.unitOfValue==='mi' ? e.value : '';
-    csv += `${e.date},${typeLabel(e.type)},${e.unit},${hours},${miles},${e.addedBy}\n`;
+  const rows = [...list].sort((a,b)=>a.date.localeCompare(b.date));
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'OILLOG'; wb.created = new Date();
+  const ws = wb.addWorksheet('Oil Change List', { views:[{ state:'frozen', ySplit:1 }] });
+
+  ws.columns = [
+    { header:'Date', key:'date', width:13 },
+    { header:'Unit Type', key:'type', width:12 },
+    { header:'Unit Number', key:'unit', width:14 },
+    { header:'Hours', key:'hours', width:11 },
+    { header:'Miles', key:'miles', width:11 },
+    { header:'Added By', key:'addedBy', width:18 },
+  ];
+
+  const RED = 'FFC8102E', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0';
+
+  const header = ws.getRow(1);
+  header.height = 24;
+  header.eachCell(cell=>{
+    cell.font = { bold:true, color:{argb:'FFFFFFFF'}, size:11, name:'Calibri' };
+    cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:RED} };
+    cell.alignment = { vertical:'middle', horizontal:'left' };
+    cell.border = { bottom:{style:'thin', color:{argb:RED}} };
   });
-  const blob = new Blob([csv], {type:'text/csv'});
+
+  rows.forEach((e, i)=>{
+    const row = ws.addRow({
+      date: e.date,
+      type: typeLabel(e.type),
+      unit: e.unit,
+      hours: e.unitOfValue==='hr' ? Number(e.value) : null,
+      miles: e.unitOfValue==='mi' ? Number(e.value) : null,
+      addedBy: e.addedBy,
+    });
+    row.eachCell(cell=>{
+      cell.font = { name:'Calibri', size:11, color:{argb:DARK} };
+      cell.border = { bottom:{style:'thin', color:{argb:BORDER}} };
+      cell.alignment = { vertical:'middle' };
+      if(i % 2 === 1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:LIGHT} };
+    });
+    row.getCell('unit').font = { name:'Consolas', size:11, bold:true, color:{argb:DARK} };
+    ['hours','miles'].forEach(k=>{ row.getCell(k).numFmt = '#,##0'; row.getCell(k).alignment = { horizontal:'right' }; });
+  });
+
+  ws.autoFilter = { from:'A1', to: String.fromCharCode(65+ws.columns.length-1)+'1' };
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `oil-change-list_${new Date().toISOString().slice(0,10)}.csv`;
+  a.href = url; a.download = `oil-change-list_${new Date().toISOString().slice(0,10)}.xlsx`;
   a.click(); URL.revokeObjectURL(url);
-  toast('CSV descărcat');
+  toast('Excel descărcat');
 }
 function copyList(){
   const txt = buildListText(getVisibleList());

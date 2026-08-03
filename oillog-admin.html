@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OILLOG — Admin Panel</title>
 <script src="https://unpkg.com/lucide@1.27.0/dist/umd/lucide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -160,22 +161,49 @@
   .admin-chip i, .admin-chip svg{width:14px;height:14px;color:var(--faint);}
   .admin-chip b{color:var(--white);font-weight:600;}
   .admin-chip img{width:22px;height:22px;border-radius:50%;object-fit:cover;}
+
+  .login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:44px 36px 36px 36px;box-shadow:0 10px 34px rgba(0,0,0,0.06);}
+  .login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,0.25);color:var(--red);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:var(--r);margin-bottom:18px;text-align:left;}
+  .login-hint-toggle{margin-top:20px;background:none;border:none;color:var(--faint);font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-body);}
+  .login-hint-toggle:hover{color:var(--dim);}
+  .login-hint-toggle i, .login-hint-toggle svg{width:13px;height:13px;}
+  .login-hint{margin-top:14px;text-align:left;font-size:12px;line-height:1.6;color:var(--dim);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+  .login-hint b{color:var(--white);}
+
+  .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);}
+  .table-wrap table{min-width:760px;}
+
+  @media (max-width:640px){
+    header{align-items:flex-start;}
+    .header-actions{width:100%;flex-wrap:wrap;justify-content:flex-start;}
+    .header-actions .btn{flex:1;min-width:120px;}
+    .login-card{padding:34px 24px 28px 24px;}
+  }
 </style>
 </head>
 <body>
 
 <div id="screen-login">
-  <div class="login-title">OIL<span>LOG</span></div>
-  <div class="login-tag">ADMIN PANEL</div>
-  <div class="login-sub">Autentifică-te cu Telegram pentru a accesa evidența centralizată a yard-ului.</div>
-  <div class="login-actions">
-    <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
-      data-telegram-login="kurtexsecuritybot"
-      data-size="large"
-      data-radius="8"
-      data-onauth="onTelegramAuth"
-      data-request-access="write"></script></div>
-    <p style="font-size:10px;color:var(--faint);">Doar administratorii au acces.</p>
+  <div class="login-card">
+    <div class="login-title">OIL<span>LOG</span></div>
+    <div class="login-tag">ADMIN PANEL</div>
+    <div class="login-sub">Autentifică-te cu Telegram pentru a accesa evidența centralizată a yard-ului.</div>
+    <div id="login-error" class="login-error hidden"></div>
+    <div class="login-actions">
+      <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
+        data-telegram-login="kurtexsecuritybot"
+        data-size="large"
+        data-radius="8"
+        data-onauth="onTelegramAuth"
+        data-request-access="write"></script></div>
+      <p style="font-size:10px;color:var(--faint);">Doar administratorii au acces.</p>
+    </div>
+    <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
+      <i data-lucide="help-circle"></i>Nu poți să te loghezi?
+    </button>
+    <div id="login-hint" class="login-hint hidden">
+      Butonul Telegram deschide un popup dar nu se întâmplă nimic? Domeniul site-ului nu e setat pe bot. Trimite botului <b>/setdomain</b> din <b>@BotFather</b>, alege bot-ul, apoi lipește domeniul exact al acestui site (fără https://). Dacă apare eroare „not whitelisted", trimite botului <b>/start</b> — primul cont autentificat devine automat admin dacă lista e goală, altfel cere unui admin să te adauge cu <b>/adduser @username</b>.
+    </div>
   </div>
 </div>
 
@@ -186,7 +214,7 @@
       <span class="live-pill" id="live-indicator"><span class="s-dot"></span> Live</span>
       <div class="admin-chip" id="admin-chip"><i data-lucide="user"></i><b id="admin-name">—</b></div>
       <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
-      <button class="btn" onclick="exportCSV()"><i data-lucide="download"></i>Export CSV</button>
+      <button class="btn" onclick="exportXLSX()"><i data-lucide="download"></i>Export Excel</button>
       <button class="btn btn-ghost" onclick="openSettings()" title="Interval oil change"><i data-lucide="settings"></i></button>
       <button class="btn btn-ghost" onclick="logoutAdmin()" title="Delogare"><i data-lucide="log-out"></i></button>
     </div>
@@ -214,6 +242,7 @@
     </div>
   </div>
 
+  <div class="table-wrap">
   <table>
     <thead>
       <tr>
@@ -228,6 +257,7 @@
     </thead>
     <tbody id="tbody"><tr class="empty-row"><td colspan="7"><i data-lucide="loader"></i><div>Se încarcă...</div></td></tr></tbody>
   </table>
+  </div>
 </div>
 
 <!-- Edit modal -->
@@ -360,7 +390,24 @@ async function api(method, path, body){
 }
 
 // ── Telegram Login ─────────────────────────────────────────────────────────
+const LOGIN_ERROR_MESSAGES = {
+  not_whitelisted: 'Contul tău Telegram nu e încă autorizat ca admin. Trimite /start botului, apoi cere unui admin să te adauge cu /adduser.',
+  invalid: 'Autentificare Telegram invalidă. Verifică dacă domeniul acestui site e setat corect în BotFather (/setdomain).',
+  no_hash: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
+};
+function showLoginError(code, raw){
+  const box = document.getElementById('login-error');
+  if(!box) return;
+  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Autentificare eșuată. Încearcă din nou.');
+  box.classList.remove('hidden');
+}
+function clearLoginError(){
+  const box = document.getElementById('login-error');
+  if(box){ box.classList.add('hidden'); box.textContent=''; }
+}
+
 async function onTelegramAuth(tgUser) {
+  clearLoginError();
   try {
     const res = await api('POST', '/auth/telegram', tgUser);
     if(res.ok) {
@@ -374,10 +421,10 @@ async function onTelegramAuth(tgUser) {
       saveAdminUser(adminUser);
       enterAdmin();
     } else {
-      toast('Autentificare eșuată');
+      showLoginError(res.error);
     }
   } catch(e) {
-    toast('Eroare la autentificare: ' + e.message);
+    showLoginError(null, 'Eroare la autentificare: ' + e.message);
   }
 }
 
@@ -670,20 +717,65 @@ async function confirmDelete(){
   } catch(err){ toast('Eroare la ștergere'); }
 }
 
-function exportCSV(){
+async function exportXLSX(){
   const list = getFiltered();
   if(list.length===0){ toast('Nimic de exportat'); return; }
-  let csv = 'Date,Unit Type,Unit Number,Hours,Miles,Added By,Status\n';
-  list.forEach(e=>{
-    const hours = e.unitOfValue==='hr' ? e.value : '';
-    const miles = e.unitOfValue==='mi' ? e.value : '';
-    csv += `${e.date},${typeLabel(e.type)},${e.unit},${hours},${miles},${e.addedBy},${e.sent?'Sent':'Pending'}\n`;
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'OILLOG Admin'; wb.created = new Date();
+  const ws = wb.addWorksheet('OILLOG Export', { views:[{ state:'frozen', ySplit:1 }] });
+
+  ws.columns = [
+    { header:'Date', key:'date', width:13 },
+    { header:'Unit Type', key:'type', width:12 },
+    { header:'Unit Number', key:'unit', width:14 },
+    { header:'Hours', key:'hours', width:11 },
+    { header:'Miles', key:'miles', width:11 },
+    { header:'Added By', key:'addedBy', width:18 },
+    { header:'Status', key:'status', width:12 },
+  ];
+
+  const RED = 'FFC8102E', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0', GREEN = 'FF3A7D44', AMBER = 'FFB7791F';
+
+  const header = ws.getRow(1);
+  header.height = 24;
+  header.eachCell(cell=>{
+    cell.font = { bold:true, color:{argb:'FFFFFFFF'}, size:11, name:'Calibri' };
+    cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:RED} };
+    cell.alignment = { vertical:'middle', horizontal:'left' };
+    cell.border = { bottom:{style:'thin', color:{argb:RED}} };
   });
-  const blob = new Blob([csv], {type:'text/csv'});
+
+  list.forEach((e, i)=>{
+    const row = ws.addRow({
+      date: e.date,
+      type: typeLabel(e.type),
+      unit: e.unit,
+      hours: e.unitOfValue==='hr' ? Number(e.value) : null,
+      miles: e.unitOfValue==='mi' ? Number(e.value) : null,
+      addedBy: e.addedBy,
+      status: e.sent ? 'Sent' : 'Pending',
+    });
+    row.eachCell(cell=>{
+      cell.font = { name:'Calibri', size:11, color:{argb:DARK} };
+      cell.border = { bottom:{style:'thin', color:{argb:BORDER}} };
+      cell.alignment = { vertical:'middle' };
+      if(i % 2 === 1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:LIGHT} };
+    });
+    row.getCell('unit').font = { name:'Consolas', size:11, bold:true, color:{argb:DARK} };
+    row.getCell('status').font = { name:'Calibri', size:11, bold:true, color:{argb: e.sent ? GREEN : AMBER} };
+    ['hours','miles'].forEach(k=>{ row.getCell(k).numFmt = '#,##0'; row.getCell(k).alignment = { horizontal:'right' }; });
+  });
+
+  ws.autoFilter = { from:'A1', to: String.fromCharCode(65+ws.columns.length-1)+'1' };
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `oillog-admin-export_${new Date().toISOString().slice(0,10)}.csv`;
+  a.href = url; a.download = `oillog-admin-export_${new Date().toISOString().slice(0,10)}.xlsx`;
   a.click(); URL.revokeObjectURL(url);
+  toast('Excel descărcat');
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────

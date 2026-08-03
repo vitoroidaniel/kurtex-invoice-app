@@ -199,8 +199,25 @@ def telegram_auth():
     telegram_id = data.get("id")
     username = data.get("username", "")
     entry = find_allowed(username=username, telegram_id=telegram_id)
+
     if not entry:
-        return jsonify({"ok": False, "error": "not_whitelisted"}), 403
+        # Bootstrap: if nobody is whitelisted yet, the first person to log in
+        # via Telegram becomes admin automatically. This avoids the chicken-
+        # and-egg problem of needing an admin to whitelist the first admin.
+        if not load_allowed():
+            entry = {
+                "telegram_username": (username or "").lower(),
+                "telegram_id": telegram_id,
+                "chat_id": None,
+                "role": "admin",
+                "added_by": "bootstrap",
+            }
+            users = load_allowed()
+            users.append(entry)
+            save_allowed(users)
+            logger.info(f"Bootstrapped first admin: @{username} ({telegram_id})")
+        else:
+            return jsonify({"ok": False, "error": "not_whitelisted"}), 403
 
     # Keep the whitelist entry's telegram_id fresh for future lookups/bot commands
     if not entry.get("telegram_id"):
