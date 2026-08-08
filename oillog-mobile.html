@@ -49,6 +49,7 @@
 
   .screen{display:none;flex-direction:column;flex:1;padding:20px 20px calc(70px + env(safe-area-inset-bottom)) 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .screen.active{display:flex;}
+  #screen-add{overflow-y:hidden;}
 
   h1.page-title{font-family:var(--font-display);font-size:22px;font-weight:600;margin:4px 0 4px 0;letter-spacing:0.5px;text-transform:uppercase;}
   p.page-sub{color:var(--dim);font-size:13px;margin:0 0 18px 0;line-height:1.5;}
@@ -298,11 +299,12 @@
 
     <div id="list-container"></div>
 
-    <div class="btn-row" style="margin-top:6px;">
-      <button class="btn btn-secondary" onclick="exportXLSX()"><i data-lucide="download"></i>Excel</button>
-      <button class="btn btn-secondary" onclick="copyList()"><i data-lucide="copy"></i>Copiază</button>
+    <div style="margin-top:auto; padding-top:14px;">
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn btn-secondary" onclick="exportXLSX()"><i data-lucide="download"></i>CSV</button>
+        <button class="btn btn-secondary" onclick="shareList()"><i data-lucide="share"></i>Share</button>
+      </div>
     </div>
-    <button class="btn btn-primary" style="margin-top:10px;" onclick="sendTelegram()"><i data-lucide="send"></i>Trimite lista pe Telegram</button>
   </div>
 
   <div class="screen" id="screen-settings">
@@ -662,10 +664,14 @@ async function exportXLSX(){
   a.click(); URL.revokeObjectURL(url);
   toast('Excel descărcat');
 }
-function copyList(){
+function shareList(){
   const txt = buildListText(getVisibleList());
   if(!txt){ toast('Nu ai nicio înregistrare'); return; }
-  navigator.clipboard.writeText(txt).then(()=> toast('Copiat')).catch(()=> toast('Nu am putut copia'));
+  if(navigator.share){
+    navigator.share({ title:'Oil Change List', text:txt }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(txt).then(()=> toast('Copiat')).catch(()=> toast('Nu am putut copia'));
+  }
 }
 async function sendTelegram(){
   const list = getVisibleList();
