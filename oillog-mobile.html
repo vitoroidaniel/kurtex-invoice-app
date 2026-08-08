@@ -32,9 +32,9 @@
     --font-mono:'JetBrains Mono',monospace;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;height:100%;background:var(--bg);}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);overflow:hidden;}
   body{font-family:var(--font-body);color:var(--white);display:flex;justify-content:center;overscroll-behavior:none;}
-  #app{width:100%;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);}
+  #app{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
 
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px 20px;border-bottom:1px solid var(--border);}
   .brand{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:2px;}
@@ -49,7 +49,7 @@
 
   .screen{display:none;flex-direction:column;flex:1;padding:20px 20px calc(70px + env(safe-area-inset-bottom)) 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .screen.active{display:flex;}
-  #screen-add{overflow-y:hidden;}
+  #screen-add{overflow:hidden;touch-action:none;}
 
   h1.page-title{font-family:var(--font-display);font-size:22px;font-weight:600;margin:4px 0 4px 0;letter-spacing:0.5px;text-transform:uppercase;}
   p.page-sub{color:var(--dim);font-size:13px;margin:0 0 18px 0;line-height:1.5;}
@@ -475,7 +475,6 @@ function showScreen(name){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.screen===name));
   if(name==='list'){ fetchAllEntries().then(list=>{ entries=list; renderList(); }); }
   if(name==='settings') renderSettings();
-  window.scrollTo(0,0);
 }
 
 function selectType(t){
@@ -741,6 +740,31 @@ function saveName(){
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{ navigator.serviceWorker.register('service-worker.js').catch(()=>{}); });
   }
+
+  const addScreen = document.getElementById('screen-add');
+  if(addScreen){
+    function lockAppHeight(){
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.getElementById('app').style.height = h + 'px';
+    }
+    lockAppHeight();
+    window.addEventListener('resize', lockAppHeight);
+    window.addEventListener('orientationchange', () => setTimeout(lockAppHeight, 100));
+  }
+
+  let isAddScreenActive = false;
+  const originalShowScreen = showScreen;
+  showScreen = function(name){
+    originalShowScreen(name);
+    isAddScreenActive = (name === 'add');
+  };
+
+  document.addEventListener('touchmove', (e) => {
+    if(isAddScreenActive) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('wheel', (e) => {
+    if(isAddScreenActive) e.preventDefault();
+  }, { passive: false });
 })();
 </script>
 </body>
