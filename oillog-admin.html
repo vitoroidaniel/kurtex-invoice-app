@@ -100,6 +100,12 @@
   .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-tint);color:var(--green);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
   .live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .clock{display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--white);}
+  .clock i,.clock svg{width:14px;height:14px;color:var(--red);}
+  .clock .ctz{font-size:9px;color:var(--faint);font-family:var(--font-body);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-left:2px;}
+  .stat-date{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px;}
+  .stat-date i,.stat-date svg{width:12px;height:12px;color:var(--faint);}
+  .stat-date b{font-family:var(--font-mono);}
 
   .content{padding:24px 28px 60px 28px;}
 
@@ -339,6 +345,7 @@
     <div class="page-title-flex"><h1 id="topbar-title">Dashboard</h1></div>
     <div class="search" id="global-search-wrap" style="display:none;"><i data-lucide="search"></i><input id="search" placeholder="Caută unit # sau nume..." oninput="render()"></div>
     <div class="spacer"></div>
+    <span class="clock" id="top-clock"><i data-lucide="clock"></i><span id="top-clock-time">--:--:--</span><span class="ctz">CT</span></span>
     <span class="live-pill" id="live-indicator"><span class="s-dot"></span> Live</span>
     <div style="position:relative;">
       <button class="icon-btn" onclick="toggleNotif()" title="Alerte"><i data-lucide="bell"></i><span class="dot" id="notif-dot" style="display:none;"></span></button>
@@ -361,10 +368,10 @@
         <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
       </div>
       <div class="stats">
-        <div class="stat-card accent"><div class="s-icon"><i data-lucide="database"></i></div><div class="n" id="stat-total">0</div><div class="l">Total înregistrări</div></div>
-        <div class="stat-card blue"><div class="s-icon"><i data-lucide="truck"></i></div><div class="n" id="stat-trucks">0</div><div class="l">Trucks</div></div>
-        <div class="stat-card green"><div class="s-icon"><i data-lucide="wind"></i></div><div class="n" id="stat-reefers">0</div><div class="l">Reefers</div></div>
-        <div class="stat-card amber"><div class="s-icon"><i data-lucide="alert-triangle"></i></div><div class="n" id="stat-overdue">0</div><div class="l">Unități depășite</div></div>
+        <div class="stat-card accent"><div class="s-icon"><i data-lucide="database"></i></div><div class="n" id="stat-total">0</div><div class="l">Total înregistrări</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-total">—</b></div></div>
+        <div class="stat-card blue"><div class="s-icon"><i data-lucide="truck"></i></div><div class="n" id="stat-trucks">0</div><div class="l">Trucks</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-trucks">—</b></div></div>
+        <div class="stat-card green"><div class="s-icon"><i data-lucide="wind"></i></div><div class="n" id="stat-reefers">0</div><div class="l">Reefers</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-reefers">—</b></div></div>
+        <div class="stat-card amber"><div class="s-icon"><i data-lucide="alert-triangle"></i></div><div class="n" id="stat-overdue">0</div><div class="l">Unități depășite</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-overdue">—</b></div></div>
       </div>
       <div class="dash-grid">
         <div class="card">
@@ -383,7 +390,7 @@
       <div class="page-head">
         <div><h2>Înregistrări</h2><p>Toate oil change-urile, actualizate în timp real.</p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn" onclick="exportXLSX()"><i data-lucide="download"></i>Export Excel</button>
+          <button class="btn" onclick="openExport()"><i data-lucide="download"></i>Export Excel</button>
           <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
         </div>
       </div>
@@ -470,6 +477,8 @@
           <button class="sn-item active" data-spanel="intervals" onclick="showSettingsPanel('intervals')"><i data-lucide="gauge"></i>Interval oil change</button>
           <button class="sn-item" data-spanel="notifications" onclick="showSettingsPanel('notifications')"><i data-lucide="bell"></i>Notificări</button>
           <button class="sn-item" data-spanel="appearance" onclick="showSettingsPanel('appearance')"><i data-lucide="palette"></i>Aspect</button>
+          <button class="sn-item" data-spanel="language" onclick="showSettingsPanel('language')"><i data-lucide="languages"></i>Limbă</button>
+          <button class="sn-item" data-spanel="dashboard" onclick="showSettingsPanel('dashboard')"><i data-lucide="layout-dashboard"></i>Dashboard</button>
           <button class="sn-item" data-spanel="account" onclick="showSettingsPanel('account')"><i data-lucide="user"></i>Cont</button>
         </div>
 
@@ -523,6 +532,39 @@
             </div>
           </div>
 
+          <!-- Language -->
+          <div class="settings-panel" id="spanel-language">
+            <div class="settings-card">
+              <h3>Limbă / Language / Язык</h3>
+              <p class="sc-sub">Alege limba interfeței. Se aplică instant.</p>
+              <div class="theme-options" style="max-width:420px;">
+                <div class="theme-opt" data-lang-choice="ro" onclick="setLang('ro')"><b>🇷🇴 Română</b></div>
+                <div class="theme-opt" data-lang-choice="ru" onclick="setLang('ru')"><b>🇷🇺 Русский</b></div>
+                <div class="theme-opt" data-lang-choice="en" onclick="setLang('en')"><b>🇬🇧 English</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard widgets -->
+          <div class="settings-panel" id="spanel-dashboard">
+            <div class="settings-card">
+              <h3>Widget-uri Dashboard</h3>
+              <p class="sc-sub">Alege ce widget-uri să apară pe pagina principală. Se aplică instant.</p>
+              <div class="toggle-row">
+                <div class="t-l"><b>Carduri statistici</b><span>Total, Trucks, Reefers, Unități depășite.</span></div>
+                <label class="switch"><input type="checkbox" id="w-stats" onchange="saveWidgetPrefs()"><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="t-l"><b>Înregistrări recente</b><span>Lista ultimelor oil change-uri.</span></div>
+                <label class="switch"><input type="checkbox" id="w-recent" onchange="saveWidgetPrefs()"><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="t-l"><b>Alerte active</b><span>Panoul cu unitățile depășite / în pericol.</span></div>
+                <label class="switch"><input type="checkbox" id="w-alerts" onchange="saveWidgetPrefs()"><span class="slider"></span></label>
+              </div>
+            </div>
+          </div>
+
           <!-- Account -->
           <div class="settings-panel" id="spanel-account">
             <div class="settings-card">
@@ -530,7 +572,6 @@
               <p class="sc-sub">Informațiile contului tău de administrator.</p>
               <div class="toggle-row"><div class="t-l"><b>Nume</b></div><div class="r" id="acc-name" style="font-family:var(--font-mono);">—</div></div>
               <div class="toggle-row"><div class="t-l"><b>Rol</b></div><div class="r" id="acc-role" style="font-family:var(--font-mono);">—</div></div>
-              <div class="toggle-row"><div class="t-l"><b>Metodă de login</b></div><div class="r" id="acc-method" style="font-family:var(--font-mono);">—</div></div>
               <div style="margin-top:18px;"><button class="btn btn-danger" onclick="logoutAdmin()"><i data-lucide="log-out"></i>Delogare</button></div>
             </div>
           </div>
@@ -601,6 +642,52 @@
   </div>
 </div>
 
+<!-- Export preview modal -->
+<div class="overlay" id="export-overlay">
+  <div class="modal" style="max-width:720px;">
+    <h3>Export Excel</h3>
+    <p class="sub">Alege perioada și verifică preview-ul înainte de descărcare.</p>
+    <div class="form-row">
+      <div class="field"><label class="f-label">Perioadă</label>
+        <select id="export-range" onchange="updateExportPreview()">
+          <option value="today">Astăzi</option>
+          <option value="yesterday">Ieri</option>
+          <option value="week">Săptămâna aceasta</option>
+          <option value="lastweek">Săptămâna trecută</option>
+          <option value="month">Luna aceasta</option>
+          <option value="lastmonth">Luna trecută</option>
+          <option value="period">Perioadă personalizată</option>
+          <option value="all">Toate</option>
+        </select>
+      </div>
+      <div class="field" id="export-period-fields" style="display:none;">
+        <div class="row2">
+          <div class="field"><label class="f-label">De la</label><input type="date" id="export-from" onchange="updateExportPreview()"></div>
+          <div class="field"><label class="f-label">Până la</label><input type="date" id="export-to" onchange="updateExportPreview()"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--dim);">Preview — <b id="export-count">0</b> înregistrări</div>
+      <div style="font-size:11px;color:var(--faint);" id="export-range-label">—</div>
+    </div>
+    <div class="table-wrap" style="max-height:280px;overflow-y:auto;">
+      <table style="min-width:600px;">
+        <thead>
+          <tr>
+            <th>Data</th><th>Tip</th><th>Unit #</th><th>Valoare</th><th>Adăugat de</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="export-preview-body"><tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>Nicio înregistrare.</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeExport()">Anulează</button>
+      <button type="button" class="btn btn-primary" onclick="confirmExport()"><i data-lucide="download"></i>Descarcă Excel</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -646,6 +733,156 @@ function applyTheme(t){
 function toggleTheme(){ applyTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark'); }
 function setTheme(t){ applyTheme(t); toast('Tema: '+(t==='dark'?'Dark':'Light')); }
 
+// ── i18n (RO/RU/EN) ───────────────────────────────────────────────────────
+const LANG_KEY = 'oillog_admin_lang';
+const WIDGET_KEY = 'oillog_admin_widgets';
+const I18N = {
+  ro: {
+    'nav.dashboard':'Dashboard','nav.entries':'Înregistrări','nav.units':'Unități','nav.alerts':'Alerte','nav.settings':'Setări',
+    'nav.principal':'Principal','nav.system':'Sistem',
+    'page.dashboard':'Dashboard','page.entries':'Înregistrări','page.units':'Unități','page.alerts':'Alerte','page.settings':'Setări',
+    'dash.sub':'Rezumatul evidenței oil change pe yard.',
+    'stat.total':'Total înregistrări','stat.trucks':'Trucks','stat.reefers':'Reefers','stat.overdue':'Unități depășite',
+    'dash.recent':'Înregistrări recente','dash.recent.all':'Vezi toate →','dash.alerts':'Alerte active','dash.alerts.details':'Detalii →',
+    'dash.noalerts':'Nicio alertă activă.','dash.norecent':'Nicio înregistrare încă.',
+    'entries.sub':'Toate oil change-urile, actualizate în timp real.',
+    'btn.export':'Export Excel','btn.refresh':'Refresh','btn.cancel':'Anulează','btn.save':'Salvează','btn.delete':'Șterge','btn.close':'Închide','btn.download':'Descarcă Excel',
+    'th.date':'Data','th.type':'Tip','th.unit':'Unit #','th.value':'Mileage / Ore','th.addedby':'Adăugat de','th.status':'Status','th.actions':'Acțiuni',
+    'filter.all':'Toate','filter.sent':'Trimise','filter.pending':'Netrimise','filter.status':'Status: toate',
+    'status.sent':'Trimis','status.pending':'Netrimis',
+    'units.sub':'Gestionare unități și kilometraj / ore curente.',
+    'units.last':'Ultimul oil change','units.current':'Valoare curentă',
+    'alerts.sub':'Unități care au depășit sau sunt aproape de intervalul de oil change.',
+    'alerts.title':'Unități depășite / în pericol',
+    'settings.sub':'Configurează intervalele, notificările și aspectul.',
+    'set.intervals':'Interval oil change','set.notifications':'Notificări','set.appearance':'Aspect','set.language':'Limbă','set.dashboard':'Dashboard','set.account':'Cont',
+    'set.lang.title':'Limbă / Language / Язык','set.lang.sub':'Alege limba interfeței. Se aplică instant.',
+    'set.widgets.title':'Widget-uri Dashboard','set.widgets.sub':'Alege ce widget-uri să apară pe pagina principală. Se aplică instant.',
+    'set.w.stats':'Carduri statistici','set.w.stats.d':'Total, Trucks, Reefers, Unități depășite.',
+    'set.w.recent':'Înregistrări recente','set.w.recent.d':'Lista ultimelor oil change-uri.',
+    'set.w.alerts':'Alerte active','set.w.alerts.d':'Panoul cu unitățile depășite / în pericol.',
+    'export.title':'Export Excel','export.sub':'Alege perioada și verifică preview-ul înainte de descărcare.',
+    'export.period':'Perioadă','export.today':'Astăzi','export.yesterday':'Ieri','export.week':'Săptămâna aceasta','export.lastweek':'Săptămâna trecută','export.month':'Luna aceasta','export.lastmonth':'Luna trecută','export.period.custom':'Perioadă personalizată','export.all':'Toate',
+    'export.from':'De la','export.to':'Până la','export.preview':'Preview','export.records':'înregistrări',
+    'toast.updated':'Actualizat','toast.saved':'Preferințe salvate','toast.exported':'Excel descărcat','toast.theme':'Tema:',
+  },
+  ru: {
+    'nav.dashboard':'Дашборд','nav.entries':'Записи','nav.units':'Юниты','nav.alerts':'Алерты','nav.settings':'Настройки',
+    'nav.principal':'Главное','nav.system':'Система',
+    'page.dashboard':'Дашборд','page.entries':'Записи','page.units':'Юниты','page.alerts':'Алерты','page.settings':'Настройки',
+    'dash.sub':'Сводка по заменам масла на площадке.',
+    'stat.total':'Всего записей','stat.trucks':'Траки','stat.reefers':'Рефрижераторы','stat.overdue':'Просроченные юниты',
+    'dash.recent':'Последние записи','dash.recent.all':'Все →','dash.alerts':'Активные алерты','dash.alerts.details':'Детали →',
+    'dash.noalerts':'Нет активных алертов.','dash.norecent':'Пока нет записей.',
+    'entries.sub':'Все замены масла, обновляются в реальном времени.',
+    'btn.export':'Экспорт Excel','btn.refresh':'Обновить','btn.cancel':'Отмена','btn.save':'Сохранить','btn.delete':'Удалить','btn.close':'Закрыть','btn.download':'Скачать Excel',
+    'th.date':'Дата','th.type':'Тип','th.unit':'Юнит #','th.value':'Пробег / Часы','th.addedby':'Добавил','th.status':'Статус','th.actions':'Действия',
+    'filter.all':'Все','filter.sent':'Отправлено','filter.pending':'Не отправлено','filter.status':'Статус: все',
+    'status.sent':'Отправлено','status.pending':'Не отправлено',
+    'units.sub':'Управление юнитами и текущим пробегом / часами.',
+    'units.last':'Последняя замена','units.current':'Текущее значение',
+    'alerts.sub':'Юниты, которые превысили или близки к интервалу замены масла.',
+    'alerts.title':'Просроченные / в опасности юниты',
+    'settings.sub':'Настройка интервалов, уведомлений и внешнего вида.',
+    'set.intervals':'Интервал замены масла','set.notifications':'Уведомления','set.appearance':'Внешний вид','set.language':'Язык','set.dashboard':'Дашборд','set.account':'Аккаунт',
+    'set.lang.title':'Limbă / Language / Язык','set.lang.sub':'Выберите язык интерфейса. Применяется мгновенно.',
+    'set.widgets.title':'Виджеты Дашборда','set.widgets.sub':'Выберите, какие виджеты показывать на главной странице. Применяется мгновенно.',
+    'set.w.stats':'Карточки статистики','set.w.stats.d':'Всего, Траки, Рефрижераторы, Просроченные.',
+    'set.w.recent':'Последние записи','set.w.recent.d':'Список последних замен масла.',
+    'set.w.alerts':'Активные алерты','set.w.alerts.d':'Панель с просроченными / в опасности юнитами.',
+    'export.title':'Экспорт Excel','export.sub':'Выберите период и проверьте предпросмотр перед скачиванием.',
+    'export.period':'Период','export.today':'Сегодня','export.yesterday':'Вчера','export.week':'Эта неделя','export.lastweek':'Прошлая неделя','export.month':'Этот месяц','export.lastmonth':'Прошлый месяц','export.period.custom':'Свой период','export.all':'Все',
+    'export.from':'От','export.to':'До','export.preview':'Предпросмотр','export.records':'записей',
+    'toast.updated':'Обновлено','toast.saved':'Настройки сохранены','toast.exported':'Excel скачан','toast.theme':'Тема:',
+  },
+  en: {
+    'nav.dashboard':'Dashboard','nav.entries':'Entries','nav.units':'Units','nav.alerts':'Alerts','nav.settings':'Settings',
+    'nav.principal':'Main','nav.system':'System',
+    'page.dashboard':'Dashboard','page.entries':'Entries','page.units':'Units','page.alerts':'Alerts','page.settings':'Settings',
+    'dash.sub':'Oil change records overview for the yard.',
+    'stat.total':'Total records','stat.trucks':'Trucks','stat.reefers':'Reefers','stat.overdue':'Overdue units',
+    'dash.recent':'Recent entries','dash.recent.all':'View all →','dash.alerts':'Active alerts','dash.alerts.details':'Details →',
+    'dash.noalerts':'No active alerts.','dash.norecent':'No entries yet.',
+    'entries.sub':'All oil changes, updated in real time.',
+    'btn.export':'Export Excel','btn.refresh':'Refresh','btn.cancel':'Cancel','btn.save':'Save','btn.delete':'Delete','btn.close':'Close','btn.download':'Download Excel',
+    'th.date':'Date','th.type':'Type','th.unit':'Unit #','th.value':'Mileage / Hours','th.addedby':'Added by','th.status':'Status','th.actions':'Actions',
+    'filter.all':'All','filter.sent':'Sent','filter.pending':'Pending','filter.status':'Status: all',
+    'status.sent':'Sent','status.pending':'Pending',
+    'units.sub':'Manage units and current mileage / hours.',
+    'units.last':'Last oil change','units.current':'Current value',
+    'alerts.sub':'Units that exceeded or are close to the oil change interval.',
+    'alerts.title':'Overdue / at risk units',
+    'settings.sub':'Configure intervals, notifications and appearance.',
+    'set.intervals':'Oil change interval','set.notifications':'Notifications','set.appearance':'Appearance','set.language':'Language','set.dashboard':'Dashboard','set.account':'Account',
+    'set.lang.title':'Limbă / Language / Язык','set.lang.sub':'Choose the interface language. Applies instantly.',
+    'set.widgets.title':'Dashboard widgets','set.widgets.sub':'Choose which widgets appear on the main page. Applies instantly.',
+    'set.w.stats':'Stat cards','set.w.stats.d':'Total, Trucks, Reefers, Overdue.',
+    'set.w.recent':'Recent entries','set.w.recent.d':'List of latest oil changes.',
+    'set.w.alerts':'Active alerts','set.w.alerts.d':'Panel with overdue / at risk units.',
+    'export.title':'Export Excel','export.sub':'Choose the period and check the preview before downloading.',
+    'export.period':'Period','export.today':'Today','export.yesterday':'Yesterday','export.week':'This week','export.lastweek':'Last week','export.month':'This month','export.lastmonth':'Last month','export.period.custom':'Custom period','export.all':'All',
+    'export.from':'From','export.to':'To','export.preview':'Preview','export.records':'records',
+    'toast.updated':'Updated','toast.saved':'Preferences saved','toast.exported':'Excel downloaded','toast.theme':'Theme:',
+  }
+};
+let currentLang = localStorage.getItem(LANG_KEY) || 'ro';
+let widgetPrefs = { stats:true, recent:true, alerts:true };
+try{ widgetPrefs = Object.assign({stats:true, recent:true, alerts:true}, JSON.parse(localStorage.getItem(WIDGET_KEY)) || {}); }catch(e){}
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.ro[key]) || key; }
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem(LANG_KEY, lang);
+  document.querySelectorAll('.theme-opt[data-lang-choice]').forEach(o=>o.classList.toggle('active', o.dataset.langChoice===lang));
+  applyI18n();
+  toast(t('toast.saved'));
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('.s-item').forEach(el=>{
+    const key = 'nav.'+el.dataset.page;
+    const label = t(key);
+    const badge = el.querySelector('.badge');
+    if(badge) el.innerHTML = el.innerHTML.replace(/<span class="badge"[\s\S]*?<\/span>/, '') + (badge ? badge.outerHTML : '');
+    el.childNodes[el.childNodes.length-1].textContent = ' ' + label;
+  });
+  document.querySelectorAll('.sn-item').forEach(el=>{
+    const key = 'set.'+el.dataset.spanel;
+    const label = t(key);
+    const icon = el.querySelector('i, svg');
+    el.innerHTML = '';
+    if(icon) el.appendChild(icon);
+    el.appendChild(document.createTextNode(' ' + label));
+  });
+  document.querySelectorAll('.s-section').forEach((el,i)=>{
+    el.textContent = i===0 ? t('nav.principal') : t('nav.system');
+  });
+  const active = document.querySelector('.page.active');
+  if(active) document.getElementById('topbar-title').textContent = t('page.'+active.id.replace('page-',''));
+  icons();
+}
+function saveWidgetPrefs(){
+  widgetPrefs = {
+    stats: document.getElementById('w-stats').checked,
+    recent: document.getElementById('w-recent').checked,
+    alerts: document.getElementById('w-alerts').checked,
+  };
+  localStorage.setItem(WIDGET_KEY, JSON.stringify(widgetPrefs));
+  applyWidgets();
+  toast(t('toast.saved'));
+}
+function applyWidgets(){
+  document.getElementById('w-stats').checked = widgetPrefs.stats;
+  document.getElementById('w-recent').checked = widgetPrefs.recent;
+  document.getElementById('w-alerts').checked = widgetPrefs.alerts;
+  const statsEl = document.querySelector('#page-dashboard .stats');
+  const recentCard = document.querySelector('#page-dashboard .dash-grid .card:first-child');
+  const alertsCard = document.querySelector('#page-dashboard .dash-grid .card:last-child');
+  if(statsEl) statsEl.style.display = widgetPrefs.stats ? '' : 'none';
+  if(recentCard) recentCard.style.display = widgetPrefs.recent ? '' : 'none';
+  if(alertsCard) alertsCard.style.display = widgetPrefs.alerts ? '' : 'none';
+}
+
 // ── Notifications prefs ───────────────────────────────────────────────────
 function loadNotifPrefs(){ try{ return Object.assign({overdue:true, warn:true, browser:false, sound:true}, JSON.parse(localStorage.getItem(NOTIF_KEY)) || {}); }catch(e){ return {overdue:true, warn:true, browser:false, sound:true}; } }
 function saveNotifPrefs(){
@@ -657,7 +894,7 @@ function saveNotifPrefs(){
   };
   localStorage.setItem(NOTIF_KEY, JSON.stringify(notifPrefs));
   if(notifPrefs.browser && 'Notification' in window && Notification.permission==='default') Notification.requestPermission();
-  toast('Preferințe salvate');
+  toast(t('toast.saved'));
 }
 function applyNotifPrefs(){
   document.getElementById('notif-overdue').checked = notifPrefs.overdue;
@@ -691,10 +928,41 @@ function enterAdmin(){
   document.getElementById('main').classList.remove('hidden');
   document.getElementById('acc-name').textContent = adminUser ? adminUser.name : '—';
   document.getElementById('acc-role').textContent = adminUser ? adminUser.role : '—';
-  document.getElementById('acc-method').textContent = adminUser ? (adminUser.method || 'telegram') : '—';
   icons();
   loadData();
   startSync();
+  startClock();
+}
+
+// ── Central Time clock ────────────────────────────────────────────────────
+function getCentralTime(){
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+}
+function startClock(){
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+function updateClock(){
+  const el = document.getElementById('top-clock-time');
+  if(!el) return;
+  const now = getCentralTime();
+  el.textContent = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+}
+function ctDateStr(){
+  const d = getCentralTime();
+  return d.toISOString().slice(0,10);
+}
+function ctDateLabel(){
+  const d = getCentralTime();
+  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+}
+function updateStatDates(){
+  const today = ctDateStr();
+  const label = ctDateLabel();
+  document.getElementById('stat-date-total').textContent = label;
+  document.getElementById('stat-date-trucks').textContent = label;
+  document.getElementById('stat-date-reefers').textContent = label;
+  document.getElementById('stat-date-overdue').textContent = label;
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────
@@ -703,7 +971,7 @@ function navigate(page){
   document.querySelectorAll('.s-item').forEach(b=>b.classList.toggle('active', b.dataset.page===page));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('topbar-title').textContent = PAGE_TITLES[page];
+  document.getElementById('topbar-title').textContent = t('page.'+page);
   document.getElementById('global-search-wrap').style.display = page==='entries' ? 'block' : 'none';
   document.getElementById('sidebar').classList.remove('open');
   if(page==='dashboard') renderDashboard();
@@ -850,6 +1118,7 @@ function renderDashboard(){
   document.getElementById('stat-reefers').textContent = entries.filter(e=>e.type==='R').length;
   const { over, warn } = getAlerts();
   document.getElementById('stat-overdue').textContent = over.length;
+  updateStatDates();
 
   const recent = [...entries].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,8);
   document.getElementById('dash-recent').innerHTML = recent.length===0
@@ -1104,10 +1373,67 @@ async function confirmDelete(){
   } catch(err){ toast('Eroare la ștergere'); }
 }
 
-// ── Export ───────────────────────────────────────────────────────────────
-async function exportXLSX(){
-  const list = getFiltered();
-  if(list.length===0){ toast('Nimic de exportat'); return; }
+// ── Export with preview + date range ──────────────────────────────────────
+let exportList = [];
+function getExportRange(){
+  const range = document.getElementById('export-range').value;
+  const today = ctDateStr();
+  const d = new Date(today + 'T00:00:00');
+  const startOfWeek = new Date(d); startOfWeek.setDate(d.getDate() - d.getDay() + 1); // Monday
+  const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate() + 6);
+  const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  const endOfMonth = new Date(d.getFullYear(), d.getMonth()+1, 0);
+  const fmt = x => x.toISOString().slice(0,10);
+  switch(range){
+    case 'today': return { from: today, to: today, label: 'Astăzi ('+today+')' };
+    case 'yesterday': { const y = new Date(d); y.setDate(d.getDate()-1); const ys = fmt(y); return { from: ys, to: ys, label: 'Ieri ('+ys+')' }; }
+    case 'week': return { from: fmt(startOfWeek), to: fmt(endOfWeek), label: 'Săptămâna aceasta ('+fmt(startOfWeek)+' → '+fmt(endOfWeek)+')' };
+    case 'lastweek': { const sw = new Date(startOfWeek); sw.setDate(sw.getDate()-7); const ew = new Date(sw); ew.setDate(sw.getDate()+6); return { from: fmt(sw), to: fmt(ew), label: 'Săptămâna trecută ('+fmt(sw)+' → '+fmt(ew)+')' }; }
+    case 'month': return { from: fmt(startOfMonth), to: fmt(endOfMonth), label: 'Luna aceasta ('+fmt(startOfMonth)+' → '+fmt(endOfMonth)+')' };
+    case 'lastmonth': { const sm = new Date(d.getFullYear(), d.getMonth()-1, 1); const em = new Date(d.getFullYear(), d.getMonth(), 0); return { from: fmt(sm), to: fmt(em), label: 'Luna trecută ('+fmt(sm)+' → '+fmt(em)+')' }; }
+    case 'period': {
+      const from = document.getElementById('export-from').value || today;
+      const to = document.getElementById('export-to').value || today;
+      return { from, to, label: 'Perioadă ('+from+' → '+to+')' };
+    }
+    default: return { from: null, to: null, label: 'Toate înregistrările' };
+  }
+}
+function updateExportPreview(){
+  const range = document.getElementById('export-range').value;
+  document.getElementById('export-period-fields').style.display = range==='period' ? 'block' : 'none';
+  const { from, to, label } = getExportRange();
+  document.getElementById('export-range-label').textContent = label;
+  exportList = entries.filter(e=>{
+    if(from && e.date < from) return false;
+    if(to && e.date > to) return false;
+    return true;
+  }).sort((a,b)=> a.date.localeCompare(b.date));
+  document.getElementById('export-count').textContent = exportList.length;
+  const body = document.getElementById('export-preview-body');
+  if(exportList.length===0){
+    body.innerHTML = `<tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>Nicio înregistrare în perioada selectată.</div></td></tr>`;
+  } else {
+    body.innerHTML = exportList.slice(0,50).map(e=>`
+      <tr>
+        <td class="date">${e.date}</td>
+        <td><span class="type-tag"><i data-lucide="${typeIcon(e.type)}"></i>${typeLabel(e.type)}</span></td>
+        <td class="unit">#${escapeHtml(e.unit)}</td>
+        <td class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></td>
+        <td class="who">${escapeHtml(e.addedBy)}</td>
+        <td><span class="status-dot ${e.sent?'sent':'pending'}">${e.sent ? 'Trimis' : 'Netrimis'}</span></td>
+      </tr>`).join('');
+  }
+  icons();
+}
+function openExport(){
+  document.getElementById('export-overlay').classList.add('show');
+  updateExportPreview();
+  icons();
+}
+function closeExport(){ document.getElementById('export-overlay').classList.remove('show'); }
+async function confirmExport(){
+  if(exportList.length===0){ toast('Nimic de exportat'); return; }
   const wb = new ExcelJS.Workbook();
   wb.creator = 'OILLOG Admin'; wb.created = new Date();
   const ws = wb.addWorksheet('OILLOG Export', { views:[{ state:'frozen', ySplit:1 }] });
@@ -1129,7 +1455,7 @@ async function exportXLSX(){
     cell.alignment = { vertical:'middle', horizontal:'left' };
     cell.border = { bottom:{style:'thin', color:{argb:RED}} };
   });
-  list.forEach((e,i)=>{
+  exportList.forEach((e,i)=>{
     const row = ws.addRow({
       date: e.date, type: typeLabel(e.type), unit: e.unit,
       hours: e.unitOfValue==='hr' ? Number(e.value) : null,
@@ -1151,9 +1477,10 @@ async function exportXLSX(){
   const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `oillog-admin-export_${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.href = url; a.download = `oillog-admin-export_${ctDateStr()}.xlsx`;
   a.click(); URL.revokeObjectURL(url);
-  toast('Excel descărcat');
+  closeExport();
+  toast('Excel descărcat — ' + exportList.length + ' înregistrări');
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
@@ -1163,6 +1490,9 @@ async function exportXLSX(){
   applyNotifPrefs();
   document.getElementById('s-truck').value = intervals.T;
   document.getElementById('s-reefer').value = intervals.R;
+  applyI18n();
+  applyWidgets();
+  document.querySelectorAll('.theme-opt[data-lang-choice]').forEach(o=>o.classList.toggle('active', o.dataset.langChoice===currentLang));
   try {
     const status = await api('GET', '/auth/status');
     if(status.ok && status.user) {
