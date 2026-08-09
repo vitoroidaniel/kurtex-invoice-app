@@ -88,35 +88,48 @@
 - pip package manager
 - Telegram Bot token (from [@BotFather](https://t.me/BotFather))
 
-### Quick Start
+### Quick Start (Local Development)
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/oillog.git
 cd oillog
 
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables
+# Set environment variables (optional for local dev)
 export OILLOG_SECRET="your-secret-key-here"
 export BOT_TOKEN="your-telegram-bot-token"
-export OILLOG_DATA_DIR="./data"
+export ADMIN_IDS="your-telegram-id"  # Comma-separated admin IDs
+export DEVELOPER_ID="your-telegram-id"  # Optional: auto-bootstrap developer
 
-# Run the server
-python server.py
+# Run both server and bot
+chmod +x start.sh
+./start.sh
 ```
 
 Visit `http://localhost:8080` in your browser.
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OILLOG_SECRET` | Flask session secret key | `oillog-secret-change-me` |
-| `BOT_TOKEN` | Telegram bot token (same as alert bot) | `""` |
-| `OILLOG_DATA_DIR` | Directory for JSON data files | `/app/data` |
-| `PORT` | Server port | `8080` |
+All configuration is done via environment variables. **No hardcoded values** - everything can be set in Railway dashboard.
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `OILLOG_SECRET` | Flask session secret key | Yes (for production) | `oillog-secret-change-me` |
+| `BOT_TOKEN` | Telegram bot token from @BotFather | Yes | `""` |
+| `BOT_USERNAME` | Telegram bot username | No | `@kurtexalertsbot` |
+| `ADMIN_IDS` | Comma-separated Telegram IDs of bot admins | No | `""` |
+| `DEVELOPER_ID` | Auto-bootstrap developer account on startup | No | `""` |
+| `OILLOG_DATA_DIR` | Directory for JSON data files | No | `/app/data` |
+| `PORT` | Server port (Railway sets this automatically) | No | `8080` |
+
+**Note:** On Railway, `PORT` is set automatically. The `DATA_DIR` defaults to `/app/data` which is Railway's persistent volume.
 
 ### Production Deployment (Railway)
 
