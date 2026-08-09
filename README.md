@@ -179,7 +179,6 @@ All configuration is done via environment variables. **No hardcoded values** - e
 1. **Access Admin Panel**
    - Navigate to `/admin` or `/admin-login`
    - Login with Telegram (requires developer/super_admin role)
-   - Or use password: `admin` / `oillog2024`
 
 2. **Monitor Dashboard**
    - View total records, truck/reefer counts, and overdue units
@@ -230,13 +229,6 @@ POST /auth/register
   "password": "secure123",
   "name": "John Doe"
 }
-```
-
-**Hardcoded Admin Fallback:**
-- Username: `admin`
-- Password: `oillog2024`
-- Role: `super_admin`
-
 ---
 
 ## 🔌 API Reference
