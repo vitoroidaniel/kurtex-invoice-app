@@ -347,6 +347,10 @@ FRONTEND_DIR = Path(__file__).parent
 def serve_index():
     return send_from_directory(str(FRONTEND_DIR), "oillog-mobile.html")
 
+@app.route("/admin-login")
+def serve_admin_login():
+    return send_from_directory(str(FRONTEND_DIR), "oillog-admin-login.html")
+
 @app.route("/admin")
 def serve_admin():
     return send_from_directory(str(FRONTEND_DIR), "oillog-admin.html")

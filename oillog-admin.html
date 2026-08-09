@@ -1,133 +1,265 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="ro" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OILLOG — Admin Panel</title>
+<link rel="icon" href="icon-192.png">
 <script src="https://unpkg.com/lucide@1.27.0/dist/umd/lucide.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#FAFAF8;
+    --bg:#F4F4F2;
     --surface:#FFFFFF;
     --surface-2:#F9F7F5;
+    --surface-3:#F1EFEC;
     --border:#E5E3E0;
-    --border-2:#DDD9D3;
+    --border-2:#D8D5D0;
     --white:#1A1A1A;
     --dim:#6B6B6B;
-    --faint:#999999;
+    --faint:#9A9A9A;
     --red:#C8102E;
     --red-tint:rgba(200,16,46,0.08);
     --amber:#B7791F;
     --amber-tint:rgba(183,121,31,0.1);
     --green:#3A7D44;
-    --r:4px;
+    --green-tint:rgba(58,125,68,0.1);
+    --sidebar:#1A1A1A;
+    --sidebar-text:#C9C7C2;
+    --sidebar-active:#FFFFFF;
+    --sidebar-active-bg:rgba(255,255,255,0.1);
+    --r:6px;
+    --shadow:0 1px 3px rgba(0,0,0,0.05);
+    --shadow-lg:0 10px 34px rgba(0,0,0,0.08);
     --font-display:'Oswald',sans-serif;
     --font-body:'Inter',sans-serif;
     --font-mono:'JetBrains Mono',monospace;
   }
+  html[data-theme="dark"]{
+    --bg:#121212;
+    --surface:#1C1C1C;
+    --surface-2:#242424;
+    --surface-3:#2A2A2A;
+    --border:#333333;
+    --border-2:#3D3D3D;
+    --white:#ECECEC;
+    --dim:#A0A0A0;
+    --faint:#777777;
+    --red-tint:rgba(200,16,46,0.15);
+    --amber-tint:rgba(183,121,31,0.15);
+    --green-tint:rgba(58,125,68,0.15);
+    --sidebar:#0D0D0D;
+    --sidebar-text:#8A8A8A;
+    --sidebar-active:#FFFFFF;
+    --sidebar-active-bg:rgba(255,255,255,0.08);
+    --shadow:0 1px 3px rgba(0,0,0,0.4);
+    --shadow-lg:0 10px 34px rgba(0,0,0,0.5);
+  }
   *{box-sizing:border-box;}
-  html,body{margin:0;background:var(--bg);color:var(--white);font-family:var(--font-body);}
-  #app{max-width:1280px;margin:0 auto;padding:28px 32px 60px 32px;}
+  html,body{margin:0;background:var(--bg);color:var(--white);font-family:var(--font-body);height:100%;}
+  body{display:flex;}
 
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
-  .brand{font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:3px;}
-  .brand span{color:var(--red);}
-  .brand small{display:block;font-family:var(--font-body);font-weight:500;font-size:11.5px;letter-spacing:0.5px;color:var(--faint);text-transform:none;margin-top:2px;}
-  .header-actions{display:flex;gap:10px;align-items:center;}
+  /* ── Sidebar ─────────────────────────────── */
+  .sidebar{width:240px;min-width:240px;background:var(--sidebar);color:var(--sidebar-text);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;transition:transform .2s;}
+  .sidebar .s-brand{padding:24px 22px 18px 22px;border-bottom:1px solid rgba(255,255,255,0.08);}
+  .sidebar .s-brand .brand{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:3px;color:#fff;}
+  .sidebar .s-brand .brand span{color:var(--red);}
+  .sidebar .s-brand small{display:block;font-family:var(--font-body);font-weight:500;font-size:10.5px;letter-spacing:0.5px;color:var(--sidebar-text);margin-top:2px;text-transform:uppercase;}
+  .s-nav{flex:1;padding:14px 12px;overflow-y:auto;}
+  .s-section{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--sidebar-text);opacity:0.6;padding:14px 12px 6px 12px;font-weight:600;}
+  .s-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:var(--r);cursor:pointer;font-size:13.5px;font-weight:500;margin-bottom:2px;transition:all .15s;border:none;background:transparent;color:var(--sidebar-text);font-family:var(--font-body);width:100%;text-align:left;}
+  .s-item i, .s-item svg{width:17px;height:17px;flex-shrink:0;}
+  .s-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .s-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active);font-weight:600;}
+  .s-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;}
+  .s-footer{padding:16px 22px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:var(--sidebar-text);opacity:0.7;}
 
-  .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green);color:#fff;border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
-  .live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.8);animation:pulse 2s infinite;}
+  /* ── Main ────────────────────────────────── */
+  .main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-height:100vh;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;}
+  .topbar .page-title-flex{display:flex;align-items:center;gap:10px;min-width:0;}
+  .topbar h1{font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0;white-space:nowrap;}
+  .topbar .spacer{flex:1;}
+  .menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--dim);cursor:pointer;}
+  .menu-btn i,.menu-btn svg{width:18px;height:18px;display:block;}
+  .search{position:relative;width:280px;}
+  .search i,.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint);}
+  .search input{width:100%;padding:9px 12px 9px 36px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--font-mono);font-size:13px;outline:none;transition:all .15s;}
+  .search input::placeholder{color:var(--faint);}
+  .search input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);background:var(--surface);}
+
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--dim);cursor:pointer;position:relative;transition:all .15s;}
+  .icon-btn:hover{color:var(--white);border-color:var(--border-2);background:var(--surface-2);}
+  .icon-btn i,.icon-btn svg{width:16px;height:16px;display:block;}
+  .icon-btn .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--surface);}
+  .admin-chip{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:12.5px;color:var(--dim);}
+  .admin-chip i,.admin-chip svg{width:14px;height:14px;color:var(--faint);}
+  .admin-chip b{color:var(--white);font-weight:600;}
+  .admin-chip img{width:22px;height:22px;border-radius:50%;object-fit:cover;}
+  .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-tint);color:var(--green);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
+  .live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
+  .content{padding:24px 28px 60px 28px;}
+
+  /* ── Buttons ─────────────────────────────── */
   button{cursor:pointer;font-family:var(--font-body);}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;}
-  .btn:hover{background:var(--surface-2);border-color:var(--border-2);color:var(--white);}
-  .btn i, .btn svg{width:15px;height:15px;}
-  .btn-primary{background:var(--red);border-color:var(--red);color:#FFFFFF;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;transition:all .15s;}
+  .btn:hover{background:var(--surface-2);border-color:var(--border-2);}
+  .btn i,.btn svg{width:15px;height:15px;}
+  .btn-primary{background:var(--red);border-color:var(--red);color:#fff;}
   .btn-primary:hover{background:#A80725;border-color:#A80725;}
   .btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
   .btn-ghost{background:transparent;border-color:transparent;color:var(--dim);}
   .btn-sm{padding:6px 10px;font-size:11px;}
 
-  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;min-height:74px;}
-  .stat-card .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.2;transition:opacity .15s;}
-  .stat-card .n.loading{opacity:0.25;}
-  .stat-card .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;}
+  /* ── Pages ───────────────────────────────── */
+  .page{display:none;}
+  .page.active{display:block;animation:fadeIn .2s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+  .page-head h2{font-family:var(--font-display);font-size:22px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0;}
+  .page-head p{color:var(--dim);font-size:13px;margin:4px 0 0 0;}
+
+  /* ── Dashboard ───────────────────────────── */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .stat-card .s-icon{width:38px;height:38px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+  .stat-card .s-icon i,.stat-card .s-icon svg{width:18px;height:18px;}
+  .stat-card .n{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.1;}
+  .stat-card .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.6px;margin-top:3px;}
+  .stat-card.accent .s-icon{background:var(--red-tint);color:var(--red);}
   .stat-card.accent .n{color:var(--red);}
-  .stat-card.warn-accent{border-color:var(--amber);background:var(--amber-tint);}
-  .stat-card.warn-accent .n{color:var(--amber);}
+  .stat-card.green .s-icon{background:var(--green-tint);color:var(--green);}
+  .stat-card.green .n{color:var(--green);}
+  .stat-card.amber .s-icon{background:var(--amber-tint);color:var(--amber);}
+  .stat-card.amber .n{color:var(--amber);}
+  .stat-card.blue .s-icon{background:rgba(59,130,246,0.1);color:#3B82F6;}
+  .stat-card.blue .n{color:#3B82F6;}
 
-  .toolbar{display:flex;align-items:center;gap:15px;margin-bottom:18px;flex-wrap:wrap;}
-  .search{position:relative;flex:1;min-width:220px;}
-  .search i, .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint);}
-  .search input{width:100%;padding:10px 12px 10px 36px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--font-mono);font-size:13.5px;outline:none;transition:all 0.15s;}
-  .search input::placeholder{color:var(--faint);}
-  .search input:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px rgba(200,16,46,0.1);}
-  .pill-group{display:flex;gap:6px;}
-  .pill{padding:8px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;}
-  .pill:hover{border-color:var(--border-2);background:var(--surface-2);}
-  .pill.active{background:#1A1A1A;color:#FFFFFF;border-color:#1A1A1A;font-weight:700;}
+  .dash-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);}
+  .card .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .card .card-head h3{font-family:var(--font-display);font-size:14px;letter-spacing:0.8px;text-transform:uppercase;margin:0;}
+  .card .card-head .link{background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);}
+  .card .card-body{padding:16px 20px;}
 
-  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-  thead th{text-align:left;font-family:var(--font-display);font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--dim);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);user-select:none;font-weight:700;}
+  .recent-list .r-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .recent-list .r-item:last-child{border-bottom:none;}
+  .ubadge{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--border-2);}
+  .ubadge.ok{background:var(--green);}
+  .ubadge.warn{background:var(--amber);}
+  .ubadge.over{background:var(--red);}
+  .r-item .ru{font-family:var(--font-mono);font-weight:700;}
+  .r-item .rm{color:var(--dim);font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .r-item .rv{font-family:var(--font-mono);font-weight:700;font-size:12.5px;}
+
+  .alert-list .a-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .alert-list .a-item:last-child{border-bottom:none;}
+  .a-item .a-icon{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .a-item .a-icon.over{background:var(--red-tint);color:var(--red);}
+  .a-item .a-icon.warn{background:var(--amber-tint);color:var(--amber);}
+  .a-item .a-icon i,.a-item .a-icon svg{width:14px;height:14px;}
+  .a-item .a-txt b{font-family:var(--font-mono);}
+  .a-item .a-txt{color:var(--dim);line-height:1.5;}
+  .empty-mini{text-align:center;color:var(--faint);font-size:13px;padding:20px;}
+
+  /* ── Table ───────────────────────────────── */
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
+  .table-wrap table{width:100%;border-collapse:collapse;min-width:780px;}
+  @media (max-width:1100px){ .table-wrap{overflow-x:auto;} }
+  thead th{text-align:left;font-family:var(--font-display);font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--dim);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);user-select:none;-webkit-user-select:none;font-weight:700;white-space:nowrap;}
   thead th.sortable{cursor:pointer;}
   thead th.sortable:hover{color:var(--white);}
   thead th .arrow{margin-left:4px;color:var(--red);}
   tbody td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--surface-2);}
-  td.date{font-family:var(--font-mono);color:var(--dim);white-space:nowrap;}
+  td.date{font-family:var(--font-mono);color:var(--dim);white-space:nowrap;min-width:112px;}
   .type-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border:1px solid var(--border-2);border-radius:var(--r);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;}
-  .type-tag i, .type-tag svg{width:13px;height:13px;}
+  .type-tag i,.type-tag svg{width:13px;height:13px;}
   td.unit{font-family:var(--font-mono);font-weight:700;}
   .unit-link{background:none;border:none;padding:0;font-family:var(--font-mono);font-weight:700;font-size:13.5px;color:var(--white);cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
   .unit-link:hover{color:var(--red);text-decoration:underline;}
-  .ubadge{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--border-2);}
-  .ubadge.ok{background:var(--green);}
-  .ubadge.warn{background:var(--amber);}
-  .ubadge.over{background:var(--red);}
   td.value{font-family:var(--font-mono);font-weight:700;white-space:nowrap;}
   td.value small{color:var(--faint);font-family:var(--font-body);font-weight:500;font-size:10px;text-transform:uppercase;margin-left:5px;}
   td.who{color:var(--dim);}
   .status-dot{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);}
   .status-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--faint);}
-  .status-dot.sent::before{background:var(--red);}
+  .status-dot.sent::before{background:var(--green);}
+  .status-dot.pending::before{background:var(--amber);}
   .row-actions{display:flex;gap:6px;justify-content:flex-end;}
-  .icon-btn{background:none;border:1px solid var(--border);border-radius:var(--r);padding:7px;color:var(--dim);}
-  .icon-btn:hover{color:var(--white);border-color:var(--dim);}
-  .icon-btn.danger:hover{color:var(--red);border-color:var(--red);}
-  .icon-btn i, .icon-btn svg{width:14px;height:14px;display:block;}
-
   .empty-row td{text-align:center;padding:60px 20px;color:var(--faint);}
-  .empty-row i, .empty-row svg{width:40px;height:40px;opacity:0.4;margin-bottom:12px;}
+  .empty-row i,.empty-row svg{width:40px;height:40px;opacity:0.4;margin-bottom:12px;}
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .pill-group{display:flex;gap:6px;}
+  .pill{padding:8px 13px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all .15s;}
+  .pill:hover{border-color:var(--border-2);background:var(--surface-2);}
+  .pill.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:700;}
 
-  /* Modal */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:100;}
+  /* ── Settings ⚙ ──────────────────────────── */
+  .settings-layout{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:start;}
+  .settings-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
+  .settings-nav .sn-item{width:100%;text-align:left;padding:13px 16px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--dim);font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font-body);transition:all .15s;}
+  .settings-nav .sn-item:last-child{border-bottom:none;}
+  .settings-nav .sn-item i,.settings-nav .sn-item svg{width:16px;height:16px;}
+  .settings-nav .sn-item:hover{background:var(--surface-2);color:var(--white);}
+  .settings-nav .sn-item.active{background:var(--red-tint);color:var(--red);font-weight:600;border-left:3px solid var(--red);}
+  .settings-panel{display:none;}
+  .settings-panel.active{display:block;animation:fadeIn .2s ease;}
+  .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:18px;box-shadow:var(--shadow);}
+  .settings-card h3{font-family:var(--font-display);font-size:16px;letter-spacing:0.8px;text-transform:uppercase;margin:0 0 4px 0;}
+  .settings-card .sc-sub{color:var(--dim);font-size:13px;margin:0 0 18px 0;}
+  .form-row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+  .form-row .field{flex:1;min-width:160px;}
+  label.f-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);margin-bottom:6px;font-weight:600;}
+  input[type=number],input[type=text],input[type=password],input[type=email],select{
+    width:100%;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--font-mono);font-size:14px;outline:none;transition:all .15s;
+  }
+  input::placeholder,select::placeholder{color:var(--faint);}
+  input:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);}
+
+  /* Toggle switch */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:16px;}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-row .t-l{flex:1;}
+  .toggle-row .t-l b{font-size:14px;font-weight:600;display:block;}
+  .toggle-row .t-l span{font-size:12.5px;color:var(--dim);}
+  .switch{position:relative;width:46px;height:26px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .slider{position:absolute;inset:0;background:var(--border-2);border-radius:26px;cursor:pointer;transition:all .2s;}
+  .switch .slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+  .switch input:checked + .slider{background:var(--red);}
+  .switch input:checked + .slider:before{transform:translateX(20px);}
+
+  .theme-options{display:flex;gap:10px;}
+  .theme-opt{flex:1;border:2px solid var(--border);border-radius:var(--r);padding:14px;background:var(--surface-2);cursor:pointer;text-align:center;transition:all .15s;}
+  .theme-opt.active{border-color:var(--red);background:var(--red-tint);}
+  .theme-opt i,.theme-opt svg{width:22px;height:22px;margin-bottom:6px;color:var(--dim);}
+  .theme-opt.active i,.theme-opt.active svg{color:var(--red);}
+  .theme-opt b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+
+  /* ── Modal ───────────────────────────────── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
   .overlay.show{display:flex;}
-  .modal{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);width:100%;max-width:420px;padding:24px;}
+  .modal{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);width:100%;max-width:440px;padding:24px;box-shadow:var(--shadow-lg);}
   .modal h3{font-family:var(--font-display);font-size:18px;letter-spacing:0.5px;text-transform:uppercase;margin:0 0 4px 0;}
   .modal p.sub{color:var(--dim);font-size:13px;margin:0 0 20px 0;line-height:1.5;}
   .modal .field{margin-bottom:14px;}
-  .modal label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);margin-bottom:6px;font-weight:600;}
-  .modal input, .modal select{width:100%;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--font-mono);font-size:14px;outline:none;}
-  .modal input::placeholder, .modal select::placeholder{color:var(--faint);}
-  .modal input:focus, .modal select:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px rgba(200,16,46,0.1);}
   .modal .row2{display:flex;gap:10px;}
   .modal .row2 .field{flex:1;}
   .modal-actions{display:flex;gap:10px;margin-top:20px;}
   .modal-actions .btn{flex:1;justify-content:center;}
   .modal.danger-modal{text-align:center;}
-  .modal.danger-modal i.warn, .modal.danger-modal svg.warn{width:36px;height:36px;color:var(--red);margin-bottom:12px;}
-
+  .modal.danger-modal i.warn,.modal.danger-modal svg.warn{width:36px;height:36px;color:var(--red);margin-bottom:12px;}
   .modal.unit-modal{max-width:480px;}
   .unit-modal .utitle{display:flex;align-items:center;gap:10px;margin-bottom:2px;}
   .unit-modal .utitle h3{margin:0;}
   .status-banner{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);border:1px solid var(--border);margin:16px 0;font-size:13px;}
   .status-banner .ubadge{width:10px;height:10px;}
-  .status-banner.ok{background:rgba(58,125,68,0.08);border-color:var(--green);color:var(--green);}
+  .status-banner.ok{background:var(--green-tint);border-color:var(--green);color:var(--green);}
   .status-banner.warn{background:var(--amber-tint);border-color:var(--amber);color:var(--amber);}
   .status-banner.over{background:var(--red-tint);border-color:var(--red);color:var(--red);}
   .status-banner.unknown{color:var(--dim);}
@@ -141,146 +273,275 @@
   .history-row .hval{font-family:var(--font-mono);font-weight:700;}
   .history-label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);font-weight:600;margin-top:16px;margin-bottom:8px;}
 
-  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--red);color:#FFFFFF;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .15s;z-index:200;}
+  /* Notification dropdown */
+  .notif-pop{position:absolute;top:48px;right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-lg);display:none;z-index:60;}
+  .notif-pop.show{display:block;}
+  .notif-pop .np-head{padding:12px 16px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+  .notif-pop .np-list{max-height:320px;overflow-y:auto;}
+  .notif-pop .np-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .notif-pop .np-item:last-child{border-bottom:none;}
+  .notif-pop .np-item .np-ico{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .notif-pop .np-item .np-ico.over{background:var(--red-tint);color:var(--red);}
+  .notif-pop .np-item .np-ico.warn{background:var(--amber-tint);color:var(--amber);}
+  .notif-pop .np-item .np-ico i,.notif-pop .np-item .np-ico svg{width:14px;height:14px;}
+  .notif-pop .np-item b{font-family:var(--font-mono);}
+  .notif-pop .np-item span{color:var(--dim);display:block;line-height:1.4;}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .15s;z-index:200;white-space:nowrap;}
   .toast.show{opacity:1;}
 
-  @media (max-width:900px){ .stats{grid-template-columns:repeat(3,1fr);} }
-  @media (max-width:560px){ .stats{grid-template-columns:repeat(2,1fr);} #app{padding:18px 16px 60px 16px;} header{flex-wrap:wrap;gap:12px;} .toolbar{flex-direction:column;align-items:stretch;} .pill-group{overflow-x:auto;} }
-
-  /* Login */
-  #screen-login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
-  .login-title{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:4px;margin:0 0 4px 0;}
-  .login-title span{color:var(--red);}
-  .login-tag{font-size:12px;letter-spacing:0.5px;color:var(--faint);margin-bottom:28px;}
-  .login-sub{color:var(--dim);font-size:14px;margin-bottom:32px;max-width:340px;line-height:1.6;}
-  .login-actions{width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;gap:11px;}
-  .btn-outline{background:var(--surface);color:var(--white);border-color:var(--border);}
-  .btn-outline:hover{background:var(--surface-2);border-color:var(--border-2);}
   .hidden{display:none !important;}
-  .admin-chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);padding:8px 12px;border-radius:var(--r);font-size:12.5px;color:var(--dim);}
-  .admin-chip i, .admin-chip svg{width:14px;height:14px;color:var(--faint);}
-  .admin-chip b{color:var(--white);font-weight:600;}
-  .admin-chip img{width:22px;height:22px;border-radius:50%;object-fit:cover;}
 
-  .login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:44px 36px 36px 36px;box-shadow:0 10px 34px rgba(0,0,0,0.06);}
-  .login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,0.25);color:var(--red);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:var(--r);margin-bottom:18px;text-align:left;}
-  .login-hint-toggle{margin-top:20px;background:none;border:none;color:var(--faint);font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-body);}
-  .login-hint-toggle:hover{color:var(--dim);}
-  .login-hint-toggle i, .login-hint-toggle svg{width:13px;height:13px;}
-  .login-hint{margin-top:14px;text-align:left;font-size:12px;line-height:1.6;color:var(--dim);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
-  .login-hint b{color:var(--white);}
-
-  .login-tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--surface-2);border-radius:var(--r);padding:4px;}
-  .login-tab{flex:1;padding:10px;border:none;border-radius:var(--r);background:transparent;color:var(--dim);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.6px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
-  .login-tab.active{background:var(--surface);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
-  .login-tab:hover:not(.active){color:var(--white);}
-
-  .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);}
-  .table-wrap table{min-width:760px;}
-
-  @media (max-width:640px){
-    header{align-items:flex-start;}
-    .header-actions{width:100%;flex-wrap:wrap;justify-content:flex-start;}
-    .header-actions .btn{flex:1;min-width:120px;}
-    .login-card{padding:34px 24px 28px 24px;}
+  /* ── Responsive ──────────────────────────── */
+  @media (max-width:1100px){ .dash-grid{grid-template-columns:1fr;} .stats{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:900px){ .settings-layout{grid-template-columns:1fr;} }
+  @media (max-width:768px){
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-lg);}
+    .main{margin-left:0;}
+    .menu-btn{display:block;}
+    .topbar{padding:12px 16px;flex-wrap:wrap;}
+    .search{width:100%;order:10;}
+    .content{padding:20px 16px 60px 16px;}
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .stat-card{padding:14px;}
+    .admin-chip .full{display:none;}
+    .table-wrap{overflow-x:auto;}
+    .table-wrap table{min-width:720px;}
   }
+  @media (max-width:480px){ .stats{grid-template-columns:1fr 1fr;} }
 </style>
 </head>
 <body>
 
-<div id="screen-login">
-  <div class="login-card">
-    <div class="login-title">OIL<span>LOG</span></div>
-    <div class="login-tag">ADMIN PANEL</div>
-    <div class="login-sub">Autentifică-te cu Telegram sau cu parola pentru a accesa evidența centralizată a yard-ului.</div>
-    <div id="login-error" class="login-error hidden"></div>
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar hidden" id="sidebar">
+  <div class="s-brand">
+    <div class="brand">OIL<span>LOG</span></div>
+    <small>Admin Panel</small>
+  </div>
+  <nav class="s-nav">
+    <div class="s-section">Principal</div>
+    <button class="s-item active" data-page="dashboard" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard"></i>Dashboard</button>
+    <button class="s-item" data-page="entries" onclick="navigate('entries')"><i data-lucide="list"></i>Înregistrări <span class="badge" id="nav-badge-entries">0</span></button>
+    <button class="s-item" data-page="units" onclick="navigate('units')"><i data-lucide="truck"></i>Unități</button>
+    <button class="s-item" data-page="alerts" onclick="navigate('alerts')"><i data-lucide="bell"></i>Alerte <span class="badge" id="nav-badge-alerts">0</span></button>
+    <div class="s-section">Sistem</div>
+    <button class="s-item" data-page="settings" onclick="navigate('settings')"><i data-lucide="settings"></i>Setări</button>
+  </nav>
+  <div class="s-footer">OILLOG v3.1<br>© Kurtex Fleet</div>
+</aside>
 
-    <div class="login-tabs">
-      <button class="login-tab active" onclick="showLoginTab('telegram')" id="tab-telegram">Telegram</button>
-      <button class="login-tab" onclick="showLoginTab('password')" id="tab-password">Parolă</button>
+<!-- ══════════ MAIN ══════════ -->
+<div class="main" id="main">
+  <div class="topbar">
+    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i data-lucide="menu"></i></button>
+    <div class="page-title-flex"><h1 id="topbar-title">Dashboard</h1></div>
+    <div class="search" id="global-search-wrap" style="display:none;"><i data-lucide="search"></i><input id="search" placeholder="Caută unit # sau nume..." oninput="render()"></div>
+    <div class="spacer"></div>
+    <span class="live-pill" id="live-indicator"><span class="s-dot"></span> Live</span>
+    <div style="position:relative;">
+      <button class="icon-btn" onclick="toggleNotif()" title="Alerte"><i data-lucide="bell"></i><span class="dot" id="notif-dot" style="display:none;"></span></button>
+      <div class="notif-pop" id="notif-pop">
+        <div class="np-head">Alerte unități</div>
+        <div class="np-list" id="notif-list"><div class="np-item"><span style="color:var(--faint);">Nicio alertă</span></div></div>
+      </div>
+    </div>
+    <button class="icon-btn" onclick="toggleTheme()" title="Comută tema"><i data-lucide="moon" id="theme-icon"></i></button>
+    <div class="admin-chip"><i data-lucide="user"></i><b class="full" id="admin-name">—</b></div>
+    <button class="icon-btn" onclick="logoutAdmin()" title="Delogare"><i data-lucide="log-out"></i></button>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-head">
+        <div><h2>Dashboard</h2><p>Rezumatul evidenței oil change pe yard.</p></div>
+        <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
+      </div>
+      <div class="stats">
+        <div class="stat-card accent"><div class="s-icon"><i data-lucide="database"></i></div><div class="n" id="stat-total">0</div><div class="l">Total înregistrări</div></div>
+        <div class="stat-card blue"><div class="s-icon"><i data-lucide="truck"></i></div><div class="n" id="stat-trucks">0</div><div class="l">Trucks</div></div>
+        <div class="stat-card green"><div class="s-icon"><i data-lucide="wind"></i></div><div class="n" id="stat-reefers">0</div><div class="l">Reefers</div></div>
+        <div class="stat-card amber"><div class="s-icon"><i data-lucide="alert-triangle"></i></div><div class="n" id="stat-overdue">0</div><div class="l">Unități depășite</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-head"><h3>Înregistrări recente</h3><button class="link" onclick="navigate('entries')">Vezi toate →</button></div>
+          <div class="card-body recent-list" id="dash-recent"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Alerte active</h3><button class="link" onclick="navigate('alerts')">Detalii →</button></div>
+          <div class="card-body alert-list" id="dash-alerts"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="login-actions" id="login-telegram">
-      <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
-        data-telegram-login="kurtexsecuritybot"
-        data-size="large"
-        data-radius="8"
-        data-auth-url="/auth/telegram?next=/admin"
-        data-request-access="write"></script></div>
-      <p style="font-size:10px;color:var(--faint);">Doar administratorii au acces.</p>
+    <!-- ══ ENTRIES ══ -->
+    <div class="page" id="page-entries">
+      <div class="page-head">
+        <div><h2>Înregistrări</h2><p>Toate oil change-urile, actualizate în timp real.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="exportXLSX()"><i data-lucide="download"></i>Export Excel</button>
+          <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="pill-group" id="type-filters">
+          <div class="pill active" data-type="all" onclick="setType('all')">Toate</div>
+          <div class="pill" data-type="T" onclick="setType('T')">Truck</div>
+          <div class="pill" data-type="R" onclick="setType('R')">Reefer</div>
+        </div>
+        <div class="pill-group" id="status-filters">
+          <div class="pill active" data-status="all" onclick="setStatus('all')">Status: toate</div>
+          <div class="pill" data-status="sent" onclick="setStatus('sent')">Trimise</div>
+          <div class="pill" data-status="pending" onclick="setStatus('pending')">Netrimise</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable" onclick="setSort('date')">Data <span class="arrow" id="arrow-date"></span></th>
+              <th class="sortable" onclick="setSort('type')">Tip <span class="arrow" id="arrow-type"></span></th>
+              <th class="sortable" onclick="setSort('unit')">Unit # <span class="arrow" id="arrow-unit"></span></th>
+              <th class="sortable" onclick="setSort('value')">Mileage / Ore <span class="arrow" id="arrow-value"></span></th>
+              <th>Adăugat de</th>
+              <th>Status</th>
+              <th style="text-align:right;">Acțiuni</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"><tr class="empty-row"><td colspan="7"><i data-lucide="loader"></i><div>Se încarcă...</div></td></tr></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="login-actions hidden" id="login-password">
-      <form id="password-form" onsubmit="return false;" style="width:100%;display:flex;flex-direction:column;gap:10px;">
-        <input type="password" id="p-password" placeholder="Parolă admin" autocomplete="current-password">
-        <button type="submit" class="btn btn-primary" style="width:100%;"><i data-lucide="log-in"></i>Autentifică</button>
-      </form>
-      <p style="font-size:10px;color:var(--faint);margin-top:8px;">Parola temporară de admin (setată manual în server).</p>
+    <!-- ══ UNITS ══ -->
+    <div class="page" id="page-units">
+      <div class="page-head">
+        <div><h2>Unități</h2><p>Gestionare unități și kilometraj / ore curente.</p></div>
+        <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
+      </div>
+      <div class="toolbar">
+        <div class="search" style="width:100%;max-width:360px;"><i data-lucide="search"></i><input id="unit-search" placeholder="Caută unit #..." oninput="renderUnits()"></div>
+        <div class="pill-group" id="unit-type-filters">
+          <div class="pill active" data-utype="all" onclick="setUnitType('all')">Toate</div>
+          <div class="pill" data-utype="T" onclick="setUnitType('T')">Truck</div>
+          <div class="pill" data-utype="R" onclick="setUnitType('R')">Reefer</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Unit #</th>
+              <th>Tip</th>
+              <th>Ultimul oil change</th>
+              <th>Valoare curentă</th>
+              <th>Status</th>
+              <th style="text-align:right;">Acțiuni</th>
+            </tr>
+          </thead>
+          <tbody id="units-tbody"><tr class="empty-row"><td colspan="6"><i data-lucide="loader"></i><div>Se încarcă...</div></td></tr></tbody>
+        </table>
+      </div>
     </div>
 
-    <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
-      <i data-lucide="help-circle"></i>Nu poți să te loghezi?
-    </button>
-    <div id="login-hint" class="login-hint hidden">
-      Butonul Telegram nu face nimic la click? Domeniul site-ului nu e setat pe bot. Trimite botului <b>/setdomain</b> din <b>@BotFather</b>, alege bot-ul, apoi lipește domeniul exact al acestui site (fără https://). Accesul de admin se dă din botul de alerte, cu <b>/adduser &lt;id&gt; &lt;nume&gt; super_admin</b> (sau <b>developer</b>) — rolul <b>agent</b> nu poate intra în panoul de admin.
+    <!-- ══ ALERTS ══ -->
+    <div class="page" id="page-alerts">
+      <div class="page-head">
+        <div><h2>Alerte</h2><p>Unități care au depășit sau sunt aproape de intervalul de oil change.</p></div>
+        <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Unități depășite / în pericol</h3></div>
+        <div class="card-body alert-list" id="alerts-list"><div class="empty-mini">Se încarcă...</div></div>
+      </div>
     </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="page" id="page-settings">
+      <div class="page-head">
+        <div><h2>Setări</h2><p>Configurează intervalele, notificările și aspectul.</p></div>
+      </div>
+      <div class="settings-layout">
+        <div class="settings-nav">
+          <button class="sn-item active" data-spanel="intervals" onclick="showSettingsPanel('intervals')"><i data-lucide="gauge"></i>Interval oil change</button>
+          <button class="sn-item" data-spanel="notifications" onclick="showSettingsPanel('notifications')"><i data-lucide="bell"></i>Notificări</button>
+          <button class="sn-item" data-spanel="appearance" onclick="showSettingsPanel('appearance')"><i data-lucide="palette"></i>Aspect</button>
+          <button class="sn-item" data-spanel="account" onclick="showSettingsPanel('account')"><i data-lucide="user"></i>Cont</button>
+        </div>
+
+        <div>
+          <!-- Intervals -->
+          <div class="settings-panel active" id="spanel-intervals">
+            <div class="settings-card">
+              <h3>Interval oil change</h3>
+              <p class="sc-sub">Praguri implicite folosite pentru a sesiza unitățile care au depășit intervalul. Se aplică pentru toată echipa.</p>
+              <div class="form-row">
+                <div class="field"><label class="f-label">Truck — mileage (mi)</label><input type="number" id="s-truck"></div>
+                <div class="field"><label class="f-label">Reefer — engine hours (hr)</label><input type="number" id="s-reefer"></div>
+              </div>
+              <button class="btn btn-primary" onclick="saveSettings()"><i data-lucide="check"></i>Salvează intervalele</button>
+            </div>
+          </div>
+
+          <!-- Notifications -->
+          <div class="settings-panel" id="spanel-notifications">
+            <div class="settings-card">
+              <h3>Notificări</h3>
+              <p class="sc-sub">Alegi ce alerte vrei să vezi în panou și pe dispozitivul tău.</p>
+              <div class="toggle-row">
+                <div class="t-l"><b>Alerte pentru depășiri</b><span>Primește notificare când o unitate depășește intervalul.</span></div>
+                <label class="switch"><input type="checkbox" id="notif-overdue" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="t-l"><b>Alerte aproape de interval</b><span>Anunță când o unitate e aproape de prag (85% din interval).</span></div>
+                <label class="switch"><input type="checkbox" id="notif-warn" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="t-l"><b>Notificări browser</b><span>Trimite alerte pe desktop prin browser (dacă e permis).</span></div>
+                <label class="switch"><input type="checkbox" id="notif-browser" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="t-l"><b>Sunet la alertă</b><span>Redă un sunet când apare o alertă nouă.</span></div>
+                <label class="switch"><input type="checkbox" id="notif-sound" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div class="settings-panel" id="spanel-appearance">
+            <div class="settings-card">
+              <h3>Aspect</h3>
+              <p class="sc-sub">Alege tema preferată pentru panou.</p>
+              <div class="theme-options">
+                <div class="theme-opt active" data-theme-choice="light" onclick="setTheme('light')"><i data-lucide="sun"></i><b>Light</b></div>
+                <div class="theme-opt" data-theme-choice="dark" onclick="setTheme('dark')"><i data-lucide="moon"></i><b>Dark</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account -->
+          <div class="settings-panel" id="spanel-account">
+            <div class="settings-card">
+              <h3>Cont</h3>
+              <p class="sc-sub">Informațiile contului tău de administrator.</p>
+              <div class="toggle-row"><div class="t-l"><b>Nume</b></div><div class="r" id="acc-name" style="font-family:var(--font-mono);">—</div></div>
+              <div class="toggle-row"><div class="t-l"><b>Rol</b></div><div class="r" id="acc-role" style="font-family:var(--font-mono);">—</div></div>
+              <div class="toggle-row"><div class="t-l"><b>Metodă de login</b></div><div class="r" id="acc-method" style="font-family:var(--font-mono);">—</div></div>
+              <div style="margin-top:18px;"><button class="btn btn-danger" onclick="logoutAdmin()"><i data-lucide="log-out"></i>Delogare</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<div id="app" class="hidden">
-  <header>
-    <div class="brand">OIL<span>LOG</span><small>Admin Panel — evidență centralizată yard</small></div>
-    <div class="header-actions">
-      <span class="live-pill" id="live-indicator"><span class="s-dot"></span> Live</span>
-      <div class="admin-chip" id="admin-chip"><i data-lucide="user"></i><b id="admin-name">—</b></div>
-      <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
-      <button class="btn" onclick="exportXLSX()"><i data-lucide="download"></i>Export Excel</button>
-      <button class="btn btn-ghost" onclick="openSettings()" title="Interval oil change"><i data-lucide="settings"></i></button>
-      <button class="btn btn-ghost" onclick="logoutAdmin()" title="Delogare"><i data-lucide="log-out"></i></button>
-    </div>
-  </header>
-
-  <div class="stats" id="stats">
-    <div class="stat-card accent"><div class="n loading" id="stat-total">0</div><div class="l">Total înregistrări</div></div>
-    <div class="stat-card"><div class="n loading" id="stat-trucks">0</div><div class="l">Trucks</div></div>
-    <div class="stat-card"><div class="n loading" id="stat-reefers">0</div><div class="l">Reefers</div></div>
-    <div class="stat-card"><div class="n loading" id="stat-pending">0</div><div class="l">Netrimise</div></div>
-    <div class="stat-card warn-accent"><div class="n loading" id="stat-overdue">0</div><div class="l">Unități depășite</div></div>
-  </div>
-
-  <div class="toolbar">
-    <div class="search"><i data-lucide="search"></i><input id="search" placeholder="Caută unit number sau nume..." oninput="render()"></div>
-    <div class="pill-group" id="type-filters">
-      <div class="pill active" data-type="all" onclick="setType('all')">Toate</div>
-      <div class="pill" data-type="T" onclick="setType('T')">Truck</div>
-      <div class="pill" data-type="R" onclick="setType('R')">Reefer</div>
-    </div>
-    <div class="pill-group" id="status-filters">
-      <div class="pill active" data-status="all" onclick="setStatus('all')">Status: toate</div>
-      <div class="pill" data-status="sent" onclick="setStatus('sent')">Trimise</div>
-      <div class="pill" data-status="pending" onclick="setStatus('pending')">Netrimise</div>
-    </div>
-  </div>
-
-  <div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th class="sortable" onclick="setSort('date')">Data <span class="arrow" id="arrow-date"></span></th>
-        <th class="sortable" onclick="setSort('type')">Tip <span class="arrow" id="arrow-type"></span></th>
-        <th class="sortable" onclick="setSort('unit')">Unit # <span class="arrow" id="arrow-unit"></span></th>
-        <th class="sortable" onclick="setSort('value')">Mileage / Ore <span class="arrow" id="arrow-value"></span></th>
-        <th>Adăugat de</th>
-        <th>Status</th>
-        <th style="text-align:right;">Acțiuni</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"><tr class="empty-row"><td colspan="7"><i data-lucide="loader"></i><div>Se încarcă...</div></td></tr></tbody>
-  </table>
-  </div>
-</div>
-
-<!-- Edit modal -->
+<!-- ══════════ MODALS ══════════ -->
 <div class="overlay" id="edit-overlay">
   <div class="modal">
     <h3>Editează înregistrare</h3>
@@ -289,20 +550,14 @@
       <div class="row2">
         <div class="field"><label>Data</label><input type="date" id="e-date" required></div>
         <div class="field"><label>Tip</label>
-          <select id="e-type">
-            <option value="T">Truck</option>
-            <option value="R">Reefer</option>
-          </select>
+          <select id="e-type"><option value="T">Truck</option><option value="R">Reefer</option></select>
         </div>
       </div>
       <div class="field"><label>Unit number</label><input type="text" id="e-unit" required></div>
       <div class="row2">
         <div class="field"><label>Valoare</label><input type="number" id="e-value" required></div>
         <div class="field"><label>Unitate</label>
-          <select id="e-unitofvalue">
-            <option value="mi">Miles</option>
-            <option value="hr">Engine hours</option>
-          </select>
+          <select id="e-unitofvalue"><option value="mi">Miles</option><option value="hr">Engine hours</option></select>
         </div>
       </div>
       <div class="field"><label>Adăugat de</label><input type="text" id="e-addedby"></div>
@@ -314,7 +569,6 @@
   </div>
 </div>
 
-<!-- Delete confirm modal -->
 <div class="overlay" id="delete-overlay">
   <div class="modal danger-modal">
     <i data-lucide="alert-triangle" class="warn"></i>
@@ -327,55 +581,33 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<!-- Unit detail modal -->
 <div class="overlay" id="unit-overlay">
   <div class="modal unit-modal">
-    <div class="utitle">
-      <h3 id="u-title">#—</h3>
-    </div>
+    <div class="utitle"><h3 id="u-title">#—</h3></div>
     <p class="sub" id="u-subtitle">—</p>
-
     <div id="u-status-banner" class="status-banner unknown">
       <span class="ubadge"></span>
       <span id="u-status-text">Introdu kilometrajul/orele curente ca să vedem statusul.</span>
     </div>
-
     <div class="cur-value-row">
-      <div class="field">
-        <label id="u-value-label">Kilometraj curent</label>
-        <input type="number" id="u-current-value" placeholder="ex. 312450">
-      </div>
+      <div class="field"><label id="u-value-label">Kilometraj curent</label><input type="number" id="u-current-value" placeholder="ex. 312450"></div>
       <button class="btn btn-primary" onclick="saveUnitValue()" style="margin-bottom:0;"><i data-lucide="check"></i>Salvează</button>
     </div>
-
     <div class="history-label">Istoric oil change (<span id="u-history-count">0</span>)</div>
     <div class="history-list" id="u-history-list"></div>
-
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" onclick="closeUnitDetail()" style="flex:none;margin-left:auto;">Închide</button>
     </div>
   </div>
 </div>
 
-<!-- Interval settings modal -->
-<div class="overlay" id="settings-overlay">
-  <div class="modal">
-    <h3>Interval oil change</h3>
-    <p class="sub">Praguri implicite folosite pentru a sesiza unitățile care au depășit intervalul. Se aplică pentru toată echipa.</p>
-    <div class="field"><label>Truck — mileage (mi)</label><input type="number" id="s-truck"></div>
-    <div class="field"><label>Reefer — engine hours (hr)</label><input type="number" id="s-reefer"></div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" onclick="closeSettings()">Anulează</button>
-      <button type="button" class="btn btn-primary" onclick="saveSettings()"><i data-lucide="check"></i>Salvează</button>
-    </div>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
 const API_BASE = window.location.origin;
 const ADMIN_USER_KEY = 'oillog_admin_user_v3';
+const THEME_KEY = 'oillog_admin_theme';
+const NOTIF_KEY = 'oillog_admin_notif';
 
 let adminUser = null;
 let entries = [];
@@ -383,11 +615,14 @@ let sortKey = 'date';
 let sortDir = 'desc';
 let typeFilter = 'all';
 let statusFilter = 'all';
+let unitTypeFilter = 'all';
 let pendingDeleteId = null;
 let unitProfiles = {};
-let intervals = { T:15000, R:500 }; // mi, hr
+let intervals = { T:15000, R:500 };
 let openUnitKey = null;
 let syncTimer = null;
+let notifPrefs = { overdue:true, warn:true, browser:false, sound:true };
+let seenAlerts = new Set();
 
 function loadAdminUser(){ try{ return JSON.parse(localStorage.getItem(ADMIN_USER_KEY)) || null; }catch(e){ return null; } }
 function saveAdminUser(u){ localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(u)); }
@@ -398,7 +633,40 @@ function toast(msg){
   clearTimeout(window._t); window._t = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-// ── API ────────────────────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────────────
+function loadTheme(){ return localStorage.getItem(THEME_KEY) || 'light'; }
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem(THEME_KEY, t);
+  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.toggle('active', o.dataset.themeChoice===t));
+  const icon = document.getElementById('theme-icon');
+  if(icon) icon.setAttribute('data-lucide', t==='dark' ? 'sun' : 'moon');
+  if(window.lucide) lucide.createIcons();
+}
+function toggleTheme(){ applyTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark'); }
+function setTheme(t){ applyTheme(t); toast('Tema: '+(t==='dark'?'Dark':'Light')); }
+
+// ── Notifications prefs ───────────────────────────────────────────────────
+function loadNotifPrefs(){ try{ return Object.assign({overdue:true, warn:true, browser:false, sound:true}, JSON.parse(localStorage.getItem(NOTIF_KEY)) || {}); }catch(e){ return {overdue:true, warn:true, browser:false, sound:true}; } }
+function saveNotifPrefs(){
+  notifPrefs = {
+    overdue: document.getElementById('notif-overdue').checked,
+    warn: document.getElementById('notif-warn').checked,
+    browser: document.getElementById('notif-browser').checked,
+    sound: document.getElementById('notif-sound').checked,
+  };
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(notifPrefs));
+  if(notifPrefs.browser && 'Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  toast('Preferințe salvate');
+}
+function applyNotifPrefs(){
+  document.getElementById('notif-overdue').checked = notifPrefs.overdue;
+  document.getElementById('notif-warn').checked = notifPrefs.warn;
+  document.getElementById('notif-browser').checked = notifPrefs.browser;
+  document.getElementById('notif-sound').checked = notifPrefs.sound;
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
 async function api(method, path, body){
   const opts = { method, headers: {'Content-Type':'application/json'} };
   opts.credentials = 'include';
@@ -409,125 +677,96 @@ async function api(method, path, body){
   return data;
 }
 
-// ── Telegram Login ─────────────────────────────────────────────────────────
-// Login now happens via full-page redirect (Telegram widget → /auth/telegram
-// → server checks role → redirects back with ?error=... on failure).
-const LOGIN_ERROR_MESSAGES = {
-  not_whitelisted: 'Contul tău Telegram nu e încă autorizat ca admin. Accesul se dă din botul de alerte, cu /adduser <id> <nume> <rol>.',
-  forbidden_role: 'Contul tău e autorizat, dar rolul "agent" nu are acces la panoul de admin — ai nevoie de super_admin sau developer.',
-  invalid: 'Autentificare Telegram invalidă. Verifică dacă domeniul acestui site e setat corect în BotFather (/setdomain).',
-  missing: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
-};
-function showLoginError(code, raw){
-  const box = document.getElementById('login-error');
-  if(!box) return;
-  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Autentificare eșuată. Încearcă din nou.');
-  box.classList.remove('hidden');
-}
-function clearLoginError(){
-  const box = document.getElementById('login-error');
-  if(box){ box.classList.add('hidden'); box.textContent=''; }
-}
-function checkUrlLoginError(){
-  const params = new URLSearchParams(window.location.search);
-  const err = params.get('error');
-  if(err){
-    showLoginError(err);
-    params.delete('error');
-    const clean = window.location.pathname + (params.toString() ? '?'+params.toString() : '');
-    window.history.replaceState({}, '', clean);
-  }
-}
-
-function showLoginTab(tab){
-  document.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  document.getElementById('login-telegram').classList.toggle('hidden', tab!=='telegram');
-  document.getElementById('login-password').classList.toggle('hidden', tab!=='password');
-  clearLoginError();
-}
-
-document.getElementById('password-form').addEventListener('submit', async function(e){
-  e.preventDefault();
-  clearLoginError();
-  const password = document.getElementById('p-password').value;
-  if(!password){ showLoginError('missing_fields'); return; }
-  try {
-    const res = await api('POST', '/auth/password-admin', { password });
-    if(res.ok && res.user){
-      adminUser = res.user;
-      saveAdminUser(adminUser);
-      await enterAdmin();
-    } else {
-      showLoginError(res.error || 'invalid_credentials');
-    }
-  } catch(err){ showLoginError('network_error'); }
-});
-
 function logoutAdmin(){
   if(!confirm('Sigur vrei să te deloghezi?')) return;
   localStorage.removeItem(ADMIN_USER_KEY);
   adminUser = null;
   stopSync();
   try { api('POST', '/logout'); } catch(e) {}
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('screen-login').classList.remove('hidden');
+  window.location.href = '/admin-login';
 }
-
 function enterAdmin(){
-  const chip = document.getElementById('admin-chip');
-  if(adminUser && adminUser.photo_url) {
-    chip.innerHTML = `<img src="${adminUser.photo_url}" alt=""> <b id="admin-name">${adminUser.name}</b>`;
-  } else {
-    document.getElementById('admin-name').textContent = adminUser ? adminUser.name : '—';
-  }
-  document.getElementById('screen-login').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('admin-name').textContent = adminUser ? adminUser.name : '—';
+  document.getElementById('sidebar').classList.remove('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('acc-name').textContent = adminUser ? adminUser.name : '—';
+  document.getElementById('acc-role').textContent = adminUser ? adminUser.role : '—';
+  document.getElementById('acc-method').textContent = adminUser ? (adminUser.method || 'telegram') : '—';
   icons();
   loadData();
   startSync();
 }
 
-// ── Sync ───────────────────────────────────────────────────────────────────
-function startSync(){
-  stopSync();
-  syncTimer = setInterval(doSync, 5000);
+// ── Navigation ────────────────────────────────────────────────────────────
+const PAGE_TITLES = { dashboard:'Dashboard', entries:'Înregistrări', units:'Unități', alerts:'Alerte', settings:'Setări' };
+function navigate(page){
+  document.querySelectorAll('.s-item').forEach(b=>b.classList.toggle('active', b.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[page];
+  document.getElementById('global-search-wrap').style.display = page==='entries' ? 'block' : 'none';
+  document.getElementById('sidebar').classList.remove('open');
+  if(page==='dashboard') renderDashboard();
+  if(page==='entries') render();
+  if(page==='units') { renderUnits(); }
+  if(page==='alerts') renderAlerts();
+  if(page==='settings') { applyTheme(loadTheme()); applyNotifPrefs(); }
+  icons();
 }
-function stopSync(){
-  if(syncTimer) { clearInterval(syncTimer); syncTimer = null; }
-}
-async function doSync(){
-  try {
-    const data = await api('GET', '/api/sync');
-    if(data.entries) {
-      entries = data.entries;
-      render();
-    }
-  } catch(e) {}
+function showSettingsPanel(name){
+  document.querySelectorAll('.sn-item').forEach(b=>b.classList.toggle('active', b.dataset.spanel===name));
+  document.querySelectorAll('.settings-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('spanel-'+name).classList.add('active');
 }
 
+// ── Sync ─────────────────────────────────────────────────────────────────
+function startSync(){ stopSync(); syncTimer = setInterval(doSync, 5000); }
+function stopSync(){ if(syncTimer){ clearInterval(syncTimer); syncTimer=null; } }
+async function doSync(){
+  try{
+    const data = await api('GET', '/api/sync');
+    if(data.entries){
+      entries = data.entries;
+      unitProfiles = data.units || {};
+      if(data.settings) intervals = data.settings;
+      const active = document.querySelector('.page.active');
+      if(active.id==='page-dashboard') renderDashboard();
+      if(active.id==='page-entries') render();
+      if(active.id==='page-units') renderUnits();
+      if(active.id==='page-alerts') renderAlerts();
+      updateBadges();
+      checkAlerts();
+    }
+  }catch(e){}
+}
 async function loadData(){
   try{
     const data = await api('GET', '/api/sync');
     entries = data.entries || [];
     unitProfiles = data.units || {};
     if(data.settings) intervals = data.settings;
-    render();
+    const active = document.querySelector('.page.active');
+    if(active.id==='page-dashboard') renderDashboard();
+    if(active.id==='page-entries') render();
+    if(active.id==='page-units') renderUnits();
+    if(active.id==='page-alerts') renderAlerts();
+    updateBadges();
+    checkAlerts();
+    icons();
     toast('Actualizat — ' + entries.length + ' înregistrări');
   } catch(e){ toast('Eroare la încărcare'); console.error(e); }
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────
 function typeIcon(t){ return t==='T' ? 'truck' : 'wind'; }
 function typeLabel(t){ return t==='T' ? 'Truck' : 'Reefer'; }
 function unitSuffix(u){ return u==='hr' ? 'hrs' : 'mi'; }
 function unitKey(type, unit){ return type+'_'+unit; }
-
 function getLastEntry(type, unit){
   const list = entries.filter(e=>e.type===type && e.unit===unit);
   if(list.length===0) return null;
   return list.slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0))[0];
 }
-
 function computeStatus(type, unit){
   const last = getLastEntry(type, unit);
   if(!last) return { status:'unknown' };
@@ -540,15 +779,106 @@ function computeStatus(type, unit){
   if(diff >= threshold*0.85) return { status:'warn', last, threshold, diff };
   return { status:'ok', last, threshold, diff };
 }
+function getUniqueUnits(){
+  const map = {};
+  entries.forEach(e=>{
+    const k = unitKey(e.type, e.unit);
+    if(!map[k]) map[k] = { type:e.type, unit:e.unit };
+  });
+  return Object.values(map);
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
-function setType(t){ typeFilter = t; document.querySelectorAll('#type-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.type===t)); render(); }
-function setStatus(s){ statusFilter = s; document.querySelectorAll('#status-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.status===s)); render(); }
-function setSort(key){
-  if(sortKey===key){ sortDir = sortDir==='asc' ? 'desc' : 'asc'; }
-  else { sortKey = key; sortDir = 'desc'; }
-  render();
+// ── Badges & alerts ──────────────────────────────────────────────────────
+function getAlerts(){
+  const over=[], warn=[];
+  getUniqueUnits().forEach(u=>{
+    const st = computeStatus(u.type, u.unit);
+    if(st.status==='over') over.push({...u, st});
+    else if(st.status==='warn') warn.push({...u, st});
+  });
+  return { over, warn };
+}
+function updateBadges(){
+  const { over, warn } = getAlerts();
+  document.getElementById('nav-badge-alerts').textContent = over.length;
+  document.getElementById('nav-badge-alerts').style.display = over.length>0 ? 'inline' : 'none';
+  document.getElementById('nav-badge-entries').textContent = entries.length;
+  document.getElementById('notif-dot').style.display = over.length>0 ? 'block' : 'none';
+}
+function checkAlerts(){
+  const { over } = getAlerts();
+  const newOnes = over.filter(a=>!seenAlerts.has(unitKey(a.type,a.unit)));
+  if(newOnes.length>0 && notifPrefs.overdue){
+    if(notifPrefs.sound){ try{ new Audio().play(); }catch(e){} }
+    if(notifPrefs.browser && 'Notification' in window && Notification.permission==='granted'){
+      new Notification('OILLOG — Alertă', { body: newOnes.length+' unități au depășit intervalul de oil change.' });
+    }
+    toast('⚠️ ' + newOnes.length + ' unități au depășit intervalul');
+  }
+  over.forEach(a=>seenAlerts.add(unitKey(a.type,a.unit)));
+}
+function toggleNotif(){
+  const pop = document.getElementById('notif-pop');
+  pop.classList.toggle('show');
+  renderNotifPop();
+}
+function renderNotifPop(){
+  const { over, warn } = getAlerts();
+  const list = document.getElementById('notif-list');
+  if(over.length===0 && warn.length===0){
+    list.innerHTML = '<div class="np-item"><span style="color:var(--faint);">Nicio alertă. Toate unitățile în regulă.</span></div>';
+    return;
+  }
+  list.innerHTML = [
+    ...over.map(a=>`<div class="np-item"><div class="np-ico over"><i data-lucide="alert-triangle"></i></div><div><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<span>Depășit intervalul de oil change.</span></div></div>`),
+    ...warn.map(a=>`<div class="np-item"><div class="np-ico warn"><i data-lucide="alert-circle"></i></div><div><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<span>Aproape de interval (85%+).</span></div></div>`),
+  ].join('');
+  icons();
+}
+document.addEventListener('click', (e)=>{
+  const pop = document.getElementById('notif-pop');
+  if(pop && pop.classList.contains('show') && !pop.contains(e.target) && !e.target.closest('[onclick="toggleNotif()"]')){
+    pop.classList.remove('show');
+  }
+});
+
+// ── Dashboard ────────────────────────────────────────────────────────────
+function renderDashboard(){
+  document.getElementById('stat-total').textContent = entries.length;
+  document.getElementById('stat-trucks').textContent = entries.filter(e=>e.type==='T').length;
+  document.getElementById('stat-reefers').textContent = entries.filter(e=>e.type==='R').length;
+  const { over, warn } = getAlerts();
+  document.getElementById('stat-overdue').textContent = over.length;
+
+  const recent = [...entries].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,8);
+  document.getElementById('dash-recent').innerHTML = recent.length===0
+    ? '<div class="empty-mini">Nicio înregistrare încă.</div>'
+    : recent.map(e=>{
+        const st = computeStatus(e.type, e.unit).status;
+        return `<div class="r-item"><span class="ubadge ${st}"></span><span class="ru">#${escapeHtml(e.unit)}</span><span class="rm">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}</span><span class="rv">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span></div>`;
+      }).join('');
+
+  const alertsList = document.getElementById('dash-alerts');
+  if(over.length===0 && warn.length===0){
+    alertsList.innerHTML = '<div class="empty-mini"><i data-lucide="check-circle" style="width:30px;height:30px;opacity:0.4;display:block;margin:0 auto 8px auto;"></i>Nicio alertă activă.</div>';
+  } else {
+    alertsList.innerHTML = [
+      ...over.map(a=>`<div class="a-item"><div class="a-icon over"><i data-lucide="alert-triangle"></i></div><div class="a-txt"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Depășit intervalul. <a href="#" onclick="event.preventDefault();openUnitDetailByKey('${a.type}','${escapeHtml(a.unit)}');" style="color:var(--red);">Vezi detalii</a></div></div>`),
+      ...warn.map(a=>`<div class="a-item"><div class="a-icon warn"><i data-lucide="alert-circle"></i></div><div class="a-txt"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Aproape de interval (85%+).</div></div>`),
+    ].join('');
+  }
+  icons();
 }
 
+// ── Entries table ────────────────────────────────────────────────────────
+function setType(t){ typeFilter=t; document.querySelectorAll('#type-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.type===t)); render(); }
+function setStatus(s){ statusFilter=s; document.querySelectorAll('#status-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.status===s)); render(); }
+function setSort(key){
+  if(sortKey===key){ sortDir = sortDir==='asc' ? 'desc' : 'asc'; }
+  else { sortKey=key; sortDir='desc'; }
+  render();
+}
 function getFiltered(){
   const q = (document.getElementById('search').value||'').toLowerCase().trim();
   let list = entries.filter(e=>{
@@ -559,7 +889,7 @@ function getFiltered(){
     return true;
   });
   list.sort((a,b)=>{
-    let av, bv;
+    let av,bv;
     if(sortKey==='date'){ av=a.date; bv=b.date; }
     else if(sortKey==='type'){ av=a.type; bv=b.type; }
     else if(sortKey==='unit'){ av=a.unit; bv=b.unit; }
@@ -570,60 +900,88 @@ function getFiltered(){
   });
   return list;
 }
-
 function render(){
   ['date','type','unit','value'].forEach(k=>{
     document.getElementById('arrow-'+k).textContent = (sortKey===k) ? (sortDir==='asc' ? '↑' : '↓') : '';
   });
-
   const list = getFiltered();
   const tbody = document.getElementById('tbody');
-
   if(list.length===0){
     tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i data-lucide="inbox"></i><div>Nicio înregistrare găsită.</div></td></tr>`;
   } else {
-    tbody.innerHTML = list.map(e => {
+    tbody.innerHTML = list.map(e=>{
       const st = computeStatus(e.type, e.unit).status;
       const statusTitle = st==='over' ? 'Interval depășit — click pentru detalii' : st==='warn' ? 'Aproape de interval — click pentru detalii' : st==='ok' ? 'În interval — click pentru detalii' : 'Kilometraj/ore curente necunoscute — click pentru a introduce';
-      return `
-      <tr>
+      return `<tr>
         <td class="date">${e.date}</td>
         <td><span class="type-tag"><i data-lucide="${typeIcon(e.type)}"></i>${typeLabel(e.type)}</span></td>
         <td class="unit"><button class="unit-link" data-utype="${e.type}" data-uunit="${escapeHtml(e.unit)}" onclick="openUnitDetail(this)" title="${statusTitle}"><span class="ubadge ${st}"></span>#${escapeHtml(e.unit)}</button></td>
         <td class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></td>
         <td class="who">${escapeHtml(e.addedBy)}</td>
-        <td><span class="status-dot ${e.sent?'sent':''}">${e.sent ? 'Trimis' : 'Netrimis'}</span></td>
+        <td><span class="status-dot ${e.sent?'sent':'pending'}">${e.sent ? 'Trimis' : 'Netrimis'}</span></td>
         <td><div class="row-actions">
           <button class="icon-btn" onclick="openEdit('${e.id}')" title="Editează"><i data-lucide="edit-2"></i></button>
-          <button class="icon-btn danger" onclick="openDelete('${e.id}')" title="Șterge"><i data-lucide="trash-2"></i></button>
-        </div></td>
-      </tr>
-    `;}).join('');
+          <button class="icon-btn" style="color:var(--red);" onclick="openDelete('${e.id}')" title="Șterge"><i data-lucide="trash-2"></i></button>
+        </div></td></tr>`;
+    }).join('');
   }
-
-  document.getElementById('stat-total').classList.remove('loading');
-  document.getElementById('stat-total').textContent = entries.length;
-  document.getElementById('stat-trucks').textContent = entries.filter(e=>e.type==='T').length;
-  document.getElementById('stat-reefers').textContent = entries.filter(e=>e.type==='R').length;
-  document.getElementById('stat-pending').textContent = entries.filter(e=>!e.sent).length;
-  const uniqueUnits = new Set(entries.map(e=>unitKey(e.type, e.unit)));
-  let overdueCount = 0;
-  uniqueUnits.forEach(k=>{
-    const [type, ...rest] = k.split('_');
-    const unit = rest.join('_');
-    if(computeStatus(type, unit).status==='over') overdueCount++;
-  });
-  document.getElementById('stat-overdue').textContent = overdueCount;
   icons();
 }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
-// ── Unit detail ────────────────────────────────────────────────────────────
+// ── Units page ───────────────────────────────────────────────────────────
+function setUnitType(t){ unitTypeFilter=t; document.querySelectorAll('#unit-type-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.utype===t)); renderUnits(); }
+function renderUnits(){
+  const q = (document.getElementById('unit-search').value||'').toLowerCase().trim();
+  let units = getUniqueUnits().filter(u=>{
+    if(unitTypeFilter!=='all' && u.type!==unitTypeFilter) return false;
+    if(q && !String(u.unit).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  units.sort((a,b)=> String(a.unit).localeCompare(String(b.unit), undefined, {numeric:true}));
+  const tbody = document.getElementById('units-tbody');
+  if(units.length===0){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>Nicio unitate găsită.</div></td></tr>`;
+  } else {
+    tbody.innerHTML = units.map(u=>{
+      const st = computeStatus(u.type, u.unit);
+      const last = st.last;
+      const profile = unitProfiles[unitKey(u.type, u.unit)];
+      const curVal = profile && profile.currentValue!=null ? Number(profile.currentValue).toLocaleString('en-US') : '—';
+      const statusTxt = st.status==='over' ? 'Depășit' : st.status==='warn' ? 'În pericol' : st.status==='ok' ? 'În interval' : 'Necunoscut';
+      return `<tr>
+        <td class="unit"><button class="unit-link" data-utype="${u.type}" data-uunit="${escapeHtml(u.unit)}" onclick="openUnitDetail(this)"><span class="ubadge ${st.status}"></span>#${escapeHtml(u.unit)}</button></td>
+        <td><span class="type-tag"><i data-lucide="${typeIcon(u.type)}"></i>${typeLabel(u.type)}</span></td>
+        <td class="date">${last ? last.date + ' · ' + Number(last.value).toLocaleString('en-US') + ' ' + unitSuffix(last.unitOfValue) : '—'}</td>
+        <td class="value">${curVal}</td>
+        <td><span class="status-dot ${st.status!=='unknown' && st.status!=='over' ? '' : ''}">${statusTxt}</span></td>
+        <td><div class="row-actions"><button class="icon-btn" onclick="openUnitDetailByKey('${u.type}','${escapeHtml(u.unit)}')" title="Detalii"><i data-lucide="eye"></i></button></div></td>
+      </tr>`;
+    }).join('');
+  }
+  icons();
+}
+
+// ── Alerts page ──────────────────────────────────────────────────────────
+function renderAlerts(){
+  const { over, warn } = getAlerts();
+  const list = document.getElementById('alerts-list');
+  if(over.length===0 && warn.length===0){
+    list.innerHTML = '<div class="empty-mini"><i data-lucide="check-circle" style="width:36px;height:36px;opacity:0.4;display:block;margin:0 auto 10px auto;"></i>Tuturor unităților le e bine. Nicio alertă activă.</div>';
+  } else {
+    list.innerHTML = [
+      ...over.map(a=>`<div class="a-item"><div class="a-icon over"><i data-lucide="alert-triangle"></i></div><div class="a-txt" style="flex:1;"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Depășit cu <b>${Math.abs(a.st.threshold - a.st.diff).toLocaleString('en-US')} ${unitSuffix(a.st.last.unitOfValue)}</b> peste intervalul de ${a.st.threshold.toLocaleString('en-US')}.</div><button class="btn btn-sm" onclick="openUnitDetailByKey('${a.type}','${escapeHtml(a.unit)}')">Detalii</button></div>`),
+      ...warn.map(a=>`<div class="a-item"><div class="a-icon warn"><i data-lucide="alert-circle"></i></div><div class="a-txt" style="flex:1;"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Mai sunt <b>${(a.st.threshold - a.st.diff).toLocaleString('en-US')} ${unitSuffix(a.st.last.unitOfValue)}</b> până la interval.</div><button class="btn btn-sm" onclick="openUnitDetailByKey('${a.type}','${escapeHtml(a.unit)}')">Detalii</button></div>`),
+    ].join('');
+  }
+  icons();
+}
+
+// ── Unit detail ──────────────────────────────────────────────────────────
 function openUnitDetail(el){
-  const type = el.dataset.utype;
-  const unit = el.dataset.uunit;
+  openUnitDetailByKey(el.dataset.utype, el.dataset.uunit);
+}
+function openUnitDetailByKey(type, unit){
   openUnitKey = unitKey(type, unit);
-
   const history = entries.filter(e=>e.type===type && e.unit===unit)
     .slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
   const isHours = history.length ? history[0].unitOfValue==='hr' : type==='R';
@@ -656,17 +1014,12 @@ function openUnitDetail(el){
   document.getElementById('u-history-count').textContent = history.length;
   const listEl = document.getElementById('u-history-list');
   listEl.innerHTML = history.length===0 ? `<div class="history-row"><span class="hdate">—</span></div>` : history.map(e=>`
-    <div class="history-row">
-      <span class="hdate">${e.date}</span>
-      <span class="hval">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span>
-      <span class="who">${escapeHtml(e.addedBy)}</span>
-    </div>
+    <div class="history-row"><span class="hdate">${e.date}</span><span class="hval">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span><span class="who">${escapeHtml(e.addedBy)}</span></div>
   `).join('');
-
   document.getElementById('unit-overlay').classList.add('show');
   icons();
 }
-function closeUnitDetail(){ openUnitKey = null; document.getElementById('unit-overlay').classList.remove('show'); }
+function closeUnitDetail(){ openUnitKey=null; document.getElementById('unit-overlay').classList.remove('show'); }
 async function saveUnitValue(){
   if(!openUnitKey) return;
   const val = document.getElementById('u-current-value').value.trim();
@@ -675,20 +1028,18 @@ async function saveUnitValue(){
   try{
     await api('POST', '/api/units/' + encodeURIComponent(openUnitKey), profile);
     unitProfiles[openUnitKey] = profile;
-    render();
+    const active = document.querySelector('.page.active');
+    if(active.id==='page-units') renderUnits();
+    if(active.id==='page-dashboard') renderDashboard();
+    if(active.id==='page-alerts') renderAlerts();
+    updateBadges();
+    icons();
     toast('Kilometraj/ore actualizat');
     closeUnitDetail();
   } catch(err){ toast('Eroare la salvare'); }
 }
 
-// ── Interval settings ──────────────────────────────────────────────────────
-function openSettings(){
-  document.getElementById('s-truck').value = intervals.T || '';
-  document.getElementById('s-reefer').value = intervals.R || '';
-  document.getElementById('settings-overlay').classList.add('show');
-  icons();
-}
-function closeSettings(){ document.getElementById('settings-overlay').classList.remove('show'); }
+// ── Settings: intervals ──────────────────────────────────────────────────
 async function saveSettings(){
   const next = {
     T: Number(document.getElementById('s-truck').value) || 0,
@@ -697,11 +1048,12 @@ async function saveSettings(){
   try{
     await api('PUT', '/api/settings', next);
     intervals = next;
-    closeSettings(); render(); toast('Interval actualizat');
+    render(); renderUnits();
+    toast('Interval actualizat');
   } catch(err){ toast('Eroare la salvare'); }
 }
 
-// ── Edit ───────────────────────────────────────────────────────────────────
+// ── Edit ─────────────────────────────────────────────────────────────────
 function openEdit(id){
   const e = entries.find(x=>x.id===id);
   if(!e) return;
@@ -716,7 +1068,6 @@ function openEdit(id){
   icons();
 }
 function closeEdit(){ document.getElementById('edit-overlay').classList.remove('show'); }
-
 document.getElementById('edit-form').addEventListener('submit', async function(ev){
   ev.preventDefault();
   const id = this.dataset.id;
@@ -734,7 +1085,7 @@ document.getElementById('edit-form').addEventListener('submit', async function(e
   } catch(err){ toast('Eroare la salvare'); }
 });
 
-// ── Delete ─────────────────────────────────────────────────────────────────
+// ── Delete ───────────────────────────────────────────────────────────────
 function openDelete(id){
   const e = entries.find(x=>x.id===id);
   if(!e) return;
@@ -743,7 +1094,7 @@ function openDelete(id){
   document.getElementById('delete-overlay').classList.add('show');
   icons();
 }
-function closeDelete(){ pendingDeleteId = null; document.getElementById('delete-overlay').classList.remove('show'); }
+function closeDelete(){ pendingDeleteId=null; document.getElementById('delete-overlay').classList.remove('show'); }
 async function confirmDelete(){
   if(!pendingDeleteId) return;
   try{
@@ -753,14 +1104,13 @@ async function confirmDelete(){
   } catch(err){ toast('Eroare la ștergere'); }
 }
 
+// ── Export ───────────────────────────────────────────────────────────────
 async function exportXLSX(){
   const list = getFiltered();
   if(list.length===0){ toast('Nimic de exportat'); return; }
-
   const wb = new ExcelJS.Workbook();
   wb.creator = 'OILLOG Admin'; wb.created = new Date();
   const ws = wb.addWorksheet('OILLOG Export', { views:[{ state:'frozen', ySplit:1 }] });
-
   ws.columns = [
     { header:'Date', key:'date', width:13 },
     { header:'Unit Type', key:'type', width:12 },
@@ -770,9 +1120,7 @@ async function exportXLSX(){
     { header:'Added By', key:'addedBy', width:18 },
     { header:'Status', key:'status', width:12 },
   ];
-
-  const RED = 'FFC8102E', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0', GREEN = 'FF3A7D44', AMBER = 'FFB7791F';
-
+  const RED='FFC8102E', DARK='FF1A1A1A', LIGHT='FFF9F7F5', BORDER='FFE5E3E0', GREEN='FF3A7D44', AMBER='FFB7791F';
   const header = ws.getRow(1);
   header.height = 24;
   header.eachCell(cell=>{
@@ -781,30 +1129,24 @@ async function exportXLSX(){
     cell.alignment = { vertical:'middle', horizontal:'left' };
     cell.border = { bottom:{style:'thin', color:{argb:RED}} };
   });
-
-  list.forEach((e, i)=>{
+  list.forEach((e,i)=>{
     const row = ws.addRow({
-      date: e.date,
-      type: typeLabel(e.type),
-      unit: e.unit,
+      date: e.date, type: typeLabel(e.type), unit: e.unit,
       hours: e.unitOfValue==='hr' ? Number(e.value) : null,
       miles: e.unitOfValue==='mi' ? Number(e.value) : null,
-      addedBy: e.addedBy,
-      status: e.sent ? 'Sent' : 'Pending',
+      addedBy: e.addedBy, status: e.sent ? 'Sent' : 'Pending',
     });
     row.eachCell(cell=>{
       cell.font = { name:'Calibri', size:11, color:{argb:DARK} };
       cell.border = { bottom:{style:'thin', color:{argb:BORDER}} };
       cell.alignment = { vertical:'middle' };
-      if(i % 2 === 1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:LIGHT} };
+      if(i%2===1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:LIGHT} };
     });
     row.getCell('unit').font = { name:'Consolas', size:11, bold:true, color:{argb:DARK} };
     row.getCell('status').font = { name:'Calibri', size:11, bold:true, color:{argb: e.sent ? GREEN : AMBER} };
-    ['hours','miles'].forEach(k=>{ row.getCell(k).numFmt = '#,##0'; row.getCell(k).alignment = { horizontal:'right' }; });
+    ['hours','miles'].forEach(k=>{ row.getCell(k).numFmt='#,##0'; row.getCell(k).alignment={horizontal:'right'}; });
   });
-
   ws.autoFilter = { from:'A1', to: String.fromCharCode(65+ws.columns.length-1)+'1' };
-
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
@@ -814,17 +1156,20 @@ async function exportXLSX(){
   toast('Excel descărcat');
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────────────
 (async function init(){
-  checkUrlLoginError();
+  applyTheme(loadTheme());
+  notifPrefs = loadNotifPrefs();
+  applyNotifPrefs();
+  document.getElementById('s-truck').value = intervals.T;
+  document.getElementById('s-reefer').value = intervals.R;
   try {
     const status = await api('GET', '/auth/status');
     if(status.ok && status.user) {
       const su = status.user;
       if(su.role !== 'developer' && su.role !== 'super_admin') {
         await fetch('/logout', {method:'POST'}).catch(()=>{});
-        showLoginError('forbidden_role');
-        icons();
+        window.location.href = '/admin-login?error=forbidden_role';
         return;
       }
       adminUser = {
@@ -838,11 +1183,13 @@ async function exportXLSX(){
       saveAdminUser(adminUser);
       await enterAdmin();
     } else {
-      adminUser = null; localStorage.removeItem(ADMIN_USER_KEY); icons();
+      // Not logged in — send to the standalone login page
+      window.location.href = '/admin-login';
     }
   } catch(e) {
     adminUser = loadAdminUser();
-    if(adminUser) await enterAdmin(); else icons();
+    if(adminUser) await enterAdmin();
+    else window.location.href = '/admin-login';
   }
 })();
 </script>
