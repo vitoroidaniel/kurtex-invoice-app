@@ -116,10 +116,16 @@ def login_required(f):
 # There is no separate whitelist or Telegram webhook here anymore — the bot is
 # the single place admins manage who's allowed in and with what role.
 
-@app.route("/auth/telegram")
+@app.route("/auth/telegram", methods=["GET", "POST"])
 def telegram_auth():
-    data = dict(request.args)
-    next_url = data.pop("next", "/") or "/"
+    # Handle both GET (from Telegram widget redirect) and POST (from client-side)
+    if request.method == "POST":
+        data = request.get_json(force=True) or {}
+        next_url = "/"
+    else:
+        data = dict(request.args)
+        next_url = data.pop("next", "/") or "/"
+    
     if not next_url.startswith("/"):
         next_url = "/"  # never redirect off-site
 
@@ -145,10 +151,10 @@ def telegram_auth():
         "auth_date": data.get("auth_date", ""),
         "role": role,
     }
-    # For admin login, redirect back to login page with success flag
-    # The login page will detect the session and redirect to /admin
+    # For admin login, redirect directly to admin page
+    # The admin page will check auth and show the interface
     if next_url == "/admin":
-        return redirect("/admin-login?success=1")
+        return redirect("/admin")
     return redirect(next_url)
 
 @app.route("/auth/guest", methods=["POST"])
