@@ -136,7 +136,8 @@ def telegram_auth():
     if not data.get("hash"):
         # Redirect to Telegram OAuth
         bot_username = os.getenv("BOT_USERNAME", "@kurtexalertsbot").replace("@", "")
-        origin = request.host_url.rstrip("/")
+        # Use the configured domain or fallback to host
+        origin = os.getenv("APP_URL", request.host_url.rstrip("/"))
         telegram_oauth_url = f"https://oauth.telegram.org/auth?bot_id={bot_username}&origin={origin}&request_access=write"
         return redirect(telegram_oauth_url)
     

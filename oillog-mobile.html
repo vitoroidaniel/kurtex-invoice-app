@@ -240,7 +240,7 @@
       <div class="login-sub">Evidența oil change-urilor de pe yard. Data, tipul unității, unit#-ul și mileage / engine hours.</div>
       <div id="login-error" class="login-error hidden"></div>
       <div class="login-actions">
-        <a href="https://kurtex-invoice-app-production.up.railway.app/auth/telegram?next=/" 
+        <a href="/auth/telegram?next=/" 
            class="login-tg-btn" 
            style="width:100%;max-width:300px;padding:14px 24px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:10px;">
           <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
@@ -729,6 +729,11 @@ function saveName(){
   };
 
   checkUrlLoginError();
+  
+  // Check if we just came back from Telegram OAuth (URL has no error but we might have a session)
+  const params = new URLSearchParams(window.location.search);
+  const justReturnedFromTelegram = params.toString() === '' && !params.get('error');
+  
   user = loadUser();
   try {
     const status = await api('GET', '/auth/status');
@@ -788,13 +793,6 @@ function saveName(){
     if(isAddScreenActive) e.preventDefault();
   }, { passive: false });
 })();
-
-// ── Telegram Login Handler ──────────────────────────────────────────────────
-// Use full-page redirect on mobile (more reliable than popup on mobile browsers)
-document.getElementById('tg-login-btn-mobile').addEventListener('click', function() {
-  // Redirect to Telegram OAuth - will come back to /auth/telegram?next=/
-  window.location.href = '/auth/telegram?next=/';
-});
 </script>
 </body>
 </html>
