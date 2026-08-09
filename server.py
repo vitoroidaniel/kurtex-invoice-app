@@ -20,6 +20,12 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.getenv("OILLOG_SECRET", "oillog-secret-change-me")
 
+# Configure session cookies for cross-site compatibility (Telegram OAuth)
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_DOMAIN'] = None
+
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")  # ← SET THIS to the SAME bot token as the alert bot
 
