@@ -367,6 +367,16 @@ def serve_web():
 def serve_static(filename):
     return send_from_directory(str(FRONTEND_DIR), filename)
 
+# ── Health check ─────────────────────────────────────────────────────────────
+@app.route("/health")
+def health():
+    return jsonify({
+        "ok": True,
+        "time": time.time(),
+        "data_dir": str(DATA_DIR),
+    })
+
+
 # ── Main ──────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
