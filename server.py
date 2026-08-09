@@ -28,9 +28,16 @@ app.config['SESSION_COOKIE_DOMAIN'] = None
 
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")  # ← SET THIS to the SAME bot token as the alert bot
+BOT_USERNAME = os.getenv("BOT_USERNAME", "").replace("@", "")  # Bot username without @
+BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric)
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
+
+# Log configuration on startup
+logger.info(f"BOT_TOKEN configured: {bool(BOT_TOKEN)}")
+logger.info(f"BOT_USERNAME configured: {bool(BOT_USERNAME)}")
+logger.info(f"BOT_ID configured: {bool(BOT_ID)}")
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -135,10 +142,21 @@ def telegram_auth():
     # If no hash in data, this is a request to initiate OAuth (mobile flow)
     if not data.get("hash"):
         # Redirect to Telegram OAuth
-        bot_username = os.getenv("BOT_USERNAME", "@kurtexalertsbot").replace("@", "")
+        # Telegram OAuth requires the numeric bot ID
+        bot_id = os.getenv("BOT_ID", "")
+        
+        # If BOT_ID not set, extract from BOT_TOKEN (format: "bot_id:token_string")
+        if not bot_id and ":" in BOT_TOKEN:
+            bot_id = BOT_TOKEN.split(":")[0]
+        
+        if not bot_id:
+            logger.error("BOT_ID not configured. Set BOT_ID env var or ensure BOT_TOKEN is in format 'bot_id:token'")
+            return redirect("/?error=bot_not_configured")
+        
         # Use the configured domain or fallback to host
         origin = os.getenv("APP_URL", request.host_url.rstrip("/"))
-        telegram_oauth_url = f"https://oauth.telegram.org/auth?bot_id={bot_username}&origin={origin}&request_access=write"
+        telegram_oauth_url = f"https://oauth.telegram.org/auth?bot_id={bot_id}&origin={origin}&request_access=write"
+        logger.info(f"Redirecting to Telegram OAuth with bot_id: {bot_id}")
         return redirect(telegram_oauth_url)
     
     if not next_url.startswith("/"):
