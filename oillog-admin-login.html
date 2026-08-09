@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F4F4F2;
     --surface:#FFFFFF;
     --surface-2:#F9F7F5;
     --border:#E5E3E0;
@@ -20,13 +19,13 @@
     --red:#C8102E;
     --red-tint:rgba(200,16,46,0.08);
     --r:6px;
-    --shadow-lg:0 10px 34px rgba(0,0,0,0.08);
+    --shadow-lg:0 10px 34px rgba(0,0,0,0.3);
     --font-display:'Oswald',sans-serif;
     --font-body:'Inter',sans-serif;
     --font-mono:'JetBrains Mono',monospace;
+    --bg-img:url("https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1920&q=70");
   }
   html[data-theme="dark"]{
-    --bg:#121212;
     --surface:#1C1C1C;
     --surface-2:#242424;
     --border:#333333;
@@ -38,10 +37,22 @@
     --shadow-lg:0 10px 34px rgba(0,0,0,0.5);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--white);font-family:var(--font-body);}
-  body{display:flex;align-items:center;justify-content:center;padding:20px;}
-
-  .login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:44px 36px 36px 36px;box-shadow:var(--shadow-lg);text-align:center;}
+  html,body{margin:0;height:100%;color:var(--white);font-family:var(--font-body);}
+  body{
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    background-image:var(--bg-img);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    position:relative;
+  }
+  body::before{
+    content:'';position:absolute;inset:0;
+    background:rgba(10,10,10,0.55);
+    backdrop-filter:blur(2px);
+    -webkit-backdrop-filter:blur(2px);
+  }
+  .login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:44px 36px 36px 36px;box-shadow:var(--shadow-lg);text-align:center;position:relative;z-index:2;}
   .login-title{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:4px;margin:0 0 4px 0;}
   .login-title span{color:var(--red);}
   .login-tag{font-size:12px;letter-spacing:0.5px;color:var(--faint);margin-bottom:8px;}
@@ -73,12 +84,12 @@
 <div class="login-card">
   <div class="login-title">OIL<span>LOG</span></div>
   <div class="login-tag">ADMIN PANEL</div>
-  <div class="login-sub">Autentifică-te pentru a accesa panoul de administrare.</div>
+  <div class="login-sub">Sign in to access the admin panel.</div>
   <div id="login-error" class="login-error hidden"></div>
 
   <div class="login-tabs">
     <button class="login-tab active" onclick="showLoginTab('telegram')" id="tab-telegram">Telegram</button>
-    <button class="login-tab" onclick="showLoginTab('password')" id="tab-password">Parolă</button>
+    <button class="login-tab" onclick="showLoginTab('password')" id="tab-password">Password</button>
   </div>
 
   <div class="login-actions" id="login-telegram">
@@ -88,35 +99,35 @@
       data-radius="8"
       data-auth-url="/auth/telegram?next=/admin"
       data-request-access="write"></script></div>
-    <p class="muted">Doar administratorii au acces.</p>
+    <p class="muted">Administrators only.</p>
   </div>
 
   <div class="login-actions hidden" id="login-password">
     <form id="password-form" class="login-form" onsubmit="return false;">
-      <input type="password" id="p-password" placeholder="Parolă admin" autocomplete="current-password">
-      <button type="submit" class="btn btn-primary"><i data-lucide="log-in"></i>Autentifică</button>
+      <input type="password" id="p-password" placeholder="Admin password" autocomplete="current-password">
+      <button type="submit" class="btn btn-primary"><i data-lucide="log-in"></i>Sign in</button>
     </form>
-    <p class="muted">Parola temporară de admin (setată manual în server).</p>
+    <p class="muted">Temporary admin password (set manually on the server).</p>
   </div>
 
-  <button class="back-link" onclick="window.location.href='/'"><i data-lucide="arrow-left"></i>Înapoi la aplicație</button>
+  <button class="back-link" onclick="window.location.href='/'"><i data-lucide="arrow-left"></i>Back to app</button>
 </div>
 
 <script>
 const API_BASE = window.location.origin;
 const LOGIN_ERROR_MESSAGES = {
-  not_whitelisted: 'Contul tău Telegram nu e încă autorizat ca admin. Accesul se dă din botul de alerte, cu /adduser <id> <nume> <rol>.',
-  forbidden_role: 'Contul tău e autorizat, dar rolul "agent" nu are acces la panoul de admin — ai nevoie de super_admin sau developer.',
-  invalid: 'Autentificare Telegram invalidă. Verifică dacă domeniul acestui site e setat corect în BotFather (/setdomain).',
-  missing: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
-  missing_fields: 'Introdu parola.',
-  invalid_credentials: 'Parolă incorectă.',
-  network_error: 'Nu s-a putut contacta serverul. Încearcă din nou.',
+  not_whitelisted: 'Your Telegram account is not yet authorized as admin. Access is granted from the alert bot with /adduser <id> <name> <role>.',
+  forbidden_role: 'Your account is authorized, but the "agent" role does not have admin access — you need super_admin or developer.',
+  invalid: 'Invalid Telegram authentication. Check if this site\'s domain is set correctly in BotFather (/setdomain).',
+  missing: 'Incomplete response from Telegram. Try again.',
+  missing_fields: 'Enter the password.',
+  invalid_credentials: 'Incorrect password.',
+  network_error: 'Could not reach the server. Try again.',
 };
 function showLoginError(code, raw){
   const box = document.getElementById('login-error');
   if(!box) return;
-  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Autentificare eșuată. Încearcă din nou.');
+  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Authentication failed. Try again.');
   box.classList.remove('hidden');
 }
 function clearLoginError(){

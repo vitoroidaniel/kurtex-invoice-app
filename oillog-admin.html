@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,570 +9,244 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#F4F4F2;
-    --surface:#FFFFFF;
-    --surface-2:#F9F7F5;
-    --surface-3:#F1EFEC;
-    --border:#E5E3E0;
-    --border-2:#D8D5D0;
-    --white:#1A1A1A;
-    --dim:#6B6B6B;
-    --faint:#9A9A9A;
-    --red:#C8102E;
-    --red-tint:rgba(200,16,46,0.08);
-    --amber:#B7791F;
-    --amber-tint:rgba(183,121,31,0.1);
-    --green:#3A7D44;
-    --green-tint:rgba(58,125,68,0.1);
-    --sidebar:#1A1A1A;
-    --sidebar-text:#C9C7C2;
-    --sidebar-active:#FFFFFF;
-    --sidebar-active-bg:rgba(255,255,255,0.1);
-    --r:6px;
-    --shadow:0 1px 3px rgba(0,0,0,0.05);
-    --shadow-lg:0 10px 34px rgba(0,0,0,0.08);
-    --font-display:'Oswald',sans-serif;
-    --font-body:'Inter',sans-serif;
-    --font-mono:'JetBrains Mono',monospace;
-  }
-  html[data-theme="dark"]{
-    --bg:#121212;
-    --surface:#1C1C1C;
-    --surface-2:#242424;
-    --surface-3:#2A2A2A;
-    --border:#333333;
-    --border-2:#3D3D3D;
-    --white:#ECECEC;
-    --dim:#A0A0A0;
-    --faint:#777777;
-    --red-tint:rgba(200,16,46,0.15);
-    --amber-tint:rgba(183,121,31,0.15);
-    --green-tint:rgba(58,125,68,0.15);
-    --sidebar:#0D0D0D;
-    --sidebar-text:#8A8A8A;
-    --sidebar-active:#FFFFFF;
-    --sidebar-active-bg:rgba(255,255,255,0.08);
-    --shadow:0 1px 3px rgba(0,0,0,0.4);
-    --shadow-lg:0 10px 34px rgba(0,0,0,0.5);
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;background:var(--bg);color:var(--white);font-family:var(--font-body);height:100%;}
-  body{display:flex;}
-
-  /* ── Sidebar ─────────────────────────────── */
-  .sidebar{width:240px;min-width:240px;background:var(--sidebar);color:var(--sidebar-text);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;transition:transform .2s;}
-  .sidebar .s-brand{padding:24px 22px 18px 22px;border-bottom:1px solid rgba(255,255,255,0.08);}
-  .sidebar .s-brand .brand{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:3px;color:#fff;}
-  .sidebar .s-brand .brand span{color:var(--red);}
-  .sidebar .s-brand small{display:block;font-family:var(--font-body);font-weight:500;font-size:10.5px;letter-spacing:0.5px;color:var(--sidebar-text);margin-top:2px;text-transform:uppercase;}
-  .s-nav{flex:1;padding:14px 12px;overflow-y:auto;}
-  .s-section{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--sidebar-text);opacity:0.6;padding:14px 12px 6px 12px;font-weight:600;}
-  .s-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:var(--r);cursor:pointer;font-size:13.5px;font-weight:500;margin-bottom:2px;transition:all .15s;border:none;background:transparent;color:var(--sidebar-text);font-family:var(--font-body);width:100%;text-align:left;}
-  .s-item i, .s-item svg{width:17px;height:17px;flex-shrink:0;}
-  .s-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
-  .s-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active);font-weight:600;}
-  .s-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;}
-  .s-footer{padding:16px 22px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:var(--sidebar-text);opacity:0.7;}
-
-  /* ── Main ────────────────────────────────── */
-  .main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-height:100vh;}
-  .topbar{display:flex;align-items:center;gap:14px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;}
-  .topbar .page-title-flex{display:flex;align-items:center;gap:10px;min-width:0;}
-  .topbar h1{font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0;white-space:nowrap;}
-  .topbar .spacer{flex:1;}
-  .menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--dim);cursor:pointer;}
-  .menu-btn i,.menu-btn svg{width:18px;height:18px;display:block;}
-  .search{position:relative;width:280px;}
-  .search i,.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint);}
-  .search input{width:100%;padding:9px 12px 9px 36px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--font-mono);font-size:13px;outline:none;transition:all .15s;}
-  .search input::placeholder{color:var(--faint);}
-  .search input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);background:var(--surface);}
-
-  .icon-btn{background:none;border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--dim);cursor:pointer;position:relative;transition:all .15s;}
-  .icon-btn:hover{color:var(--white);border-color:var(--border-2);background:var(--surface-2);}
-  .icon-btn i,.icon-btn svg{width:16px;height:16px;display:block;}
-  .icon-btn .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--surface);}
-  .admin-chip{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:12.5px;color:var(--dim);}
-  .admin-chip i,.admin-chip svg{width:14px;height:14px;color:var(--faint);}
-  .admin-chip b{color:var(--white);font-weight:600;}
-  .admin-chip img{width:22px;height:22px;border-radius:50%;object-fit:cover;}
-  .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-tint);color:var(--green);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
-  .live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  .clock{display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--white);}
-  .clock i,.clock svg{width:14px;height:14px;color:var(--red);}
-  .clock .ctz{font-size:9px;color:var(--faint);font-family:var(--font-body);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-left:2px;}
-  .stat-date{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px;}
-  .stat-date i,.stat-date svg{width:12px;height:12px;color:var(--faint);}
-  .stat-date b{font-family:var(--font-mono);}
-
-  .content{padding:24px 28px 60px 28px;}
-
-  /* ── Buttons ─────────────────────────────── */
-  button{cursor:pointer;font-family:var(--font-body);}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;transition:all .15s;}
-  .btn:hover{background:var(--surface-2);border-color:var(--border-2);}
-  .btn i,.btn svg{width:15px;height:15px;}
-  .btn-primary{background:var(--red);border-color:var(--red);color:#fff;}
-  .btn-primary:hover{background:#A80725;border-color:#A80725;}
-  .btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
-  .btn-ghost{background:transparent;border-color:transparent;color:var(--dim);}
-  .btn-sm{padding:6px 10px;font-size:11px;}
-
-  /* ── Pages ───────────────────────────────── */
-  .page{display:none;}
-  .page.active{display:block;animation:fadeIn .2s ease;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
-  .page-head h2{font-family:var(--font-display);font-size:22px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0;}
-  .page-head p{color:var(--dim);font-size:13px;margin:4px 0 0 0;}
-
-  /* ── Dashboard ───────────────────────────── */
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
-  .stat-card .s-icon{width:38px;height:38px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
-  .stat-card .s-icon i,.stat-card .s-icon svg{width:18px;height:18px;}
-  .stat-card .n{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.1;}
-  .stat-card .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.6px;margin-top:3px;}
-  .stat-card.accent .s-icon{background:var(--red-tint);color:var(--red);}
-  .stat-card.accent .n{color:var(--red);}
-  .stat-card.green .s-icon{background:var(--green-tint);color:var(--green);}
-  .stat-card.green .n{color:var(--green);}
-  .stat-card.amber .s-icon{background:var(--amber-tint);color:var(--amber);}
-  .stat-card.amber .n{color:var(--amber);}
-  .stat-card.blue .s-icon{background:rgba(59,130,246,0.1);color:#3B82F6;}
-  .stat-card.blue .n{color:#3B82F6;}
-
-  .dash-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);}
-  .card .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
-  .card .card-head h3{font-family:var(--font-display);font-size:14px;letter-spacing:0.8px;text-transform:uppercase;margin:0;}
-  .card .card-head .link{background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);}
-  .card .card-body{padding:16px 20px;}
-
-  .recent-list .r-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
-  .recent-list .r-item:last-child{border-bottom:none;}
-  .ubadge{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--border-2);}
-  .ubadge.ok{background:var(--green);}
-  .ubadge.warn{background:var(--amber);}
-  .ubadge.over{background:var(--red);}
-  .r-item .ru{font-family:var(--font-mono);font-weight:700;}
-  .r-item .rm{color:var(--dim);font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .r-item .rv{font-family:var(--font-mono);font-weight:700;font-size:12.5px;}
-
-  .alert-list .a-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
-  .alert-list .a-item:last-child{border-bottom:none;}
-  .a-item .a-icon{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .a-item .a-icon.over{background:var(--red-tint);color:var(--red);}
-  .a-item .a-icon.warn{background:var(--amber-tint);color:var(--amber);}
-  .a-item .a-icon i,.a-item .a-icon svg{width:14px;height:14px;}
-  .a-item .a-txt b{font-family:var(--font-mono);}
-  .a-item .a-txt{color:var(--dim);line-height:1.5;}
-  .empty-mini{text-align:center;color:var(--faint);font-size:13px;padding:20px;}
-
-  /* ── Table ───────────────────────────────── */
-  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
-  .table-wrap table{width:100%;border-collapse:collapse;min-width:780px;}
-  @media (max-width:1100px){ .table-wrap{overflow-x:auto;} }
-  thead th{text-align:left;font-family:var(--font-display);font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--dim);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);user-select:none;-webkit-user-select:none;font-weight:700;white-space:nowrap;}
-  thead th.sortable{cursor:pointer;}
-  thead th.sortable:hover{color:var(--white);}
-  thead th .arrow{margin-left:4px;color:var(--red);}
-  tbody td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:var(--surface-2);}
-  td.date{font-family:var(--font-mono);color:var(--dim);white-space:nowrap;min-width:112px;}
-  .type-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border:1px solid var(--border-2);border-radius:var(--r);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;}
-  .type-tag i,.type-tag svg{width:13px;height:13px;}
-  td.unit{font-family:var(--font-mono);font-weight:700;}
-  .unit-link{background:none;border:none;padding:0;font-family:var(--font-mono);font-weight:700;font-size:13.5px;color:var(--white);cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-  .unit-link:hover{color:var(--red);text-decoration:underline;}
-  td.value{font-family:var(--font-mono);font-weight:700;white-space:nowrap;}
-  td.value small{color:var(--faint);font-family:var(--font-body);font-weight:500;font-size:10px;text-transform:uppercase;margin-left:5px;}
-  td.who{color:var(--dim);}
-  .status-dot{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);}
-  .status-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--faint);}
-  .status-dot.sent::before{background:var(--green);}
-  .status-dot.pending::before{background:var(--amber);}
-  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
-  .empty-row td{text-align:center;padding:60px 20px;color:var(--faint);}
-  .empty-row i,.empty-row svg{width:40px;height:40px;opacity:0.4;margin-bottom:12px;}
-  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
-  .pill-group{display:flex;gap:6px;}
-  .pill{padding:8px 13px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all .15s;}
-  .pill:hover{border-color:var(--border-2);background:var(--surface-2);}
-  .pill.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:700;}
-
-  /* ── Settings ⚙ ──────────────────────────── */
-  .settings-layout{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:start;}
-  .settings-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
-  .settings-nav .sn-item{width:100%;text-align:left;padding:13px 16px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--dim);font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font-body);transition:all .15s;}
-  .settings-nav .sn-item:last-child{border-bottom:none;}
-  .settings-nav .sn-item i,.settings-nav .sn-item svg{width:16px;height:16px;}
-  .settings-nav .sn-item:hover{background:var(--surface-2);color:var(--white);}
-  .settings-nav .sn-item.active{background:var(--red-tint);color:var(--red);font-weight:600;border-left:3px solid var(--red);}
-  .settings-panel{display:none;}
-  .settings-panel.active{display:block;animation:fadeIn .2s ease;}
-  .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:18px;box-shadow:var(--shadow);}
-  .settings-card h3{font-family:var(--font-display);font-size:16px;letter-spacing:0.8px;text-transform:uppercase;margin:0 0 4px 0;}
-  .settings-card .sc-sub{color:var(--dim);font-size:13px;margin:0 0 18px 0;}
-  .form-row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
-  .form-row .field{flex:1;min-width:160px;}
-  label.f-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);margin-bottom:6px;font-weight:600;}
-  input[type=number],input[type=text],input[type=password],input[type=email],select{
-    width:100%;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--font-mono);font-size:14px;outline:none;transition:all .15s;
-  }
-  input::placeholder,select::placeholder{color:var(--faint);}
-  input:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);}
-
-  /* Toggle switch */
-  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:16px;}
-  .toggle-row:last-child{border-bottom:none;}
-  .toggle-row .t-l{flex:1;}
-  .toggle-row .t-l b{font-size:14px;font-weight:600;display:block;}
-  .toggle-row .t-l span{font-size:12.5px;color:var(--dim);}
-  .switch{position:relative;width:46px;height:26px;flex-shrink:0;}
-  .switch input{opacity:0;width:0;height:0;}
-  .switch .slider{position:absolute;inset:0;background:var(--border-2);border-radius:26px;cursor:pointer;transition:all .2s;}
-  .switch .slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
-  .switch input:checked + .slider{background:var(--red);}
-  .switch input:checked + .slider:before{transform:translateX(20px);}
-
-  .theme-options{display:flex;gap:10px;}
-  .theme-opt{flex:1;border:2px solid var(--border);border-radius:var(--r);padding:14px;background:var(--surface-2);cursor:pointer;text-align:center;transition:all .15s;}
-  .theme-opt.active{border-color:var(--red);background:var(--red-tint);}
-  .theme-opt i,.theme-opt svg{width:22px;height:22px;margin-bottom:6px;color:var(--dim);}
-  .theme-opt.active i,.theme-opt.active svg{color:var(--red);}
-  .theme-opt b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
-
-  /* ── Modal ───────────────────────────────── */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
-  .overlay.show{display:flex;}
-  .modal{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);width:100%;max-width:440px;padding:24px;box-shadow:var(--shadow-lg);}
-  .modal h3{font-family:var(--font-display);font-size:18px;letter-spacing:0.5px;text-transform:uppercase;margin:0 0 4px 0;}
-  .modal p.sub{color:var(--dim);font-size:13px;margin:0 0 20px 0;line-height:1.5;}
-  .modal .field{margin-bottom:14px;}
-  .modal .row2{display:flex;gap:10px;}
-  .modal .row2 .field{flex:1;}
-  .modal-actions{display:flex;gap:10px;margin-top:20px;}
-  .modal-actions .btn{flex:1;justify-content:center;}
-  .modal.danger-modal{text-align:center;}
-  .modal.danger-modal i.warn,.modal.danger-modal svg.warn{width:36px;height:36px;color:var(--red);margin-bottom:12px;}
-  .modal.unit-modal{max-width:480px;}
-  .unit-modal .utitle{display:flex;align-items:center;gap:10px;margin-bottom:2px;}
-  .unit-modal .utitle h3{margin:0;}
-  .status-banner{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);border:1px solid var(--border);margin:16px 0;font-size:13px;}
-  .status-banner .ubadge{width:10px;height:10px;}
-  .status-banner.ok{background:var(--green-tint);border-color:var(--green);color:var(--green);}
-  .status-banner.warn{background:var(--amber-tint);border-color:var(--amber);color:var(--amber);}
-  .status-banner.over{background:var(--red-tint);border-color:var(--red);color:var(--red);}
-  .status-banner.unknown{color:var(--dim);}
-  .status-banner b{font-family:var(--font-mono);}
-  .cur-value-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:6px;}
-  .cur-value-row .field{flex:1;margin-bottom:0;}
-  .history-list{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);margin-top:18px;}
-  .history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:12.5px;border-bottom:1px solid var(--border);}
-  .history-row:last-child{border-bottom:none;}
-  .history-row .hdate{font-family:var(--font-mono);color:var(--dim);}
-  .history-row .hval{font-family:var(--font-mono);font-weight:700;}
-  .history-label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);font-weight:600;margin-top:16px;margin-bottom:8px;}
-
-  /* Notification dropdown */
-  .notif-pop{position:absolute;top:48px;right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-lg);display:none;z-index:60;}
-  .notif-pop.show{display:block;}
-  .notif-pop .np-head{padding:12px 16px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
-  .notif-pop .np-list{max-height:320px;overflow-y:auto;}
-  .notif-pop .np-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);font-size:12.5px;}
-  .notif-pop .np-item:last-child{border-bottom:none;}
-  .notif-pop .np-item .np-ico{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .notif-pop .np-item .np-ico.over{background:var(--red-tint);color:var(--red);}
-  .notif-pop .np-item .np-ico.warn{background:var(--amber-tint);color:var(--amber);}
-  .notif-pop .np-item .np-ico i,.notif-pop .np-item .np-ico svg{width:14px;height:14px;}
-  .notif-pop .np-item b{font-family:var(--font-mono);}
-  .notif-pop .np-item span{color:var(--dim);display:block;line-height:1.4;}
-
-  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .15s;z-index:200;white-space:nowrap;}
-  .toast.show{opacity:1;}
-
-  .hidden{display:none !important;}
-
-  /* ── Responsive ──────────────────────────── */
-  @media (max-width:1100px){ .dash-grid{grid-template-columns:1fr;} .stats{grid-template-columns:repeat(2,1fr);} }
-  @media (max-width:900px){ .settings-layout{grid-template-columns:1fr;} }
-  @media (max-width:768px){
-    .sidebar{transform:translateX(-100%);}
-    .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-lg);}
-    .main{margin-left:0;}
-    .menu-btn{display:block;}
-    .topbar{padding:12px 16px;flex-wrap:wrap;}
-    .search{width:100%;order:10;}
-    .content{padding:20px 16px 60px 16px;}
-    .stats{grid-template-columns:repeat(2,1fr);gap:10px;}
-    .stat-card{padding:14px;}
-    .admin-chip .full{display:none;}
-    .table-wrap{overflow-x:auto;}
-    .table-wrap table{min-width:720px;}
-  }
-  @media (max-width:480px){ .stats{grid-template-columns:1fr 1fr;} }
+:root{--bg:#F4F4F2;--surface:#FFF;--surface-2:#F9F7F5;--border:#E5E3E0;--border-2:#D8D5D0;--white:#1A1A1A;--dim:#6B6B6B;--faint:#9A9A9A;--red:#C8102E;--red-tint:rgba(200,16,46,.09);--amber:#B7791F;--amber-tint:rgba(183,121,31,.11);--green:#3A7D44;--green-tint:rgba(58,125,68,.1);--sidebar:#1A1A1A;--sidebar-text:#C9C7C2;--sidebar-active:#FFF;--sidebar-active-bg:rgba(255,255,255,.1);--r:6px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-lg:0 10px 34px rgba(0,0,0,.08);--fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;--bg-img:url("https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=60");}
+html[data-theme="dark"]{--bg:#121212;--surface:#1C1C1C;--surface-2:#242424;--border:#333;--border-2:#3D3D3D;--white:#ECECEC;--dim:#A2A2A2;--faint:#777;--red-tint:rgba(200,16,46,.16);--amber-tint:rgba(183,121,31,.16);--green-tint:rgba(58,125,68,.16);--sidebar:#0D0D0D;--sidebar-text:#8A8A8A;--sidebar-active:#FFF;--sidebar-active-bg:rgba(255,255,255,.09);--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 34px rgba(0,0,0,.5);}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--white);font-family:var(--fb);height:100%}body{display:flex}
+.sidebar{width:240px;min-width:240px;background:var(--sidebar);color:var(--sidebar-text);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;transition:transform .2s}
+.s-brand{padding:24px 22px 18px;border-bottom:1px solid rgba(255,255,255,.09)}.brand{font-family:var(--fd);font-weight:700;font-size:22px;letter-spacing:3px;color:#fff}.brand span{color:var(--red)}.s-brand small{display:block;font-family:var(--fb);font-weight:500;font-size:10.5px;letter-spacing:.5px;color:var(--sidebar-text);margin-top:2px;text-transform:uppercase}
+.s-nav{flex:1;padding:14px 12px;overflow-y:auto}.s-section{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--sidebar-text);opacity:.55;padding:16px 12px 6px;font-weight:700}
+.s-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:var(--r);cursor:pointer;font-size:13.5px;font-weight:500;margin-bottom:2px;transition:all .15s;border:none;background:transparent;color:var(--sidebar-text);font-family:var(--fb);width:100%;text-align:left}.s-item i,.s-item svg{width:17px;height:17px;flex-shrink:0}.s-item:hover{background:rgba(255,255,255,.07);color:#fff}.s-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active);font-weight:600}.s-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px}
+.s-footer{padding:16px 22px;border-top:1px solid rgba(255,255,255,.09);font-size:11px;color:var(--sidebar-text);opacity:.7}
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
+.topbar h1{font-family:var(--fd);font-size:19px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0;white-space:nowrap}.topbar .spacer{flex:1}
+.menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--dim);cursor:pointer}.menu-btn i,.menu-btn svg{width:18px;height:18px;display:block}
+.search{position:relative;width:280px}.search i,.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint)}.search input{width:100%;padding:9px 12px 9px 36px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--fm);font-size:13px;outline:none;transition:all .15s}.search input::placeholder{color:var(--faint)}.search input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);background:var(--surface)}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--dim);cursor:pointer;position:relative;transition:all .15s}.icon-btn:hover{color:var(--white);border-color:var(--border-2);background:var(--surface-2)}.icon-btn i,.icon-btn svg{width:16px;height:16px;display:block}.icon-btn .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--surface)}
+.admin-chip{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:12.5px;color:var(--dim)}.admin-chip i,.admin-chip svg{width:14px;height:14px;color:var(--faint)}.admin-chip b{color:var(--white);font-weight:600}
+.live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-tint);color:var(--green);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}.live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.clock{display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-family:var(--fm);font-size:12.5px;font-weight:600;color:var(--white)}.clock i,.clock svg{width:14px;height:14px;color:var(--red)}.clock .ctz{font-size:9px;color:var(--faint);font-family:var(--fb);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-left:2px}
+.stat-date{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px}.stat-date i,.stat-date svg{width:12px;height:12px;color:var(--faint)}.stat-date b{font-family:var(--fm)}
+.content{padding:24px 28px 60px;position:relative;z-index:1}
+.main::before{content:'';position:fixed;top:0;right:0;width:100%;height:100%;background-image:var(--bg-img);background-repeat:no-repeat;background-size:cover;background-position:center;opacity:.05;pointer-events:none;z-index:0}
+button{cursor:pointer;font-family:var(--fb)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.8px;text-transform:uppercase;transition:all .15s}.btn:hover{background:var(--surface-2);border-color:var(--border-2)}.btn i,.btn svg{width:15px;height:15px}.btn-primary{background:var(--red);border-color:var(--red);color:#fff}.btn-primary:hover{background:#A80725;border-color:#A80725}.btn-danger{background:transparent;color:var(--red);border-color:var(--red)}.btn-ghost{background:transparent;border-color:transparent;color:var(--dim)}.btn-sm{padding:6px 10px;font-size:11px}
+.page{display:none}.page.active{display:block;animation:fadeIn .2s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}.page-head h2{font-family:var(--fd);font-size:22px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0}.page-head p{color:var(--dim);font-size:13px;margin:4px 0 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}.stat-card .s-icon{width:38px;height:38px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin-bottom:12px}.stat-card .s-icon i,.stat-card .s-icon svg{width:18px;height:18px}.stat-card .n{font-family:var(--fd);font-size:30px;font-weight:700;line-height:1.1}.stat-card .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}.stat-card.accent .s-icon{background:var(--red-tint);color:var(--red)}.stat-card.accent .n{color:var(--red)}.stat-card.green .s-icon{background:var(--green-tint);color:var(--green)}.stat-card.green .n{color:var(--green)}.stat-card.amber .s-icon{background:var(--amber-tint);color:var(--amber)}.stat-card.amber .n{color:var(--amber)}.stat-card.blue .s-icon{background:rgba(59,130,246,.1);color:#3B82F6}.stat-card.blue .n{color:#3B82F6}
+.dash-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}.card .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}.card .card-head h3{font-family:var(--fd);font-size:14px;letter-spacing:.8px;text-transform:uppercase;margin:0}.card .card-head .link{background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb)}.card .card-body{padding:16px 20px}
+.recent-list .r-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}.recent-list .r-item:last-child{border-bottom:none}.ubadge{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--border-2)}.ubadge.ok{background:var(--green)}.ubadge.warn{background:var(--amber)}.ubadge.over{background:var(--red)}.r-item .ru{font-family:var(--fm);font-weight:700}.r-item .rm{color:var(--dim);font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.r-item .rv{font-family:var(--fm);font-weight:700;font-size:12.5px}
+.alert-list .a-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px}.alert-list .a-item:last-child{border-bottom:none}.a-item .a-icon{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0}.a-item .a-icon.over{background:var(--red-tint);color:var(--red)}.a-item .a-icon.warn{background:var(--amber-tint);color:var(--amber)}.a-item .a-icon.done{background:var(--green-tint);color:var(--green)}.a-item .a-icon i,.a-item .a-icon svg{width:14px;height:14px}.a-item .a-txt{flex:1;min-width:0}.a-item .a-txt b{font-family:var(--fm)}.a-item .a-txt span{color:var(--dim);display:block;line-height:1.45}
+.empty-mini{text-align:center;color:var(--faint);font-size:13px;padding:20px}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}.table-wrap table{width:100%;border-collapse:collapse;min-width:780px}@media (max-width:1100px){.table-wrap{overflow-x:auto}}
+thead th{text-align:left;font-family:var(--fd);font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);user-select:none;-webkit-user-select:none;font-weight:700;white-space:nowrap}thead th.sortable{cursor:pointer}thead th.sortable:hover{color:var(--white)}thead th .arrow{margin-left:4px;color:var(--red)}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:var(--surface-2)}td.date{font-family:var(--fm);color:var(--dim);white-space:nowrap;min-width:112px}
+.type-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border:1px solid var(--border-2);border-radius:var(--r);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}.type-tag i,.type-tag svg{width:13px;height:13px}td.unit{font-family:var(--fm);font-weight:700}
+.unit-link{background:none;border:none;padding:0;font-family:var(--fm);font-weight:700;font-size:13.5px;color:var(--white);cursor:pointer;display:inline-flex;align-items:center;gap:7px}.unit-link:hover{color:var(--red);text-decoration:underline}td.value{font-family:var(--fm);font-weight:700;white-space:nowrap}td.value small{color:var(--faint);font-family:var(--fb);font-weight:500;font-size:10px;text-transform:uppercase;margin-left:5px}td.who{color:var(--dim)}
+.status-dot{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim)}.status-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--faint)}.status-dot.sent::before{background:var(--green)}.status-dot.pending::before{background:var(--amber)}.status-dot.completed::before{background:var(--green)}
+.row-actions{display:flex;gap:6px;justify-content:flex-end}.empty-row td{text-align:center;padding:60px 20px;color:var(--faint)}.empty-row i,.empty-row svg{width:40px;height:40px;opacity:.4;margin-bottom:12px}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}.pill-group{display:flex;gap:6px}.pill{padding:8px 13px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .15s}.pill:hover{border-color:var(--border-2);background:var(--surface-2)}.pill.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:700}
+.settings-layout{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:start}.settings-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}.settings-nav .sn-item{width:100%;text-align:left;padding:13px 16px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--dim);font-size:13.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--fb);transition:all .15s}.settings-nav .sn-item:last-child{border-bottom:none}.settings-nav .sn-item i,.settings-nav .sn-item svg{width:16px;height:16px}.settings-nav .sn-item:hover{background:var(--surface-2);color:var(--white)}.settings-nav .sn-item.active{background:var(--red-tint);color:var(--red);font-weight:600;border-left:3px solid var(--red)}
+.settings-panel{display:none}.settings-panel.active{display:block;animation:fadeIn .2s ease}.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:18px;box-shadow:var(--shadow)}.settings-card h3{font-family:var(--fd);font-size:16px;letter-spacing:.8px;text-transform:uppercase;margin:0 0 4px}.settings-card .sc-sub{color:var(--dim);font-size:13px;margin:0 0 18px}
+.form-row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}.form-row .field{flex:1;min-width:160px}label.f-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);margin-bottom:6px;font-weight:700}
+input[type=number],input[type=text],input[type=password],input[type=email],select{width:100%;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--fm);font-size:14px;outline:none;transition:all .15s}input::placeholder,select::placeholder{color:var(--faint)}input:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:16px}.toggle-row:last-child{border-bottom:none}.toggle-row .t-l{flex:1}.toggle-row .t-l b{font-size:14px;font-weight:600;display:block}.toggle-row .t-l span{font-size:12.5px;color:var(--dim)}
+.switch{position:relative;width:46px;height:26px;flex-shrink:0}.switch input{opacity:0;width:0;height:0}.switch .slider{position:absolute;inset:0;background:var(--border-2);border-radius:26px;cursor:pointer;transition:all .2s}.switch .slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}.switch input:checked + .slider{background:var(--red)}.switch input:checked + .slider:before{transform:translateX(20px)}
+.theme-options{display:flex;gap:10px}.theme-opt{flex:1;border:2px solid var(--border);border-radius:var(--r);padding:14px;background:var(--surface-2);cursor:pointer;text-align:center;transition:all .15s}.theme-opt.active{border-color:var(--red);background:var(--red-tint)}.theme-opt i,.theme-opt svg{width:22px;height:22px;margin-bottom:6px;color:var(--dim)}.theme-opt.active i,.theme-opt.active svg{color:var(--red)}.theme-opt b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}.overlay.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);width:100%;max-width:460px;padding:24px;box-shadow:var(--shadow-lg)}.modal h3{font-family:var(--fd);font-size:18px;letter-spacing:.5px;text-transform:uppercase;margin:0 0 4px}.modal p.sub{color:var(--dim);font-size:13px;margin:0 0 20px;line-height:1.5}.modal .field{margin-bottom:14px}.modal .row2{display:flex;gap:10px}.modal .row2 .field{flex:1}.modal-actions{display:flex;gap:10px;margin-top:20px}.modal-actions .btn{flex:1;justify-content:center}
+.modal.unit-modal{max-width:540px}.unit-modal .utitle{display:flex;align-items:center;gap:10px;margin-bottom:2px}.unit-modal .utitle h3{margin:0}
+.status-banner{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);border:1px solid var(--border);margin:16px 0;font-size:13px}.status-banner .ubadge{width:10px;height:10px}.status-banner.ok{background:var(--green-tint);border-color:var(--green);color:var(--green)}.status-banner.warn{background:var(--amber-tint);border-color:var(--amber);color:var(--amber)}.status-banner.over{background:var(--red-tint);border-color:var(--red);color:var(--red)}.status-banner.unknown{color:var(--dim)}.status-banner.done{background:var(--green-tint);border-color:var(--green);color:var(--green)}.status-banner b{font-family:var(--fm)}
+.history-list{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);margin-top:18px}.history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:12.5px;border-bottom:1px solid var(--border)}.history-row:last-child{border-bottom:none}.history-row .hdate{font-family:var(--fm);color:var(--dim)}.history-row .hval{font-family:var(--fm);font-weight:700}.history-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;margin-top:16px;margin-bottom:8px}
+.notif-pop{position:absolute;top:48px;right:0;width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-lg);display:none;z-index:60}.notif-pop.show{display:block}.notif-pop .np-head{padding:12px 16px;border-bottom:1px solid var(--border);font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}.notif-pop .np-list{max-height:320px;overflow-y:auto}.notif-pop .np-item{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);font-size:12.5px}.notif-pop .np-item:last-child{border-bottom:none}.notif-pop .np-item .np-ico{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0}.notif-pop .np-item .np-ico.over{background:var(--red-tint);color:var(--red)}.notif-pop .np-item .np-ico.warn{background:var(--amber-tint);color:var(--amber)}.notif-pop .np-item .np-ico.done{background:var(--green-tint);color:var(--green)}.notif-pop .np-item .np-ico i,.notif-pop .np-item .np-ico svg{width:14px;height:14px}.notif-pop .np-item .np-txt{flex:1;min-width:0}.notif-pop .np-item .np-txt b{font-family:var(--fm)}.notif-pop .np-item .np-txt span{color:var(--dim);display:block;line-height:1.4}.notif-pop .np-item .btn-sm{flex-shrink:0}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .15s;z-index:200;white-space:nowrap}.toast.show{opacity:1}
+.hidden{display:none !important}
+@media (max-width:1100px){.dash-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:900px){.settings-layout{grid-template-columns:1fr}}
+@media (max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0);box-shadow:var(--shadow-lg)}.main{margin-left:0}.menu-btn{display:block}.topbar{padding:12px 16px;flex-wrap:wrap}.content{padding:20px 16px 60px}.stats{grid-template-columns:repeat(2,1fr);gap:10px}.stat-card{padding:14px}.admin-chip .full{display:none}.table-wrap{overflow-x:auto}.table-wrap table{min-width:680px}}
+@media (max-width:480px){.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 
-<!-- ══════════ SIDEBAR ══════════ -->
 <aside class="sidebar hidden" id="sidebar">
-  <div class="s-brand">
-    <div class="brand">OIL<span>LOG</span></div>
-    <small>Admin Panel</small>
-  </div>
+  <div class="s-brand"><div class="brand">OIL<span>LOG</span></div><small>Admin Panel</small></div>
   <nav class="s-nav">
-    <div class="s-section">Principal</div>
+    <div class="s-section">Main</div>
     <button class="s-item active" data-page="dashboard" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard"></i>Dashboard</button>
-    <button class="s-item" data-page="entries" onclick="navigate('entries')"><i data-lucide="list"></i>Înregistrări <span class="badge" id="nav-badge-entries">0</span></button>
-    <button class="s-item" data-page="units" onclick="navigate('units')"><i data-lucide="truck"></i>Unități</button>
-    <button class="s-item" data-page="alerts" onclick="navigate('alerts')"><i data-lucide="bell"></i>Alerte <span class="badge" id="nav-badge-alerts">0</span></button>
-    <div class="s-section">Sistem</div>
-    <button class="s-item" data-page="settings" onclick="navigate('settings')"><i data-lucide="settings"></i>Setări</button>
+    <button class="s-item" data-page="entries" onclick="navigate('entries')"><i data-lucide="list"></i>Entries <span class="badge" id="nav-badge-entries">0</span></button>
+    <button class="s-item" data-page="units" onclick="navigate('units')"><i data-lucide="truck"></i>Units</button>
+    <button class="s-item" data-page="alerts" onclick="navigate('alerts')"><i data-lucide="bell"></i>Alerts <span class="badge hidden" id="nav-badge-alerts">0</span></button>
+    <div class="s-section">System</div>
+    <button class="s-item" data-page="settings" onclick="navigate('settings')"><i data-lucide="settings"></i>Settings</button>
   </nav>
-  <div class="s-footer">OILLOG v3.1<br>© Kurtex Fleet</div>
+  <div class="s-footer">OILLOG v4.0<br>&copy; Kurtex Fleet</div>
 </aside>
 
-<!-- ══════════ MAIN ══════════ -->
 <div class="main" id="main">
   <div class="topbar">
     <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i data-lucide="menu"></i></button>
-    <div class="page-title-flex"><h1 id="topbar-title">Dashboard</h1></div>
-    <div class="search" id="global-search-wrap" style="display:none;"><i data-lucide="search"></i><input id="search" placeholder="Caută unit # sau nume..." oninput="render()"></div>
+    <h1 id="topbar-title">Dashboard</h1>
     <div class="spacer"></div>
-    <span class="clock" id="top-clock"><i data-lucide="clock"></i><span id="top-clock-time">--:--:--</span><span class="ctz">CT</span></span>
-    <span class="live-pill" id="live-indicator"><span class="s-dot"></span> Live</span>
+    <span class="clock"><i data-lucide="clock"></i><span id="top-clock-time">--:--:--</span><span class="ctz">CT</span></span>
+    <span class="live-pill"><span class="s-dot"></span> Live</span>
     <div style="position:relative;">
-      <button class="icon-btn" onclick="toggleNotif()" title="Alerte"><i data-lucide="bell"></i><span class="dot" id="notif-dot" style="display:none;"></span></button>
+      <button class="icon-btn" onclick="toggleNotif()" title="Active alerts"><i data-lucide="bell"></i><span class="dot" id="notif-dot" style="display:none;"></span></button>
       <div class="notif-pop" id="notif-pop">
-        <div class="np-head">Alerte unități</div>
-        <div class="np-list" id="notif-list"><div class="np-item"><span style="color:var(--faint);">Nicio alertă</span></div></div>
+        <div class="np-head">Active alerts</div>
+        <div class="np-list" id="notif-list"><div class="np-item"><span style="color:var(--faint);">No active alerts</span></div></div>
       </div>
     </div>
-    <button class="icon-btn" onclick="toggleTheme()" title="Comută tema"><i data-lucide="moon" id="theme-icon"></i></button>
+    <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" id="theme-icon"></i></button>
     <div class="admin-chip"><i data-lucide="user"></i><b class="full" id="admin-name">—</b></div>
-    <button class="icon-btn" onclick="logoutAdmin()" title="Delogare"><i data-lucide="log-out"></i></button>
+    <button class="icon-btn" onclick="logoutAdmin()" title="Logout"><i data-lucide="log-out"></i></button>
   </div>
 
   <div class="content">
 
-    <!-- ══ DASHBOARD ══ -->
+    <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="page-head">
-        <div><h2>Dashboard</h2><p>Rezumatul evidenței oil change pe yard.</p></div>
+        <div><h2>Dashboard</h2><p id="dash-sub">Oil change records overview for the yard.</p></div>
         <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
       </div>
-      <div class="stats">
-        <div class="stat-card accent"><div class="s-icon"><i data-lucide="database"></i></div><div class="n" id="stat-total">0</div><div class="l">Total înregistrări</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-total">—</b></div></div>
-        <div class="stat-card blue"><div class="s-icon"><i data-lucide="truck"></i></div><div class="n" id="stat-trucks">0</div><div class="l">Trucks</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-trucks">—</b></div></div>
-        <div class="stat-card green"><div class="s-icon"><i data-lucide="wind"></i></div><div class="n" id="stat-reefers">0</div><div class="l">Reefers</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-reefers">—</b></div></div>
-        <div class="stat-card amber"><div class="s-icon"><i data-lucide="alert-triangle"></i></div><div class="n" id="stat-overdue">0</div><div class="l">Unități depășite</div><div class="stat-date"><i data-lucide="calendar"></i><b id="stat-date-overdue">—</b></div></div>
+      <div class="stats" id="dash-stats">
+        <div class="stat-card accent"><div class="s-icon"><i data-lucide="database"></i></div><div class="n" id="stat-total">0</div><div class="l">Total records</div></div>
+        <div class="stat-card blue"><div class="s-icon"><i data-lucide="truck"></i></div><div class="n" id="stat-trucks">0</div><div class="l">Trucks</div></div>
+        <div class="stat-card green"><div class="s-icon"><i data-lucide="wind"></i></div><div class="n" id="stat-reefers">0</div><div class="l">Reefers</div></div>
+        <div class="stat-card amber"><div class="s-icon"><i data-lucide="alert-triangle"></i></div><div class="n" id="stat-overdue">0</div><div class="l">Due now</div></div>
       </div>
       <div class="dash-grid">
-        <div class="card">
-          <div class="card-head"><h3>Înregistrări recente</h3><button class="link" onclick="navigate('entries')">Vezi toate →</button></div>
+        <div class="card" id="widget-recent">
+          <div class="card-head"><h3>Recent entries</h3><button class="link" onclick="navigate('entries')">View all &rarr;</button></div>
           <div class="card-body recent-list" id="dash-recent"></div>
         </div>
-        <div class="card">
-          <div class="card-head"><h3>Alerte active</h3><button class="link" onclick="navigate('alerts')">Detalii →</button></div>
+        <div class="card" id="widget-alerts">
+          <div class="card-head"><h3>Active alerts</h3><button class="link" onclick="navigate('alerts')">Details &rarr;</button></div>
           <div class="card-body alert-list" id="dash-alerts"></div>
         </div>
       </div>
     </div>
 
-    <!-- ══ ENTRIES ══ -->
+    <!-- ENTRIES (view + export only) -->
     <div class="page" id="page-entries">
       <div class="page-head">
-        <div><h2>Înregistrări</h2><p>Toate oil change-urile, actualizate în timp real.</p></div>
+        <div><h2>Entries</h2><p>All oil change records — read only, sorted by date.</p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn" onclick="openExport()"><i data-lucide="download"></i>Export Excel</button>
+          <button class="btn" onclick="openExport()"><i data-lucide="download"></i>Export</button>
           <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
         </div>
       </div>
       <div class="toolbar">
+        <div class="search" style="width:100%;max-width:360px;"><i data-lucide="search"></i><input id="entry-search" placeholder="Search unit # or name..." oninput="render()"></div>
         <div class="pill-group" id="type-filters">
-          <div class="pill active" data-type="all" onclick="setType('all')">Toate</div>
+          <div class="pill active" data-type="all" onclick="setType('all')">All</div>
           <div class="pill" data-type="T" onclick="setType('T')">Truck</div>
           <div class="pill" data-type="R" onclick="setType('R')">Reefer</div>
-        </div>
-        <div class="pill-group" id="status-filters">
-          <div class="pill active" data-status="all" onclick="setStatus('all')">Status: toate</div>
-          <div class="pill" data-status="sent" onclick="setStatus('sent')">Trimise</div>
-          <div class="pill" data-status="pending" onclick="setStatus('pending')">Netrimise</div>
         </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th class="sortable" onclick="setSort('date')">Data <span class="arrow" id="arrow-date"></span></th>
-              <th class="sortable" onclick="setSort('type')">Tip <span class="arrow" id="arrow-type"></span></th>
-              <th class="sortable" onclick="setSort('unit')">Unit # <span class="arrow" id="arrow-unit"></span></th>
-              <th class="sortable" onclick="setSort('value')">Mileage / Ore <span class="arrow" id="arrow-value"></span></th>
-              <th>Adăugat de</th>
-              <th>Status</th>
-              <th style="text-align:right;">Acțiuni</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"><tr class="empty-row"><td colspan="7"><i data-lucide="loader"></i><div>Se încarcă...</div></td></tr></tbody>
+          <thead><tr>
+            <th class="sortable" onclick="setSort('date')">Date <span class="arrow" id="arrow-date"></span></th>
+            <th class="sortable" onclick="setSort('type')">Type <span class="arrow" id="arrow-type"></span></th>
+            <th class="sortable" onclick="setSort('unit')">Unit # <span class="arrow" id="arrow-unit"></span></th>
+            <th class="sortable" onclick="setSort('value')">Value <span class="arrow" id="arrow-value"></span></th>
+            <th>Added by</th>
+          </tr></thead>
+          <tbody id="tbody"><tr class="empty-row"><td colspan="5"><i data-lucide="loader"></i><div>Loading...</div></td></tr></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ══ UNITS ══ -->
+    <!-- UNITS (view only) -->
     <div class="page" id="page-units">
       <div class="page-head">
-        <div><h2>Unități</h2><p>Gestionare unități și kilometraj / ore curente.</p></div>
+        <div><h2>Units</h2><p>View unit status, oil change schedule and alert history.</p></div>
         <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
       </div>
       <div class="toolbar">
-        <div class="search" style="width:100%;max-width:360px;"><i data-lucide="search"></i><input id="unit-search" placeholder="Caută unit #..." oninput="renderUnits()"></div>
+        <div class="search" style="width:100%;max-width:360px;"><i data-lucide="search"></i><input id="unit-search" placeholder="Search unit #..." oninput="renderUnits()"></div>
         <div class="pill-group" id="unit-type-filters">
-          <div class="pill active" data-utype="all" onclick="setUnitType('all')">Toate</div>
+          <div class="pill active" data-utype="all" onclick="setUnitType('all')">All</div>
           <div class="pill" data-utype="T" onclick="setUnitType('T')">Truck</div>
           <div class="pill" data-utype="R" onclick="setUnitType('R')">Reefer</div>
         </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Unit #</th>
-              <th>Tip</th>
-              <th>Ultimul oil change</th>
-              <th>Valoare curentă</th>
-              <th>Status</th>
-              <th style="text-align:right;">Acțiuni</th>
-            </tr>
-          </thead>
-          <tbody id="units-tbody"><tr class="empty-row"><td colspan="6"><i data-lucide="loader"></i><div>Se încarcă...</div></td></tr></tbody>
+          <thead><tr>
+            <th>Unit #</th><th>Type</th><th>Last oil change</th><th>Next oil change</th><th>Status</th><th style="text-align:right;">View</th>
+          </tr></thead>
+          <tbody id="units-tbody"><tr class="empty-row"><td colspan="6"><i data-lucide="loader"></i><div>Loading...</div></td></tr></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ══ ALERTS ══ -->
+    <!-- ALERTS (mark completed) -->
     <div class="page" id="page-alerts">
       <div class="page-head">
-        <div><h2>Alerte</h2><p>Unități care au depășit sau sunt aproape de intervalul de oil change.</p></div>
+        <div><h2>Alerts</h2><p>Due units — mark as completed when the oil change is done.</p></div>
         <button class="btn" onclick="loadData()"><i data-lucide="refresh-cw"></i>Refresh</button>
       </div>
       <div class="card">
-        <div class="card-head"><h3>Unități depășite / în pericol</h3></div>
-        <div class="card-body alert-list" id="alerts-list"><div class="empty-mini">Se încarcă...</div></div>
+        <div class="card-head"><h3>Due / overdue units</h3></div>
+        <div class="card-body alert-list" id="alerts-list"><div class="empty-mini">Loading...</div></div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-head"><h3>Completed alert history</h3></div>
+        <div class="card-body alert-list" id="completed-list"><div class="empty-mini">No completed alerts yet.</div></div>
       </div>
     </div>
 
-    <!-- ══ SETTINGS ══ -->
+    <!-- SETTINGS -->
     <div class="page" id="page-settings">
-      <div class="page-head">
-        <div><h2>Setări</h2><p>Configurează intervalele, notificările și aspectul.</p></div>
-      </div>
+      <div class="page-head"><div><h2>Settings</h2><p>Oil change intervals, notifications and appearance.</p></div></div>
       <div class="settings-layout">
         <div class="settings-nav">
-          <button class="sn-item active" data-spanel="intervals" onclick="showSettingsPanel('intervals')"><i data-lucide="gauge"></i>Interval oil change</button>
-          <button class="sn-item" data-spanel="notifications" onclick="showSettingsPanel('notifications')"><i data-lucide="bell"></i>Notificări</button>
-          <button class="sn-item" data-spanel="appearance" onclick="showSettingsPanel('appearance')"><i data-lucide="palette"></i>Aspect</button>
-          <button class="sn-item" data-spanel="language" onclick="showSettingsPanel('language')"><i data-lucide="languages"></i>Limbă</button>
-          <button class="sn-item" data-spanel="dashboard" onclick="showSettingsPanel('dashboard')"><i data-lucide="layout-dashboard"></i>Dashboard</button>
-          <button class="sn-item" data-spanel="account" onclick="showSettingsPanel('account')"><i data-lucide="user"></i>Cont</button>
+          <button class="sn-item active" data-spanel="intervals" onclick="showSettingsPanel('intervals')"><i data-lucide="gauge"></i> Intervals</button>
+          <button class="sn-item" data-spanel="notifications" onclick="showSettingsPanel('notifications')"><i data-lucide="bell"></i> Notifications</button>
+          <button class="sn-item" data-spanel="appearance" onclick="showSettingsPanel('appearance')"><i data-lucide="palette"></i> Appearance</button>
+          <button class="sn-item" data-spanel="account" onclick="showSettingsPanel('account')"><i data-lucide="user"></i> Account</button>
         </div>
-
         <div>
-          <!-- Intervals -->
           <div class="settings-panel active" id="spanel-intervals">
             <div class="settings-card">
-              <h3>Interval oil change</h3>
-              <p class="sc-sub">Praguri implicite folosite pentru a sesiza unitățile care au depășit intervalul. Se aplică pentru toată echipa.</p>
+              <h3>Oil change intervals</h3>
+              <p class="sc-sub">Thresholds used to detect units that exceeded their service interval.</p>
               <div class="form-row">
                 <div class="field"><label class="f-label">Truck — mileage (mi)</label><input type="number" id="s-truck"></div>
                 <div class="field"><label class="f-label">Reefer — engine hours (hr)</label><input type="number" id="s-reefer"></div>
               </div>
-              <button class="btn btn-primary" onclick="saveSettings()"><i data-lucide="check"></i>Salvează intervalele</button>
+              <button class="btn btn-primary" onclick="saveSettings()"><i data-lucide="check"></i>Save intervals</button>
             </div>
           </div>
-
-          <!-- Notifications -->
           <div class="settings-panel" id="spanel-notifications">
             <div class="settings-card">
-              <h3>Notificări</h3>
-              <p class="sc-sub">Alegi ce alerte vrei să vezi în panou și pe dispozitivul tău.</p>
-              <div class="toggle-row">
-                <div class="t-l"><b>Alerte pentru depășiri</b><span>Primește notificare când o unitate depășește intervalul.</span></div>
-                <label class="switch"><input type="checkbox" id="notif-overdue" onchange="saveNotifPrefs()"><span class="slider"></span></label>
-              </div>
-              <div class="toggle-row">
-                <div class="t-l"><b>Alerte aproape de interval</b><span>Anunță când o unitate e aproape de prag (85% din interval).</span></div>
-                <label class="switch"><input type="checkbox" id="notif-warn" onchange="saveNotifPrefs()"><span class="slider"></span></label>
-              </div>
-              <div class="toggle-row">
-                <div class="t-l"><b>Notificări browser</b><span>Trimite alerte pe desktop prin browser (dacă e permis).</span></div>
-                <label class="switch"><input type="checkbox" id="notif-browser" onchange="saveNotifPrefs()"><span class="slider"></span></label>
-              </div>
-              <div class="toggle-row">
-                <div class="t-l"><b>Sunet la alertă</b><span>Redă un sunet când apare o alertă nouă.</span></div>
-                <label class="switch"><input type="checkbox" id="notif-sound" onchange="saveNotifPrefs()"><span class="slider"></span></label>
-              </div>
+              <h3>Notifications</h3>
+              <p class="sc-sub">Choose which alerts you want.</p>
+              <div class="toggle-row"><div class="t-l"><b>Overdue alerts</b><span>Notify when a unit exceeds the interval.</span></div><label class="switch"><input type="checkbox" id="notif-overdue" onchange="saveNotifPrefs()"><span class="slider"></span></label></div>
+              <div class="toggle-row"><div class="t-l"><b>Near-interval alerts</b><span>Warn at 85% of the threshold.</span></div><label class="switch"><input type="checkbox" id="notif-warn" onchange="saveNotifPrefs()"><span class="slider"></span></label></div>
+              <div class="toggle-row"><div class="t-l"><b>Browser notifications</b><span>Desktop push alerts when allowed.</span></div><label class="switch"><input type="checkbox" id="notif-browser" onchange="saveNotifPrefs()"><span class="slider"></span></label></div>
             </div>
           </div>
-
-          <!-- Appearance -->
           <div class="settings-panel" id="spanel-appearance">
             <div class="settings-card">
-              <h3>Aspect</h3>
-              <p class="sc-sub">Alege tema preferată pentru panou.</p>
+              <h3>Appearance</h3>
+              <p class="sc-sub">Choose your preferred theme.</p>
               <div class="theme-options">
                 <div class="theme-opt active" data-theme-choice="light" onclick="setTheme('light')"><i data-lucide="sun"></i><b>Light</b></div>
                 <div class="theme-opt" data-theme-choice="dark" onclick="setTheme('dark')"><i data-lucide="moon"></i><b>Dark</b></div>
               </div>
             </div>
           </div>
-
-          <!-- Language -->
-          <div class="settings-panel" id="spanel-language">
-            <div class="settings-card">
-              <h3>Limbă / Language / Язык</h3>
-              <p class="sc-sub">Alege limba interfeței. Se aplică instant.</p>
-              <div class="theme-options" style="max-width:420px;">
-                <div class="theme-opt" data-lang-choice="ro" onclick="setLang('ro')"><b>🇷🇴 Română</b></div>
-                <div class="theme-opt" data-lang-choice="ru" onclick="setLang('ru')"><b>🇷🇺 Русский</b></div>
-                <div class="theme-opt" data-lang-choice="en" onclick="setLang('en')"><b>🇬🇧 English</b></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dashboard widgets -->
-          <div class="settings-panel" id="spanel-dashboard">
-            <div class="settings-card">
-              <h3>Widget-uri Dashboard</h3>
-              <p class="sc-sub">Alege ce widget-uri să apară pe pagina principală. Se aplică instant.</p>
-              <div class="toggle-row">
-                <div class="t-l"><b>Carduri statistici</b><span>Total, Trucks, Reefers, Unități depășite.</span></div>
-                <label class="switch"><input type="checkbox" id="w-stats" onchange="saveWidgetPrefs()"><span class="slider"></span></label>
-              </div>
-              <div class="toggle-row">
-                <div class="t-l"><b>Înregistrări recente</b><span>Lista ultimelor oil change-uri.</span></div>
-                <label class="switch"><input type="checkbox" id="w-recent" onchange="saveWidgetPrefs()"><span class="slider"></span></label>
-              </div>
-              <div class="toggle-row">
-                <div class="t-l"><b>Alerte active</b><span>Panoul cu unitățile depășite / în pericol.</span></div>
-                <label class="switch"><input type="checkbox" id="w-alerts" onchange="saveWidgetPrefs()"><span class="slider"></span></label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Account -->
           <div class="settings-panel" id="spanel-account">
             <div class="settings-card">
-              <h3>Cont</h3>
-              <p class="sc-sub">Informațiile contului tău de administrator.</p>
-              <div class="toggle-row"><div class="t-l"><b>Nume</b></div><div class="r" id="acc-name" style="font-family:var(--font-mono);">—</div></div>
-              <div class="toggle-row"><div class="t-l"><b>Rol</b></div><div class="r" id="acc-role" style="font-family:var(--font-mono);">—</div></div>
-              <div style="margin-top:18px;"><button class="btn btn-danger" onclick="logoutAdmin()"><i data-lucide="log-out"></i>Delogare</button></div>
+              <h3>Account</h3>
+              <p class="sc-sub">Your administrator account information.</p>
+              <div class="toggle-row"><div class="t-l"><b>Name</b></div><div style="font-family:var(--fm);" id="acc-name">—</div></div>
+              <div class="toggle-row"><div class="t-l"><b>Role</b></div><div style="font-family:var(--fm);" id="acc-role">—</div></div>
+              <div style="margin-top:18px;"><button class="btn btn-danger" onclick="logoutAdmin()"><i data-lucide="log-out"></i>Logout</button></div>
             </div>
           </div>
         </div>
@@ -582,62 +256,42 @@
   </div>
 </div>
 
-<!-- ══════════ MODALS ══════════ -->
-<div class="overlay" id="edit-overlay">
+<!-- Complete alert modal -->
+<div class="overlay" id="complete-overlay">
   <div class="modal">
-    <h3>Editează înregistrare</h3>
-    <p class="sub">Modifică datele și salvează. Se actualizează instant pentru toată echipa.</p>
-    <form id="edit-form">
-      <div class="row2">
-        <div class="field"><label>Data</label><input type="date" id="e-date" required></div>
-        <div class="field"><label>Tip</label>
-          <select id="e-type"><option value="T">Truck</option><option value="R">Reefer</option></select>
-        </div>
-      </div>
-      <div class="field"><label>Unit number</label><input type="text" id="e-unit" required></div>
-      <div class="row2">
-        <div class="field"><label>Valoare</label><input type="number" id="e-value" required></div>
-        <div class="field"><label>Unitate</label>
-          <select id="e-unitofvalue"><option value="mi">Miles</option><option value="hr">Engine hours</option></select>
-        </div>
-      </div>
-      <div class="field"><label>Adăugat de</label><input type="text" id="e-addedby"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" onclick="closeEdit()">Anulează</button>
-        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i>Salvează</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="overlay" id="delete-overlay">
-  <div class="modal danger-modal">
-    <i data-lucide="alert-triangle" class="warn"></i>
-    <h3>Ștergi definitiv?</h3>
-    <p class="sub" id="delete-desc">Această acțiune nu poate fi anulată.</p>
+    <h3>Complete oil change</h3>
+    <p class="sub" id="complete-sub">Log the value at the time of the change. The next oil change is calculated automatically.</p>
+    <div class="field">
+      <label class="f-label" id="complete-label">Value at change (mi)</label>
+      <input type="number" id="complete-value" placeholder="e.g. 304670">
+    </div>
+    <div class="history-label">Next oil change</div>
+    <div class="status-banner ok" id="complete-next">
+      <span class="ubadge ok"></span>
+      <span id="complete-next-text">—</span>
+    </div>
     <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" onclick="closeDelete()">Anulează</button>
-      <button type="button" class="btn btn-danger" onclick="confirmDelete()"><i data-lucide="trash-2"></i>Șterge</button>
+      <button type="button" class="btn btn-ghost" onclick="closeComplete()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="confirmComplete()"><i data-lucide="check"></i>Mark completed</button>
     </div>
   </div>
 </div>
 
+<!-- Unit detail modal -->
 <div class="overlay" id="unit-overlay">
   <div class="modal unit-modal">
     <div class="utitle"><h3 id="u-title">#—</h3></div>
     <p class="sub" id="u-subtitle">—</p>
     <div id="u-status-banner" class="status-banner unknown">
       <span class="ubadge"></span>
-      <span id="u-status-text">Introdu kilometrajul/orele curente ca să vedem statusul.</span>
+      <span id="u-status-text">—</span>
     </div>
-    <div class="cur-value-row">
-      <div class="field"><label id="u-value-label">Kilometraj curent</label><input type="number" id="u-current-value" placeholder="ex. 312450"></div>
-      <button class="btn btn-primary" onclick="saveUnitValue()" style="margin-bottom:0;"><i data-lucide="check"></i>Salvează</button>
-    </div>
-    <div class="history-label">Istoric oil change (<span id="u-history-count">0</span>)</div>
-    <div class="history-list" id="u-history-list"></div>
+    <div class="history-label">Oil change schedule</div>
+    <div class="history-list" id="u-schedule"></div>
+    <div class="history-label">Alert history</div>
+    <div class="history-list" id="u-alert-history"></div>
     <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" onclick="closeUnitDetail()" style="flex:none;margin-left:auto;">Închide</button>
+      <button type="button" class="btn btn-ghost" onclick="closeUnitDetail()" style="flex:none;margin-left:auto;">Close</button>
     </div>
   </div>
 </div>
@@ -646,44 +300,40 @@
 <div class="overlay" id="export-overlay">
   <div class="modal" style="max-width:720px;">
     <h3>Export Excel</h3>
-    <p class="sub">Alege perioada și verifică preview-ul înainte de descărcare.</p>
+    <p class="sub">Choose the period and preview before downloading.</p>
     <div class="form-row">
-      <div class="field"><label class="f-label">Perioadă</label>
+      <div class="field"><label class="f-label">Period</label>
         <select id="export-range" onchange="updateExportPreview()">
-          <option value="today">Astăzi</option>
-          <option value="yesterday">Ieri</option>
-          <option value="week">Săptămâna aceasta</option>
-          <option value="lastweek">Săptămâna trecută</option>
-          <option value="month">Luna aceasta</option>
-          <option value="lastmonth">Luna trecută</option>
-          <option value="period">Perioadă personalizată</option>
-          <option value="all">Toate</option>
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="week">This week</option>
+          <option value="lastweek">Last week</option>
+          <option value="month">This month</option>
+          <option value="lastmonth">Last month</option>
+          <option value="period">Custom period</option>
+          <option value="all">All</option>
         </select>
       </div>
       <div class="field" id="export-period-fields" style="display:none;">
         <div class="row2">
-          <div class="field"><label class="f-label">De la</label><input type="date" id="export-from" onchange="updateExportPreview()"></div>
-          <div class="field"><label class="f-label">Până la</label><input type="date" id="export-to" onchange="updateExportPreview()"></div>
+          <div class="field"><label class="f-label">From</label><input type="date" id="export-from" onchange="updateExportPreview()"></div>
+          <div class="field"><label class="f-label">To</label><input type="date" id="export-to" onchange="updateExportPreview()"></div>
         </div>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:12px;color:var(--dim);">Preview — <b id="export-count">0</b> înregistrări</div>
+      <div style="font-size:12px;color:var(--dim);">Preview — <b id="export-count">0</b> records</div>
       <div style="font-size:11px;color:var(--faint);" id="export-range-label">—</div>
     </div>
     <div class="table-wrap" style="max-height:280px;overflow-y:auto;">
       <table style="min-width:600px;">
-        <thead>
-          <tr>
-            <th>Data</th><th>Tip</th><th>Unit #</th><th>Valoare</th><th>Adăugat de</th><th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="export-preview-body"><tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>Nicio înregistrare.</div></td></tr></tbody>
+        <thead><tr><th>Date</th><th>Type</th><th>Unit #</th><th>Value</th><th>Added by</th></tr></thead>
+        <tbody id="export-preview-body"><tr class="empty-row"><td colspan="5"><i data-lucide="inbox"></i><div>No records.</div></td></tr></tbody>
       </table>
     </div>
     <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" onclick="closeExport()">Anulează</button>
-      <button type="button" class="btn btn-primary" onclick="confirmExport()"><i data-lucide="download"></i>Descarcă Excel</button>
+      <button type="button" class="btn btn-ghost" onclick="closeExport()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="confirmExport()"><i data-lucide="download"></i>Download Excel</button>
     </div>
   </div>
 </div>
@@ -701,15 +351,14 @@ let entries = [];
 let sortKey = 'date';
 let sortDir = 'desc';
 let typeFilter = 'all';
-let statusFilter = 'all';
 let unitTypeFilter = 'all';
-let pendingDeleteId = null;
 let unitProfiles = {};
 let intervals = { T:15000, R:500 };
-let openUnitKey = null;
 let syncTimer = null;
-let notifPrefs = { overdue:true, warn:true, browser:false, sound:true };
-let seenAlerts = new Set();
+let notifPrefs = { overdue:true, warn:true, browser:false };
+let completedAlerts = [];
+let openUnitKey = null;
+let completeUnitKey = null;
 
 function loadAdminUser(){ try{ return JSON.parse(localStorage.getItem(ADMIN_USER_KEY)) || null; }catch(e){ return null; } }
 function saveAdminUser(u){ localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(u)); }
@@ -731,176 +380,24 @@ function applyTheme(t){
   if(window.lucide) lucide.createIcons();
 }
 function toggleTheme(){ applyTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark'); }
-function setTheme(t){ applyTheme(t); toast('Tema: '+(t==='dark'?'Dark':'Light')); }
-
-// ── i18n (RO/RU/EN) ───────────────────────────────────────────────────────
-const LANG_KEY = 'oillog_admin_lang';
-const WIDGET_KEY = 'oillog_admin_widgets';
-const I18N = {
-  ro: {
-    'nav.dashboard':'Dashboard','nav.entries':'Înregistrări','nav.units':'Unități','nav.alerts':'Alerte','nav.settings':'Setări',
-    'nav.principal':'Principal','nav.system':'Sistem',
-    'page.dashboard':'Dashboard','page.entries':'Înregistrări','page.units':'Unități','page.alerts':'Alerte','page.settings':'Setări',
-    'dash.sub':'Rezumatul evidenței oil change pe yard.',
-    'stat.total':'Total înregistrări','stat.trucks':'Trucks','stat.reefers':'Reefers','stat.overdue':'Unități depășite',
-    'dash.recent':'Înregistrări recente','dash.recent.all':'Vezi toate →','dash.alerts':'Alerte active','dash.alerts.details':'Detalii →',
-    'dash.noalerts':'Nicio alertă activă.','dash.norecent':'Nicio înregistrare încă.',
-    'entries.sub':'Toate oil change-urile, actualizate în timp real.',
-    'btn.export':'Export Excel','btn.refresh':'Refresh','btn.cancel':'Anulează','btn.save':'Salvează','btn.delete':'Șterge','btn.close':'Închide','btn.download':'Descarcă Excel',
-    'th.date':'Data','th.type':'Tip','th.unit':'Unit #','th.value':'Mileage / Ore','th.addedby':'Adăugat de','th.status':'Status','th.actions':'Acțiuni',
-    'filter.all':'Toate','filter.sent':'Trimise','filter.pending':'Netrimise','filter.status':'Status: toate',
-    'status.sent':'Trimis','status.pending':'Netrimis',
-    'units.sub':'Gestionare unități și kilometraj / ore curente.',
-    'units.last':'Ultimul oil change','units.current':'Valoare curentă',
-    'alerts.sub':'Unități care au depășit sau sunt aproape de intervalul de oil change.',
-    'alerts.title':'Unități depășite / în pericol',
-    'settings.sub':'Configurează intervalele, notificările și aspectul.',
-    'set.intervals':'Interval oil change','set.notifications':'Notificări','set.appearance':'Aspect','set.language':'Limbă','set.dashboard':'Dashboard','set.account':'Cont',
-    'set.lang.title':'Limbă / Language / Язык','set.lang.sub':'Alege limba interfeței. Se aplică instant.',
-    'set.widgets.title':'Widget-uri Dashboard','set.widgets.sub':'Alege ce widget-uri să apară pe pagina principală. Se aplică instant.',
-    'set.w.stats':'Carduri statistici','set.w.stats.d':'Total, Trucks, Reefers, Unități depășite.',
-    'set.w.recent':'Înregistrări recente','set.w.recent.d':'Lista ultimelor oil change-uri.',
-    'set.w.alerts':'Alerte active','set.w.alerts.d':'Panoul cu unitățile depășite / în pericol.',
-    'export.title':'Export Excel','export.sub':'Alege perioada și verifică preview-ul înainte de descărcare.',
-    'export.period':'Perioadă','export.today':'Astăzi','export.yesterday':'Ieri','export.week':'Săptămâna aceasta','export.lastweek':'Săptămâna trecută','export.month':'Luna aceasta','export.lastmonth':'Luna trecută','export.period.custom':'Perioadă personalizată','export.all':'Toate',
-    'export.from':'De la','export.to':'Până la','export.preview':'Preview','export.records':'înregistrări',
-    'toast.updated':'Actualizat','toast.saved':'Preferințe salvate','toast.exported':'Excel descărcat','toast.theme':'Tema:',
-  },
-  ru: {
-    'nav.dashboard':'Дашборд','nav.entries':'Записи','nav.units':'Юниты','nav.alerts':'Алерты','nav.settings':'Настройки',
-    'nav.principal':'Главное','nav.system':'Система',
-    'page.dashboard':'Дашборд','page.entries':'Записи','page.units':'Юниты','page.alerts':'Алерты','page.settings':'Настройки',
-    'dash.sub':'Сводка по заменам масла на площадке.',
-    'stat.total':'Всего записей','stat.trucks':'Траки','stat.reefers':'Рефрижераторы','stat.overdue':'Просроченные юниты',
-    'dash.recent':'Последние записи','dash.recent.all':'Все →','dash.alerts':'Активные алерты','dash.alerts.details':'Детали →',
-    'dash.noalerts':'Нет активных алертов.','dash.norecent':'Пока нет записей.',
-    'entries.sub':'Все замены масла, обновляются в реальном времени.',
-    'btn.export':'Экспорт Excel','btn.refresh':'Обновить','btn.cancel':'Отмена','btn.save':'Сохранить','btn.delete':'Удалить','btn.close':'Закрыть','btn.download':'Скачать Excel',
-    'th.date':'Дата','th.type':'Тип','th.unit':'Юнит #','th.value':'Пробег / Часы','th.addedby':'Добавил','th.status':'Статус','th.actions':'Действия',
-    'filter.all':'Все','filter.sent':'Отправлено','filter.pending':'Не отправлено','filter.status':'Статус: все',
-    'status.sent':'Отправлено','status.pending':'Не отправлено',
-    'units.sub':'Управление юнитами и текущим пробегом / часами.',
-    'units.last':'Последняя замена','units.current':'Текущее значение',
-    'alerts.sub':'Юниты, которые превысили или близки к интервалу замены масла.',
-    'alerts.title':'Просроченные / в опасности юниты',
-    'settings.sub':'Настройка интервалов, уведомлений и внешнего вида.',
-    'set.intervals':'Интервал замены масла','set.notifications':'Уведомления','set.appearance':'Внешний вид','set.language':'Язык','set.dashboard':'Дашборд','set.account':'Аккаунт',
-    'set.lang.title':'Limbă / Language / Язык','set.lang.sub':'Выберите язык интерфейса. Применяется мгновенно.',
-    'set.widgets.title':'Виджеты Дашборда','set.widgets.sub':'Выберите, какие виджеты показывать на главной странице. Применяется мгновенно.',
-    'set.w.stats':'Карточки статистики','set.w.stats.d':'Всего, Траки, Рефрижераторы, Просроченные.',
-    'set.w.recent':'Последние записи','set.w.recent.d':'Список последних замен масла.',
-    'set.w.alerts':'Активные алерты','set.w.alerts.d':'Панель с просроченными / в опасности юнитами.',
-    'export.title':'Экспорт Excel','export.sub':'Выберите период и проверьте предпросмотр перед скачиванием.',
-    'export.period':'Период','export.today':'Сегодня','export.yesterday':'Вчера','export.week':'Эта неделя','export.lastweek':'Прошлая неделя','export.month':'Этот месяц','export.lastmonth':'Прошлый месяц','export.period.custom':'Свой период','export.all':'Все',
-    'export.from':'От','export.to':'До','export.preview':'Предпросмотр','export.records':'записей',
-    'toast.updated':'Обновлено','toast.saved':'Настройки сохранены','toast.exported':'Excel скачан','toast.theme':'Тема:',
-  },
-  en: {
-    'nav.dashboard':'Dashboard','nav.entries':'Entries','nav.units':'Units','nav.alerts':'Alerts','nav.settings':'Settings',
-    'nav.principal':'Main','nav.system':'System',
-    'page.dashboard':'Dashboard','page.entries':'Entries','page.units':'Units','page.alerts':'Alerts','page.settings':'Settings',
-    'dash.sub':'Oil change records overview for the yard.',
-    'stat.total':'Total records','stat.trucks':'Trucks','stat.reefers':'Reefers','stat.overdue':'Overdue units',
-    'dash.recent':'Recent entries','dash.recent.all':'View all →','dash.alerts':'Active alerts','dash.alerts.details':'Details →',
-    'dash.noalerts':'No active alerts.','dash.norecent':'No entries yet.',
-    'entries.sub':'All oil changes, updated in real time.',
-    'btn.export':'Export Excel','btn.refresh':'Refresh','btn.cancel':'Cancel','btn.save':'Save','btn.delete':'Delete','btn.close':'Close','btn.download':'Download Excel',
-    'th.date':'Date','th.type':'Type','th.unit':'Unit #','th.value':'Mileage / Hours','th.addedby':'Added by','th.status':'Status','th.actions':'Actions',
-    'filter.all':'All','filter.sent':'Sent','filter.pending':'Pending','filter.status':'Status: all',
-    'status.sent':'Sent','status.pending':'Pending',
-    'units.sub':'Manage units and current mileage / hours.',
-    'units.last':'Last oil change','units.current':'Current value',
-    'alerts.sub':'Units that exceeded or are close to the oil change interval.',
-    'alerts.title':'Overdue / at risk units',
-    'settings.sub':'Configure intervals, notifications and appearance.',
-    'set.intervals':'Oil change interval','set.notifications':'Notifications','set.appearance':'Appearance','set.language':'Language','set.dashboard':'Dashboard','set.account':'Account',
-    'set.lang.title':'Limbă / Language / Язык','set.lang.sub':'Choose the interface language. Applies instantly.',
-    'set.widgets.title':'Dashboard widgets','set.widgets.sub':'Choose which widgets appear on the main page. Applies instantly.',
-    'set.w.stats':'Stat cards','set.w.stats.d':'Total, Trucks, Reefers, Overdue.',
-    'set.w.recent':'Recent entries','set.w.recent.d':'List of latest oil changes.',
-    'set.w.alerts':'Active alerts','set.w.alerts.d':'Panel with overdue / at risk units.',
-    'export.title':'Export Excel','export.sub':'Choose the period and check the preview before downloading.',
-    'export.period':'Period','export.today':'Today','export.yesterday':'Yesterday','export.week':'This week','export.lastweek':'Last week','export.month':'This month','export.lastmonth':'Last month','export.period.custom':'Custom period','export.all':'All',
-    'export.from':'From','export.to':'To','export.preview':'Preview','export.records':'records',
-    'toast.updated':'Updated','toast.saved':'Preferences saved','toast.exported':'Excel downloaded','toast.theme':'Theme:',
-  }
-};
-let currentLang = localStorage.getItem(LANG_KEY) || 'ro';
-let widgetPrefs = { stats:true, recent:true, alerts:true };
-try{ widgetPrefs = Object.assign({stats:true, recent:true, alerts:true}, JSON.parse(localStorage.getItem(WIDGET_KEY)) || {}); }catch(e){}
-function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.ro[key]) || key; }
-function setLang(lang){
-  currentLang = lang;
-  localStorage.setItem(LANG_KEY, lang);
-  document.querySelectorAll('.theme-opt[data-lang-choice]').forEach(o=>o.classList.toggle('active', o.dataset.langChoice===lang));
-  applyI18n();
-  toast(t('toast.saved'));
-}
-function applyI18n(){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.dataset.i18n); });
-  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
-  document.querySelectorAll('.s-item').forEach(el=>{
-    const key = 'nav.'+el.dataset.page;
-    const label = t(key);
-    const badge = el.querySelector('.badge');
-    if(badge) el.innerHTML = el.innerHTML.replace(/<span class="badge"[\s\S]*?<\/span>/, '') + (badge ? badge.outerHTML : '');
-    el.childNodes[el.childNodes.length-1].textContent = ' ' + label;
-  });
-  document.querySelectorAll('.sn-item').forEach(el=>{
-    const key = 'set.'+el.dataset.spanel;
-    const label = t(key);
-    const icon = el.querySelector('i, svg');
-    el.innerHTML = '';
-    if(icon) el.appendChild(icon);
-    el.appendChild(document.createTextNode(' ' + label));
-  });
-  document.querySelectorAll('.s-section').forEach((el,i)=>{
-    el.textContent = i===0 ? t('nav.principal') : t('nav.system');
-  });
-  const active = document.querySelector('.page.active');
-  if(active) document.getElementById('topbar-title').textContent = t('page.'+active.id.replace('page-',''));
-  icons();
-}
-function saveWidgetPrefs(){
-  widgetPrefs = {
-    stats: document.getElementById('w-stats').checked,
-    recent: document.getElementById('w-recent').checked,
-    alerts: document.getElementById('w-alerts').checked,
-  };
-  localStorage.setItem(WIDGET_KEY, JSON.stringify(widgetPrefs));
-  applyWidgets();
-  toast(t('toast.saved'));
-}
-function applyWidgets(){
-  document.getElementById('w-stats').checked = widgetPrefs.stats;
-  document.getElementById('w-recent').checked = widgetPrefs.recent;
-  document.getElementById('w-alerts').checked = widgetPrefs.alerts;
-  const statsEl = document.querySelector('#page-dashboard .stats');
-  const recentCard = document.querySelector('#page-dashboard .dash-grid .card:first-child');
-  const alertsCard = document.querySelector('#page-dashboard .dash-grid .card:last-child');
-  if(statsEl) statsEl.style.display = widgetPrefs.stats ? '' : 'none';
-  if(recentCard) recentCard.style.display = widgetPrefs.recent ? '' : 'none';
-  if(alertsCard) alertsCard.style.display = widgetPrefs.alerts ? '' : 'none';
-}
+function setTheme(t){ applyTheme(t); toast('Theme: '+(t==='dark'?'Dark':'Light')); }
 
 // ── Notifications prefs ───────────────────────────────────────────────────
-function loadNotifPrefs(){ try{ return Object.assign({overdue:true, warn:true, browser:false, sound:true}, JSON.parse(localStorage.getItem(NOTIF_KEY)) || {}); }catch(e){ return {overdue:true, warn:true, browser:false, sound:true}; } }
+function loadNotifPrefs(){ try{ return Object.assign({overdue:true, warn:true, browser:false}, JSON.parse(localStorage.getItem(NOTIF_KEY)) || {}); }catch(e){ return {overdue:true, warn:true, browser:false}; } }
 function saveNotifPrefs(){
   notifPrefs = {
     overdue: document.getElementById('notif-overdue').checked,
     warn: document.getElementById('notif-warn').checked,
     browser: document.getElementById('notif-browser').checked,
-    sound: document.getElementById('notif-sound').checked,
   };
   localStorage.setItem(NOTIF_KEY, JSON.stringify(notifPrefs));
   if(notifPrefs.browser && 'Notification' in window && Notification.permission==='default') Notification.requestPermission();
-  toast(t('toast.saved'));
+  toast('Preferences saved');
 }
 function applyNotifPrefs(){
   document.getElementById('notif-overdue').checked = notifPrefs.overdue;
   document.getElementById('notif-warn').checked = notifPrefs.warn;
   document.getElementById('notif-browser').checked = notifPrefs.browser;
-  document.getElementById('notif-sound').checked = notifPrefs.sound;
 }
 
 // ── API ───────────────────────────────────────────────────────────────────
@@ -915,7 +412,7 @@ async function api(method, path, body){
 }
 
 function logoutAdmin(){
-  if(!confirm('Sigur vrei să te deloghezi?')) return;
+  if(!confirm('Are you sure you want to logout?')) return;
   localStorage.removeItem(ADMIN_USER_KEY);
   adminUser = null;
   stopSync();
@@ -935,48 +432,26 @@ function enterAdmin(){
 }
 
 // ── Central Time clock ────────────────────────────────────────────────────
-function getCentralTime(){
-  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-}
-function startClock(){
-  updateClock();
-  setInterval(updateClock, 1000);
-}
+function getCentralTime(){ return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })); }
+function startClock(){ updateClock(); setInterval(updateClock, 1000); }
 function updateClock(){
   const el = document.getElementById('top-clock-time');
   if(!el) return;
-  const now = getCentralTime();
-  el.textContent = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  el.textContent = getCentralTime().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
 }
-function ctDateStr(){
-  const d = getCentralTime();
-  return d.toISOString().slice(0,10);
-}
-function ctDateLabel(){
-  const d = getCentralTime();
-  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
-}
-function updateStatDates(){
-  const today = ctDateStr();
-  const label = ctDateLabel();
-  document.getElementById('stat-date-total').textContent = label;
-  document.getElementById('stat-date-trucks').textContent = label;
-  document.getElementById('stat-date-reefers').textContent = label;
-  document.getElementById('stat-date-overdue').textContent = label;
-}
+function ctDateStr(){ return getCentralTime().toISOString().slice(0,10); }
 
 // ── Navigation ────────────────────────────────────────────────────────────
-const PAGE_TITLES = { dashboard:'Dashboard', entries:'Înregistrări', units:'Unități', alerts:'Alerte', settings:'Setări' };
+const PAGE_TITLES = { dashboard:'Dashboard', entries:'Entries', units:'Units', alerts:'Alerts', settings:'Settings' };
 function navigate(page){
   document.querySelectorAll('.s-item').forEach(b=>b.classList.toggle('active', b.dataset.page===page));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('topbar-title').textContent = t('page.'+page);
-  document.getElementById('global-search-wrap').style.display = page==='entries' ? 'block' : 'none';
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[page];
   document.getElementById('sidebar').classList.remove('open');
   if(page==='dashboard') renderDashboard();
   if(page==='entries') render();
-  if(page==='units') { renderUnits(); }
+  if(page==='units') renderUnits();
   if(page==='alerts') renderAlerts();
   if(page==='settings') { applyTheme(loadTheme()); applyNotifPrefs(); }
   icons();
@@ -1003,7 +478,6 @@ async function doSync(){
       if(active.id==='page-units') renderUnits();
       if(active.id==='page-alerts') renderAlerts();
       updateBadges();
-      checkAlerts();
     }
   }catch(e){}
 }
@@ -1019,10 +493,9 @@ async function loadData(){
     if(active.id==='page-units') renderUnits();
     if(active.id==='page-alerts') renderAlerts();
     updateBadges();
-    checkAlerts();
     icons();
-    toast('Actualizat — ' + entries.length + ' înregistrări');
-  } catch(e){ toast('Eroare la încărcare'); console.error(e); }
+    toast('Updated — ' + entries.length + ' records');
+  } catch(e){ toast('Error loading data'); console.error(e); }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -1035,56 +508,47 @@ function getLastEntry(type, unit){
   if(list.length===0) return null;
   return list.slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0))[0];
 }
+function getUniqueUnits(){
+  const map = {};
+  entries.forEach(e=>{ const k = unitKey(e.type, e.unit); if(!map[k]) map[k] = { type:e.type, unit:e.unit }; });
+  return Object.values(map);
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+
+// ── Status / next oil change ──────────────────────────────────────────────
 function computeStatus(type, unit){
   const last = getLastEntry(type, unit);
-  if(!last) return { status:'unknown' };
-  const profile = unitProfiles[unitKey(type, unit)];
+  if(!last) return { status:'unknown', last:null, threshold:0, diff:0 };
   const threshold = intervals[type] || 0;
-  if(!profile || profile.currentValue==null || profile.currentValue==='') return { status:'unknown', last, threshold };
+  const profile = unitProfiles[unitKey(type, unit)];
+  if(!profile || profile.currentValue==null || profile.currentValue==='') return { status:'unknown', last, threshold, diff:0 };
   const diff = Number(profile.currentValue) - Number(last.value);
   if(threshold<=0) return { status:'unknown', last, threshold, diff };
   if(diff >= threshold) return { status:'over', last, threshold, diff };
   if(diff >= threshold*0.85) return { status:'warn', last, threshold, diff };
   return { status:'ok', last, threshold, diff };
 }
-function getUniqueUnits(){
-  const map = {};
-  entries.forEach(e=>{
-    const k = unitKey(e.type, e.unit);
-    if(!map[k]) map[k] = { type:e.type, unit:e.unit };
-  });
-  return Object.values(map);
+function nextOilChange(type, lastValue, currentValue){
+  const threshold = intervals[type] || 0;
+  if(!currentValue || !lastValue || threshold<=0) return null;
+  return Number(lastValue) + threshold;
 }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
 // ── Badges & alerts ──────────────────────────────────────────────────────
-function getAlerts(){
-  const over=[], warn=[];
+function getDueUnits(){
+  const due = [];
   getUniqueUnits().forEach(u=>{
     const st = computeStatus(u.type, u.unit);
-    if(st.status==='over') over.push({...u, st});
-    else if(st.status==='warn') warn.push({...u, st});
+    if(st.status==='over' || st.status==='warn') due.push({...u, st});
   });
-  return { over, warn };
+  return due;
 }
 function updateBadges(){
-  const { over, warn } = getAlerts();
-  document.getElementById('nav-badge-alerts').textContent = over.length;
-  document.getElementById('nav-badge-alerts').style.display = over.length>0 ? 'inline' : 'none';
-  document.getElementById('nav-badge-entries').textContent = entries.length;
-  document.getElementById('notif-dot').style.display = over.length>0 ? 'block' : 'none';
-}
-function checkAlerts(){
-  const { over } = getAlerts();
-  const newOnes = over.filter(a=>!seenAlerts.has(unitKey(a.type,a.unit)));
-  if(newOnes.length>0 && notifPrefs.overdue){
-    if(notifPrefs.sound){ try{ new Audio().play(); }catch(e){} }
-    if(notifPrefs.browser && 'Notification' in window && Notification.permission==='granted'){
-      new Notification('OILLOG — Alertă', { body: newOnes.length+' unități au depășit intervalul de oil change.' });
-    }
-    toast('⚠️ ' + newOnes.length + ' unități au depășit intervalul');
-  }
-  over.forEach(a=>seenAlerts.add(unitKey(a.type,a.unit)));
+  const due = getDueUnits();
+  const badge = document.getElementById('nav-badge-alerts');
+  badge.textContent = due.length;
+  badge.classList.toggle('hidden', due.length===0);
+  document.getElementById('notif-dot').style.display = due.length>0 ? 'block' : 'none';
 }
 function toggleNotif(){
   const pop = document.getElementById('notif-pop');
@@ -1092,23 +556,23 @@ function toggleNotif(){
   renderNotifPop();
 }
 function renderNotifPop(){
-  const { over, warn } = getAlerts();
+  const due = getDueUnits();
   const list = document.getElementById('notif-list');
-  if(over.length===0 && warn.length===0){
-    list.innerHTML = '<div class="np-item"><span style="color:var(--faint);">Nicio alertă. Toate unitățile în regulă.</span></div>';
+  if(due.length===0){
+    list.innerHTML = '<div class="np-item"><span style="color:var(--faint);">No active alerts</span></div>';
     return;
   }
-  list.innerHTML = [
-    ...over.map(a=>`<div class="np-item"><div class="np-ico over"><i data-lucide="alert-triangle"></i></div><div><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<span>Depășit intervalul de oil change.</span></div></div>`),
-    ...warn.map(a=>`<div class="np-item"><div class="np-ico warn"><i data-lucide="alert-circle"></i></div><div><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<span>Aproape de interval (85%+).</span></div></div>`),
-  ].join('');
+  list.innerHTML = due.map(u=>`
+    <div class="np-item">
+      <div class="np-ico ${u.st.status}"><i data-lucide="${u.st.status==='over'?'alert-triangle':'alert-circle'}"></i></div>
+      <div class="np-txt"><b>#${escapeHtml(u.unit)}</b> — ${typeLabel(u.type)}<span>${u.st.status==='over'?'Overdue':'Near interval'} — next at ${nextOilChange(u.type, u.st.last.value, unitProfiles[unitKey(u.type,u.unit)]?.currentValue)||'—'}</span></div>
+      <button class="btn btn-sm" onclick="openComplete('${u.type}','${escapeHtml(u.unit)}')">Complete</button>
+    </div>`).join('');
   icons();
 }
 document.addEventListener('click', (e)=>{
   const pop = document.getElementById('notif-pop');
-  if(pop && pop.classList.contains('show') && !pop.contains(e.target) && !e.target.closest('[onclick="toggleNotif()"]')){
-    pop.classList.remove('show');
-  }
+  if(pop && pop.classList.contains('show') && !pop.contains(e.target) && !e.target.closest('[onclick="toggleNotif()"]')) pop.classList.remove('show');
 });
 
 // ── Dashboard ────────────────────────────────────────────────────────────
@@ -1116,44 +580,39 @@ function renderDashboard(){
   document.getElementById('stat-total').textContent = entries.length;
   document.getElementById('stat-trucks').textContent = entries.filter(e=>e.type==='T').length;
   document.getElementById('stat-reefers').textContent = entries.filter(e=>e.type==='R').length;
-  const { over, warn } = getAlerts();
-  document.getElementById('stat-overdue').textContent = over.length;
-  updateStatDates();
+  document.getElementById('stat-overdue').textContent = getDueUnits().filter(u=>u.st.status==='over').length;
 
   const recent = [...entries].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,8);
   document.getElementById('dash-recent').innerHTML = recent.length===0
-    ? '<div class="empty-mini">Nicio înregistrare încă.</div>'
-    : recent.map(e=>{
-        const st = computeStatus(e.type, e.unit).status;
-        return `<div class="r-item"><span class="ubadge ${st}"></span><span class="ru">#${escapeHtml(e.unit)}</span><span class="rm">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}</span><span class="rv">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span></div>`;
-      }).join('');
+    ? '<div class="empty-mini">No entries yet.</div>'
+    : recent.map(e=>`<div class="r-item"><span class="ubadge ok"></span><span class="ru">#${escapeHtml(e.unit)}</span><span class="rm">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}</span><span class="rv">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span></div>`).join('');
 
+  const due = getDueUnits();
   const alertsList = document.getElementById('dash-alerts');
-  if(over.length===0 && warn.length===0){
-    alertsList.innerHTML = '<div class="empty-mini"><i data-lucide="check-circle" style="width:30px;height:30px;opacity:0.4;display:block;margin:0 auto 8px auto;"></i>Nicio alertă activă.</div>';
+  if(due.length===0){
+    alertsList.innerHTML = '<div class="empty-mini"><i data-lucide="check-circle" style="width:30px;height:30px;opacity:.4;display:block;margin:0 auto 8px;"></i>No active alerts.</div>';
   } else {
-    alertsList.innerHTML = [
-      ...over.map(a=>`<div class="a-item"><div class="a-icon over"><i data-lucide="alert-triangle"></i></div><div class="a-txt"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Depășit intervalul. <a href="#" onclick="event.preventDefault();openUnitDetailByKey('${a.type}','${escapeHtml(a.unit)}');" style="color:var(--red);">Vezi detalii</a></div></div>`),
-      ...warn.map(a=>`<div class="a-item"><div class="a-icon warn"><i data-lucide="alert-circle"></i></div><div class="a-txt"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Aproape de interval (85%+).</div></div>`),
-    ].join('');
+    alertsList.innerHTML = due.map(u=>`
+      <div class="a-item">
+        <div class="a-icon ${u.st.status}"><i data-lucide="${u.st.status==='over'?'alert-triangle':'alert-circle'}"></i></div>
+        <div class="a-txt"><b>#${escapeHtml(u.unit)}</b> — ${typeLabel(u.type)}<span>${u.st.status==='over'?'Overdue':'Near interval'}</span></div>
+        <button class="btn btn-sm" onclick="openComplete('${u.type}','${escapeHtml(u.unit)}')">Complete</button>
+      </div>`).join('');
   }
   icons();
 }
 
-// ── Entries table ────────────────────────────────────────────────────────
+// ── Entries table (read only, no edit) ────────────────────────────────────
 function setType(t){ typeFilter=t; document.querySelectorAll('#type-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.type===t)); render(); }
-function setStatus(s){ statusFilter=s; document.querySelectorAll('#status-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.status===s)); render(); }
 function setSort(key){
   if(sortKey===key){ sortDir = sortDir==='asc' ? 'desc' : 'asc'; }
   else { sortKey=key; sortDir='desc'; }
   render();
 }
 function getFiltered(){
-  const q = (document.getElementById('search').value||'').toLowerCase().trim();
+  const q = (document.getElementById('entry-search').value||'').toLowerCase().trim();
   let list = entries.filter(e=>{
     if(typeFilter!=='all' && e.type!==typeFilter) return false;
-    if(statusFilter==='sent' && !e.sent) return false;
-    if(statusFilter==='pending' && e.sent) return false;
     if(q && !(String(e.unit).toLowerCase().includes(q) || String(e.addedBy).toLowerCase().includes(q))) return false;
     return true;
   });
@@ -1176,28 +635,21 @@ function render(){
   const list = getFiltered();
   const tbody = document.getElementById('tbody');
   if(list.length===0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i data-lucide="inbox"></i><div>Nicio înregistrare găsită.</div></td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5"><i data-lucide="inbox"></i><div>No records found.</div></td></tr>`;
   } else {
-    tbody.innerHTML = list.map(e=>{
-      const st = computeStatus(e.type, e.unit).status;
-      const statusTitle = st==='over' ? 'Interval depășit — click pentru detalii' : st==='warn' ? 'Aproape de interval — click pentru detalii' : st==='ok' ? 'În interval — click pentru detalii' : 'Kilometraj/ore curente necunoscute — click pentru a introduce';
-      return `<tr>
+    tbody.innerHTML = list.map(e=>`
+      <tr>
         <td class="date">${e.date}</td>
         <td><span class="type-tag"><i data-lucide="${typeIcon(e.type)}"></i>${typeLabel(e.type)}</span></td>
-        <td class="unit"><button class="unit-link" data-utype="${e.type}" data-uunit="${escapeHtml(e.unit)}" onclick="openUnitDetail(this)" title="${statusTitle}"><span class="ubadge ${st}"></span>#${escapeHtml(e.unit)}</button></td>
+        <td class="unit">#${escapeHtml(e.unit)}</td>
         <td class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></td>
         <td class="who">${escapeHtml(e.addedBy)}</td>
-        <td><span class="status-dot ${e.sent?'sent':'pending'}">${e.sent ? 'Trimis' : 'Netrimis'}</span></td>
-        <td><div class="row-actions">
-          <button class="icon-btn" onclick="openEdit('${e.id}')" title="Editează"><i data-lucide="edit-2"></i></button>
-          <button class="icon-btn" style="color:var(--red);" onclick="openDelete('${e.id}')" title="Șterge"><i data-lucide="trash-2"></i></button>
-        </div></td></tr>`;
-    }).join('');
+      </tr>`).join('');
   }
   icons();
 }
 
-// ── Units page ───────────────────────────────────────────────────────────
+// ── Units page (view only) ────────────────────────────────────────────────
 function setUnitType(t){ unitTypeFilter=t; document.querySelectorAll('#unit-type-filters .pill').forEach(p=>p.classList.toggle('active', p.dataset.utype===t)); renderUnits(); }
 function renderUnits(){
   const q = (document.getElementById('unit-search').value||'').toLowerCase().trim();
@@ -1209,59 +661,39 @@ function renderUnits(){
   units.sort((a,b)=> String(a.unit).localeCompare(String(b.unit), undefined, {numeric:true}));
   const tbody = document.getElementById('units-tbody');
   if(units.length===0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>Nicio unitate găsită.</div></td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>No units found.</div></td></tr>`;
   } else {
     tbody.innerHTML = units.map(u=>{
       const st = computeStatus(u.type, u.unit);
       const last = st.last;
       const profile = unitProfiles[unitKey(u.type, u.unit)];
       const curVal = profile && profile.currentValue!=null ? Number(profile.currentValue).toLocaleString('en-US') : '—';
-      const statusTxt = st.status==='over' ? 'Depășit' : st.status==='warn' ? 'În pericol' : st.status==='ok' ? 'În interval' : 'Necunoscut';
+      const next = nextOilChange(u.type, last ? last.value : null, profile ? profile.currentValue : null);
+      const statusTxt = st.status==='over' ? 'Overdue' : st.status==='warn' ? 'Near interval' : st.status==='ok' ? 'OK' : 'Unknown';
       return `<tr>
         <td class="unit"><button class="unit-link" data-utype="${u.type}" data-uunit="${escapeHtml(u.unit)}" onclick="openUnitDetail(this)"><span class="ubadge ${st.status}"></span>#${escapeHtml(u.unit)}</button></td>
         <td><span class="type-tag"><i data-lucide="${typeIcon(u.type)}"></i>${typeLabel(u.type)}</span></td>
         <td class="date">${last ? last.date + ' · ' + Number(last.value).toLocaleString('en-US') + ' ' + unitSuffix(last.unitOfValue) : '—'}</td>
-        <td class="value">${curVal}</td>
-        <td><span class="status-dot ${st.status!=='unknown' && st.status!=='over' ? '' : ''}">${statusTxt}</span></td>
-        <td><div class="row-actions"><button class="icon-btn" onclick="openUnitDetailByKey('${u.type}','${escapeHtml(u.unit)}')" title="Detalii"><i data-lucide="eye"></i></button></div></td>
+        <td class="value">${next ? Number(next).toLocaleString('en-US') + ' ' + unitSuffix(last.unitOfValue) : '—'}</td>
+        <td><span class="status-dot ${st.status}">${statusTxt}</span></td>
+        <td><div class="row-actions"><button class="icon-btn" onclick="openUnitDetailByKey('${u.type}','${escapeHtml(u.unit)}')" title="View details"><i data-lucide="eye"></i></button></div></td>
       </tr>`;
     }).join('');
   }
   icons();
 }
 
-// ── Alerts page ──────────────────────────────────────────────────────────
-function renderAlerts(){
-  const { over, warn } = getAlerts();
-  const list = document.getElementById('alerts-list');
-  if(over.length===0 && warn.length===0){
-    list.innerHTML = '<div class="empty-mini"><i data-lucide="check-circle" style="width:36px;height:36px;opacity:0.4;display:block;margin:0 auto 10px auto;"></i>Tuturor unităților le e bine. Nicio alertă activă.</div>';
-  } else {
-    list.innerHTML = [
-      ...over.map(a=>`<div class="a-item"><div class="a-icon over"><i data-lucide="alert-triangle"></i></div><div class="a-txt" style="flex:1;"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Depășit cu <b>${Math.abs(a.st.threshold - a.st.diff).toLocaleString('en-US')} ${unitSuffix(a.st.last.unitOfValue)}</b> peste intervalul de ${a.st.threshold.toLocaleString('en-US')}.</div><button class="btn btn-sm" onclick="openUnitDetailByKey('${a.type}','${escapeHtml(a.unit)}')">Detalii</button></div>`),
-      ...warn.map(a=>`<div class="a-item"><div class="a-icon warn"><i data-lucide="alert-circle"></i></div><div class="a-txt" style="flex:1;"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<br>Mai sunt <b>${(a.st.threshold - a.st.diff).toLocaleString('en-US')} ${unitSuffix(a.st.last.unitOfValue)}</b> până la interval.</div><button class="btn btn-sm" onclick="openUnitDetailByKey('${a.type}','${escapeHtml(a.unit)}')">Detalii</button></div>`),
-    ].join('');
-  }
-  icons();
-}
-
-// ── Unit detail ──────────────────────────────────────────────────────────
-function openUnitDetail(el){
-  openUnitDetailByKey(el.dataset.utype, el.dataset.uunit);
-}
+// ── Unit detail (view only) ───────────────────────────────────────────────
+function openUnitDetail(el){ openUnitDetailByKey(el.dataset.utype, el.dataset.uunit); }
 function openUnitDetailByKey(type, unit){
   openUnitKey = unitKey(type, unit);
   const history = entries.filter(e=>e.type===type && e.unit===unit)
     .slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
   const isHours = history.length ? history[0].unitOfValue==='hr' : type==='R';
-  const suffix = isHours ? 'ore' : 'mi';
+  const suffix = isHours ? 'hrs' : 'mi';
 
   document.getElementById('u-title').textContent = '#'+unit;
-  document.getElementById('u-subtitle').textContent = typeLabel(type) + ' · ' + history.length + ' intrări în istoric';
-  document.getElementById('u-value-label').textContent = 'Kilometraj/ore curente (' + suffix + ')';
-
-  const profile = unitProfiles[openUnitKey];
-  document.getElementById('u-current-value').value = (profile && profile.currentValue!=null) ? profile.currentValue : '';
+  document.getElementById('u-subtitle').textContent = typeLabel(type) + ' · ' + history.length + ' oil changes';
 
   const st = computeStatus(type, unit);
   const banner = document.getElementById('u-status-banner');
@@ -1269,43 +701,117 @@ function openUnitDetailByKey(type, unit){
   const text = document.getElementById('u-status-text');
   banner.className = 'status-banner ' + st.status;
   badge.className = 'ubadge ' + st.status;
-  if(st.status==='unknown'){
-    text.textContent = st.last ? 'Introdu kilometrajul/orele curente ca să vedem dacă a depășit intervalul.' : 'Nicio înregistrare încă pentru această unitate.';
+  const profile = unitProfiles[openUnitKey];
+  const curVal = profile && profile.currentValue!=null ? Number(profile.currentValue) : null;
+  const next = nextOilChange(type, st.last ? st.last.value : null, curVal);
+  if(st.status==='over'){
+    text.innerHTML = `Overdue — next oil change at <b>${Number(next).toLocaleString('en-US')} ${suffix}</b>`;
+  } else if(st.status==='warn'){
+    text.innerHTML = `Near interval — next oil change at <b>${Number(next).toLocaleString('en-US')} ${suffix}</b>`;
+  } else if(st.status==='ok'){
+    text.innerHTML = `In interval — next oil change at <b>${Number(next).toLocaleString('en-US')} ${suffix}</b>`;
   } else {
-    const remaining = st.threshold - st.diff;
-    if(st.status==='over'){
-      text.innerHTML = `Depășit cu <b>${Math.abs(remaining).toLocaleString('en-US')} ${suffix}</b> peste intervalul de ${st.threshold.toLocaleString('en-US')} ${suffix}.`;
-    } else {
-      text.innerHTML = `Mai sunt <b>${remaining.toLocaleString('en-US')} ${suffix}</b> până la interval (din ${st.threshold.toLocaleString('en-US')} ${suffix}).`;
-    }
+    text.textContent = 'No current value recorded.';
   }
 
-  document.getElementById('u-history-count').textContent = history.length;
-  const listEl = document.getElementById('u-history-list');
-  listEl.innerHTML = history.length===0 ? `<div class="history-row"><span class="hdate">—</span></div>` : history.map(e=>`
-    <div class="history-row"><span class="hdate">${e.date}</span><span class="hval">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span><span class="who">${escapeHtml(e.addedBy)}</span></div>
-  `).join('');
+  // Oil change schedule
+  const scheduleEl = document.getElementById('u-schedule');
+  scheduleEl.innerHTML = history.length===0
+    ? '<div class="history-row"><span class="hdate">—</span></div>'
+    : history.map(e=>`<div class="history-row"><span class="hdate">${e.date}</span><span class="hval">${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}</span><span class="who">${escapeHtml(e.addedBy)}</span></div>`).join('');
+
+  // Alert history (completed alerts for this unit)
+  const unitAlerts = completedAlerts.filter(a=>a.type===type && a.unit===unit);
+  const alertEl = document.getElementById('u-alert-history');
+  alertEl.innerHTML = unitAlerts.length===0
+    ? '<div class="history-row"><span class="hdate">No completed alerts</span></div>'
+    : unitAlerts.map(a=>`<div class="history-row"><span class="hdate">${a.completedAt||'—'}</span><span class="hval">${a.valueAtChange ? Number(a.valueAtChange).toLocaleString('en-US')+' '+suffix : '—'}</span><span class="who">Completed</span></div>`).join('');
+
   document.getElementById('unit-overlay').classList.add('show');
   icons();
 }
 function closeUnitDetail(){ openUnitKey=null; document.getElementById('unit-overlay').classList.remove('show'); }
-async function saveUnitValue(){
-  if(!openUnitKey) return;
-  const val = document.getElementById('u-current-value').value.trim();
-  if(val===''){ toast('Introdu o valoare'); return; }
-  const profile = { currentValue: Number(val), updatedAt: Date.now(), updatedBy: adminUser ? adminUser.name : '' };
+
+// ── Alerts (mark completed) ───────────────────────────────────────────────
+function renderAlerts(){
+  const due = getDueUnits();
+  const list = document.getElementById('alerts-list');
+  if(due.length===0){
+    list.innerHTML = '<div class="empty-mini"><i data-lucide="check-circle" style="width:36px;height:36px;opacity:.4;display:block;margin:0 auto 10px;"></i>All units are within interval.</div>';
+  } else {
+    list.innerHTML = due.map(u=>{
+      const profile = unitProfiles[unitKey(u.type, u.unit)];
+      const curVal = profile && profile.currentValue!=null ? Number(profile.currentValue) : null;
+      const next = nextOilChange(u.type, u.st.last.value, curVal);
+      return `<div class="a-item">
+        <div class="a-icon ${u.st.status}"><i data-lucide="${u.st.status==='over'?'alert-triangle':'alert-circle'}"></i></div>
+        <div class="a-txt"><b>#${escapeHtml(u.unit)}</b> — ${typeLabel(u.type)}<span>${u.st.status==='over'?'Overdue':'Near interval'} · next at ${next ? Number(next).toLocaleString('en-US')+' '+unitSuffix(u.st.last.unitOfValue) : '—'}</span></div>
+        <button class="btn btn-sm" onclick="openComplete('${u.type}','${escapeHtml(u.unit)}')">Complete</button>
+      </div>`;
+    }).join('');
+  }
+
+  const completedEl = document.getElementById('completed-list');
+  if(completedAlerts.length===0){
+    completedEl.innerHTML = '<div class="empty-mini">No completed alerts yet.</div>';
+  } else {
+    completedEl.innerHTML = completedAlerts.map(a=>`
+      <div class="a-item">
+        <div class="a-icon done"><i data-lucide="check-circle"></i></div>
+        <div class="a-txt"><b>#${escapeHtml(a.unit)}</b> — ${typeLabel(a.type)}<span>Completed ${a.completedAt||''} · value ${a.valueAtChange ? Number(a.valueAtChange).toLocaleString('en-US') : '—'} · next ${a.nextOilChange ? Number(a.nextOilChange).toLocaleString('en-US') : '—'}</span></div>
+      </div>`).join('');
+  }
+  icons();
+}
+
+// ── Complete alert modal ──────────────────────────────────────────────────
+function openComplete(type, unit){
+  completeUnitKey = unitKey(type, unit);
+  const st = computeStatus(type, unit);
+  const isHours = st.last ? st.last.unitOfValue==='hr' : type==='R';
+  const suffix = isHours ? 'hrs' : 'mi';
+  document.getElementById('complete-label').textContent = 'Value at change (' + suffix + ')';
+  document.getElementById('complete-sub').textContent = 'Log the value at the time of the change for #' + unit + '. The next oil change is calculated automatically.';
+  document.getElementById('complete-value').value = '';
+  const profile = unitProfiles[completeUnitKey];
+  const curVal = profile && profile.currentValue!=null ? Number(profile.currentValue) : null;
+  const next = nextOilChange(type, st.last ? st.last.value : null, curVal);
+  document.getElementById('complete-next-text').textContent = next ? Number(next).toLocaleString('en-US') + ' ' + suffix : '—';
+  document.getElementById('complete-overlay').classList.add('show');
+  icons();
+}
+function closeComplete(){ completeUnitKey=null; document.getElementById('complete-overlay').classList.remove('show'); }
+async function confirmComplete(){
+  if(!completeUnitKey) return;
+  const val = document.getElementById('complete-value').value.trim();
+  if(val===''){ toast('Enter a value'); return; }
+  const [type, ...rest] = completeUnitKey.split('_');
+  const unit = rest.join('_');
+  const st = computeStatus(type, unit);
+  const isHours = st.last ? st.last.unitOfValue==='hr' : type==='R';
+  const suffix = isHours ? 'hrs' : 'mi';
+  const next = nextOilChange(type, st.last ? st.last.value : null, Number(val));
+
+  // Save the completed alert locally (demo — will connect to another app later)
+  completedAlerts.unshift({
+    type, unit,
+    valueAtChange: Number(val),
+    nextOilChange: next,
+    completedAt: ctDateStr(),
+  });
+
+  // Update unit profile with the new value
   try{
-    await api('POST', '/api/units/' + encodeURIComponent(openUnitKey), profile);
-    unitProfiles[openUnitKey] = profile;
-    const active = document.querySelector('.page.active');
-    if(active.id==='page-units') renderUnits();
-    if(active.id==='page-dashboard') renderDashboard();
-    if(active.id==='page-alerts') renderAlerts();
-    updateBadges();
-    icons();
-    toast('Kilometraj/ore actualizat');
-    closeUnitDetail();
-  } catch(err){ toast('Eroare la salvare'); }
+    await api('POST', '/api/units/' + encodeURIComponent(completeUnitKey), { currentValue: Number(val) });
+    unitProfiles[completeUnitKey] = { currentValue: Number(val), updatedAt: Date.now(), updatedBy: adminUser ? adminUser.name : '' };
+  } catch(e){}
+
+  closeComplete();
+  renderAlerts();
+  renderUnits();
+  renderDashboard();
+  updateBadges();
+  toast('Completed — next oil change at ' + (next ? Number(next).toLocaleString('en-US') + ' ' + suffix : '—'));
 }
 
 // ── Settings: intervals ──────────────────────────────────────────────────
@@ -1317,86 +823,31 @@ async function saveSettings(){
   try{
     await api('PUT', '/api/settings', next);
     intervals = next;
-    render(); renderUnits();
-    toast('Interval actualizat');
-  } catch(err){ toast('Eroare la salvare'); }
+    render(); renderUnits(); renderAlerts();
+    toast('Intervals updated');
+  } catch(err){ toast('Error saving'); }
 }
 
-// ── Edit ─────────────────────────────────────────────────────────────────
-function openEdit(id){
-  const e = entries.find(x=>x.id===id);
-  if(!e) return;
-  document.getElementById('edit-form').dataset.id = id;
-  document.getElementById('e-date').value = e.date;
-  document.getElementById('e-type').value = e.type;
-  document.getElementById('e-unit').value = e.unit;
-  document.getElementById('e-value').value = e.value;
-  document.getElementById('e-unitofvalue').value = e.unitOfValue;
-  document.getElementById('e-addedby').value = e.addedBy;
-  document.getElementById('edit-overlay').classList.add('show');
-  icons();
-}
-function closeEdit(){ document.getElementById('edit-overlay').classList.remove('show'); }
-document.getElementById('edit-form').addEventListener('submit', async function(ev){
-  ev.preventDefault();
-  const id = this.dataset.id;
-  const e = entries.find(x=>x.id===id);
-  if(!e) return;
-  e.date = document.getElementById('e-date').value;
-  e.type = document.getElementById('e-type').value;
-  e.unit = document.getElementById('e-unit').value.trim();
-  e.value = document.getElementById('e-value').value.trim();
-  e.unitOfValue = document.getElementById('e-unitofvalue').value;
-  e.addedBy = document.getElementById('e-addedby').value.trim();
-  try{
-    await api('PUT', '/api/entries/' + e.id, e);
-    closeEdit(); render(); toast('Salvat');
-  } catch(err){ toast('Eroare la salvare'); }
-});
-
-// ── Delete ───────────────────────────────────────────────────────────────
-function openDelete(id){
-  const e = entries.find(x=>x.id===id);
-  if(!e) return;
-  pendingDeleteId = id;
-  document.getElementById('delete-desc').textContent = `#${e.unit} · ${typeLabel(e.type)} · ${e.date} — se șterge definitiv.`;
-  document.getElementById('delete-overlay').classList.add('show');
-  icons();
-}
-function closeDelete(){ pendingDeleteId=null; document.getElementById('delete-overlay').classList.remove('show'); }
-async function confirmDelete(){
-  if(!pendingDeleteId) return;
-  try{
-    await api('DELETE', '/api/entries/' + pendingDeleteId);
-    entries = entries.filter(x=>x.id!==pendingDeleteId);
-    closeDelete(); render(); toast('Șters');
-  } catch(err){ toast('Eroare la ștergere'); }
-}
-
-// ── Export with preview + date range ──────────────────────────────────────
+// ── Export with preview + single value column ─────────────────────────────
 let exportList = [];
 function getExportRange(){
   const range = document.getElementById('export-range').value;
   const today = ctDateStr();
   const d = new Date(today + 'T00:00:00');
-  const startOfWeek = new Date(d); startOfWeek.setDate(d.getDate() - d.getDay() + 1); // Monday
+  const startOfWeek = new Date(d); startOfWeek.setDate(d.getDate() - d.getDay() + 1);
   const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate() + 6);
   const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
   const endOfMonth = new Date(d.getFullYear(), d.getMonth()+1, 0);
   const fmt = x => x.toISOString().slice(0,10);
   switch(range){
-    case 'today': return { from: today, to: today, label: 'Astăzi ('+today+')' };
-    case 'yesterday': { const y = new Date(d); y.setDate(d.getDate()-1); const ys = fmt(y); return { from: ys, to: ys, label: 'Ieri ('+ys+')' }; }
-    case 'week': return { from: fmt(startOfWeek), to: fmt(endOfWeek), label: 'Săptămâna aceasta ('+fmt(startOfWeek)+' → '+fmt(endOfWeek)+')' };
-    case 'lastweek': { const sw = new Date(startOfWeek); sw.setDate(sw.getDate()-7); const ew = new Date(sw); ew.setDate(sw.getDate()+6); return { from: fmt(sw), to: fmt(ew), label: 'Săptămâna trecută ('+fmt(sw)+' → '+fmt(ew)+')' }; }
-    case 'month': return { from: fmt(startOfMonth), to: fmt(endOfMonth), label: 'Luna aceasta ('+fmt(startOfMonth)+' → '+fmt(endOfMonth)+')' };
-    case 'lastmonth': { const sm = new Date(d.getFullYear(), d.getMonth()-1, 1); const em = new Date(d.getFullYear(), d.getMonth(), 0); return { from: fmt(sm), to: fmt(em), label: 'Luna trecută ('+fmt(sm)+' → '+fmt(em)+')' }; }
-    case 'period': {
-      const from = document.getElementById('export-from').value || today;
-      const to = document.getElementById('export-to').value || today;
-      return { from, to, label: 'Perioadă ('+from+' → '+to+')' };
-    }
-    default: return { from: null, to: null, label: 'Toate înregistrările' };
+    case 'today': return { from: today, to: today, label: 'Today ('+today+')' };
+    case 'yesterday': { const y = new Date(d); y.setDate(d.getDate()-1); const ys = fmt(y); return { from: ys, to: ys, label: 'Yesterday ('+ys+')' }; }
+    case 'week': return { from: fmt(startOfWeek), to: fmt(endOfWeek), label: 'This week ('+fmt(startOfWeek)+' → '+fmt(endOfWeek)+')' };
+    case 'lastweek': { const sw = new Date(startOfWeek); sw.setDate(sw.getDate()-7); const ew = new Date(sw); ew.setDate(sw.getDate()+6); return { from: fmt(sw), to: fmt(ew), label: 'Last week ('+fmt(sw)+' → '+fmt(ew)+')' }; }
+    case 'month': return { from: fmt(startOfMonth), to: fmt(endOfMonth), label: 'This month ('+fmt(startOfMonth)+' → '+fmt(endOfMonth)+')' };
+    case 'lastmonth': { const sm = new Date(d.getFullYear(), d.getMonth()-1, 1); const em = new Date(d.getFullYear(), d.getMonth(), 0); return { from: fmt(sm), to: fmt(em), label: 'Last month ('+fmt(sm)+' → '+fmt(em)+')' }; }
+    case 'period': { const from = document.getElementById('export-from').value || today; const to = document.getElementById('export-to').value || today; return { from, to, label: 'Custom ('+from+' → '+to+')' }; }
+    default: return { from: null, to: null, label: 'All records' };
   }
 }
 function updateExportPreview(){
@@ -1412,7 +863,7 @@ function updateExportPreview(){
   document.getElementById('export-count').textContent = exportList.length;
   const body = document.getElementById('export-preview-body');
   if(exportList.length===0){
-    body.innerHTML = `<tr class="empty-row"><td colspan="6"><i data-lucide="inbox"></i><div>Nicio înregistrare în perioada selectată.</div></td></tr>`;
+    body.innerHTML = `<tr class="empty-row"><td colspan="5"><i data-lucide="inbox"></i><div>No records in selected period.</div></td></tr>`;
   } else {
     body.innerHTML = exportList.slice(0,50).map(e=>`
       <tr>
@@ -1421,7 +872,6 @@ function updateExportPreview(){
         <td class="unit">#${escapeHtml(e.unit)}</td>
         <td class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></td>
         <td class="who">${escapeHtml(e.addedBy)}</td>
-        <td><span class="status-dot ${e.sent?'sent':'pending'}">${e.sent ? 'Trimis' : 'Netrimis'}</span></td>
       </tr>`).join('');
   }
   icons();
@@ -1433,20 +883,20 @@ function openExport(){
 }
 function closeExport(){ document.getElementById('export-overlay').classList.remove('show'); }
 async function confirmExport(){
-  if(exportList.length===0){ toast('Nimic de exportat'); return; }
+  if(exportList.length===0){ toast('Nothing to export'); return; }
   const wb = new ExcelJS.Workbook();
   wb.creator = 'OILLOG Admin'; wb.created = new Date();
   const ws = wb.addWorksheet('OILLOG Export', { views:[{ state:'frozen', ySplit:1 }] });
+  // Single value column — either mileage or hours
   ws.columns = [
     { header:'Date', key:'date', width:13 },
     { header:'Unit Type', key:'type', width:12 },
     { header:'Unit Number', key:'unit', width:14 },
-    { header:'Hours', key:'hours', width:11 },
-    { header:'Miles', key:'miles', width:11 },
+    { header:'Value', key:'value', width:14 },
+    { header:'Unit', key:'unitOfValue', width:10 },
     { header:'Added By', key:'addedBy', width:18 },
-    { header:'Status', key:'status', width:12 },
   ];
-  const RED='FFC8102E', DARK='FF1A1A1A', LIGHT='FFF9F7F5', BORDER='FFE5E3E0', GREEN='FF3A7D44', AMBER='FFB7791F';
+  const RED='FFC8102E', DARK='FF1A1A1A', LIGHT='FFF9F7F5', BORDER='FFE5E3E0';
   const header = ws.getRow(1);
   header.height = 24;
   header.eachCell(cell=>{
@@ -1458,9 +908,8 @@ async function confirmExport(){
   exportList.forEach((e,i)=>{
     const row = ws.addRow({
       date: e.date, type: typeLabel(e.type), unit: e.unit,
-      hours: e.unitOfValue==='hr' ? Number(e.value) : null,
-      miles: e.unitOfValue==='mi' ? Number(e.value) : null,
-      addedBy: e.addedBy, status: e.sent ? 'Sent' : 'Pending',
+      value: Number(e.value), unitOfValue: e.unitOfValue==='hr' ? 'Hours' : 'Miles',
+      addedBy: e.addedBy,
     });
     row.eachCell(cell=>{
       cell.font = { name:'Calibri', size:11, color:{argb:DARK} };
@@ -1469,8 +918,8 @@ async function confirmExport(){
       if(i%2===1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:LIGHT} };
     });
     row.getCell('unit').font = { name:'Consolas', size:11, bold:true, color:{argb:DARK} };
-    row.getCell('status').font = { name:'Calibri', size:11, bold:true, color:{argb: e.sent ? GREEN : AMBER} };
-    ['hours','miles'].forEach(k=>{ row.getCell(k).numFmt='#,##0'; row.getCell(k).alignment={horizontal:'right'}; });
+    row.getCell('value').numFmt = '#,##0';
+    row.getCell('value').alignment = { horizontal:'right' };
   });
   ws.autoFilter = { from:'A1', to: String.fromCharCode(65+ws.columns.length-1)+'1' };
   const buf = await wb.xlsx.writeBuffer();
@@ -1480,7 +929,7 @@ async function confirmExport(){
   a.href = url; a.download = `oillog-admin-export_${ctDateStr()}.xlsx`;
   a.click(); URL.revokeObjectURL(url);
   closeExport();
-  toast('Excel descărcat — ' + exportList.length + ' înregistrări');
+  toast('Excel downloaded — ' + exportList.length + ' records');
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
@@ -1490,9 +939,6 @@ async function confirmExport(){
   applyNotifPrefs();
   document.getElementById('s-truck').value = intervals.T;
   document.getElementById('s-reefer').value = intervals.R;
-  applyI18n();
-  applyWidgets();
-  document.querySelectorAll('.theme-opt[data-lang-choice]').forEach(o=>o.classList.toggle('active', o.dataset.langChoice===currentLang));
   try {
     const status = await api('GET', '/auth/status');
     if(status.ok && status.user) {
@@ -1513,7 +959,6 @@ async function confirmExport(){
       saveAdminUser(adminUser);
       await enterAdmin();
     } else {
-      // Not logged in — send to the standalone login page
       window.location.href = '/admin-login';
     }
   } catch(e) {
