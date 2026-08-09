@@ -300,7 +300,12 @@ def main():
 
     # Start the bot
     logger.info("Starting OILLOG Telegram Bot...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    application.run_polling(
+        poll_interval=1.0,
+        timeout=30,
+        drop_pending_updates=True,
+        allowed_updates=Update.ALL_TYPES,
+    )
 
 
 if __name__ == "__main__":
