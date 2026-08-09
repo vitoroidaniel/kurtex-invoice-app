@@ -240,11 +240,9 @@
       <div class="login-sub">Evidența oil change-urilor de pe yard. Data, tipul unității, unit#-ul și mileage / engine hours.</div>
       <div id="login-error" class="login-error hidden"></div>
       <div class="login-actions">
-        <a href="/auth/telegram?next=/" 
-           class="login-tg-btn" 
-           style="width:100%;max-width:300px;padding:14px 24px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:10px;">
+        <button class="login-tg-btn" id="tg-login-btn" style="width:100%;max-width:300px;padding:14px 24px;" onclick="handleTelegramLogin()">
           <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
-        </a>
+        </button>
         <button class="login-tg-btn" onclick="loginGuest()"><i data-lucide="user"></i>Continuă ca Guest</button>
       </div>
       <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
@@ -734,6 +732,11 @@ function saveName(){
   const params = new URLSearchParams(window.location.search);
   const justReturnedFromTelegram = params.toString() === '' && !params.get('error');
   
+  // If we just returned from Telegram, wait a moment then check for session
+  if (justReturnedFromTelegram) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  
   user = loadUser();
   try {
     const status = await api('GET', '/auth/status');
@@ -793,6 +796,12 @@ function saveName(){
     if(isAddScreenActive) e.preventDefault();
   }, { passive: false });
 })();
+
+// ── Telegram Login Click Handler ────────────────────────────────────────────
+// Use inline onclick for reliability on mobile
+function handleTelegramLogin() {
+  window.location.href = '/auth/telegram?next=/';
+}
 </script>
 </body>
 </html>
