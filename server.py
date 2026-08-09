@@ -28,6 +28,32 @@ ADMIN_ROLES = {"developer", "super_admin"}
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+# ── Password-auth store ──────────────────────────────────────────────────────
+# Simple file-backed password users (separate from Telegram user_store).
+PASSWORDS_FILE = DATA_DIR / "users_auth.json"
+
+def _load_passwords():
+    if not PASSWORDS_FILE.exists():
+        return {}
+    try:
+        return json.loads(PASSWORDS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+def _save_passwords(data):
+    tmp = PASSWORDS_FILE.with_suffix(".tmp")
+    try:
+        tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        tmp.replace(PASSWORDS_FILE)
+    except Exception as e:
+        logger.error(f"Failed to save password users: {e}")
+
+def _hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def _verify_password(password, stored_hash):
+    return hashlib.sha256(password.encode()).hexdigest() == stored_hash
+
 # ── File-backed stores ─────────────────────────────────────────────────────
 
 def _read_json(name):
@@ -36,7 +62,7 @@ def _read_json(name):
         return []
     try:
         return json.loads(p.read_text(encoding="utf-8"))
-    except:
+    except Exception:
         return []
 
 def _write_json(name, data):
@@ -146,6 +172,96 @@ def logout():
     session.clear()
     return jsonify({"ok": True})
 
+# ── Password auth ───────────────────────────────────────────────────────────
+
+@app.route("/auth/register", methods=["POST"])
+def register():
+    data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
+    password = data.get("password") or ""
+    name = (data.get("name") or "").strip() or username
+    # Force agent role on self-registration — admin access is granted only via
+    # Telegram admin roles or the hardcoded password-admin fallback.
+    role = "agent"
+
+    if not username or not password:
+        return jsonify({"error": "missing_fields"}), 400
+    if len(password) < 4:
+        return jsonify({"error": "password_too_short"}), 400
+
+    users = _load_passwords()
+    if username in users:
+        return jsonify({"error": "user_exists"}), 409
+
+    users[username] = {
+        "name": name,
+        "password_hash": _hash_password(password),
+        "role": role,
+    }
+    _save_passwords(users)
+
+    session["user"] = {
+        "id": username,
+        "first_name": name,
+        "username": username,
+        "photo_url": "",
+        "auth_date": str(int(time.time())),
+        "role": role,
+        "method": "password",
+    }
+    return jsonify({"ok": True, "user": session["user"]})
+
+
+@app.route("/auth/password", methods=["POST"])
+def password_login():
+    data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
+    password = data.get("password") or ""
+
+    if not username or not password:
+        return jsonify({"error": "missing_fields"}), 400
+
+    users = _load_passwords()
+    user = users.get(username)
+    if not user or not _verify_password(password, user.get("password_hash", "")):
+        return jsonify({"error": "invalid_credentials"}), 401
+
+    # Temporary hardcoded admin fallback
+    role = user.get("role", "agent")
+    if username == "admin" and password == "oillog2024":
+        role = "super_admin"
+
+    session["user"] = {
+        "id": username,
+        "first_name": user.get("name", username),
+        "username": username,
+        "photo_url": "",
+        "auth_date": str(int(time.time())),
+        "role": role,
+        "method": "password",
+    }
+    return jsonify({"ok": True, "user": session["user"]})
+
+
+@app.route("/auth/password-admin", methods=["POST"])
+def password_admin_login():
+    data = request.json or {}
+    password = data.get("password") or ""
+    if password != "oillog2024":
+        return jsonify({"error": "invalid_credentials"}), 401
+
+    session["user"] = {
+        "id": "temp_admin",
+        "first_name": "Admin",
+        "username": "admin",
+        "photo_url": "",
+        "auth_date": str(int(time.time())),
+        "role": "super_admin",
+        "method": "password",
+    }
+    return jsonify({"ok": True, "user": session["user"]})
+
+
 # ── API ──────────────────────────────────────────────────────────────────
 
 @app.route("/api/sync")
@@ -234,6 +350,10 @@ def serve_index():
 @app.route("/admin")
 def serve_admin():
     return send_from_directory(str(FRONTEND_DIR), "oillog-admin.html")
+
+@app.route("/web")
+def serve_web():
+    return send_from_directory(str(FRONTEND_DIR), "oillog-web.html")
 
 @app.route("/<path:filename>")
 def serve_static(filename):

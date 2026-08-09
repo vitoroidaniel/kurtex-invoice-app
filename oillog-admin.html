@@ -170,6 +170,11 @@
   .login-hint{margin-top:14px;text-align:left;font-size:12px;line-height:1.6;color:var(--dim);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
   .login-hint b{color:var(--white);}
 
+  .login-tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--surface-2);border-radius:var(--r);padding:4px;}
+  .login-tab{flex:1;padding:10px;border:none;border-radius:var(--r);background:transparent;color:var(--dim);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.6px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+  .login-tab.active{background:var(--surface);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .login-tab:hover:not(.active){color:var(--white);}
+
   .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);}
   .table-wrap table{min-width:760px;}
 
@@ -187,9 +192,15 @@
   <div class="login-card">
     <div class="login-title">OIL<span>LOG</span></div>
     <div class="login-tag">ADMIN PANEL</div>
-    <div class="login-sub">Autentifică-te cu Telegram pentru a accesa evidența centralizată a yard-ului.</div>
+    <div class="login-sub">Autentifică-te cu Telegram sau cu parola pentru a accesa evidența centralizată a yard-ului.</div>
     <div id="login-error" class="login-error hidden"></div>
-    <div class="login-actions">
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="showLoginTab('telegram')" id="tab-telegram">Telegram</button>
+      <button class="login-tab" onclick="showLoginTab('password')" id="tab-password">Parolă</button>
+    </div>
+
+    <div class="login-actions" id="login-telegram">
       <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
         data-telegram-login="kurtexsecuritybot"
         data-size="large"
@@ -198,6 +209,15 @@
         data-request-access="write"></script></div>
       <p style="font-size:10px;color:var(--faint);">Doar administratorii au acces.</p>
     </div>
+
+    <div class="login-actions hidden" id="login-password">
+      <form id="password-form" onsubmit="return false;" style="width:100%;display:flex;flex-direction:column;gap:10px;">
+        <input type="password" id="p-password" placeholder="Parolă admin" autocomplete="current-password">
+        <button type="submit" class="btn btn-primary" style="width:100%;"><i data-lucide="log-in"></i>Autentifică</button>
+      </form>
+      <p style="font-size:10px;color:var(--faint);margin-top:8px;">Parola temporară de admin (setată manual în server).</p>
+    </div>
+
     <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
       <i data-lucide="help-circle"></i>Nu poți să te loghezi?
     </button>
@@ -418,6 +438,31 @@ function checkUrlLoginError(){
     window.history.replaceState({}, '', clean);
   }
 }
+
+function showLoginTab(tab){
+  document.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('login-telegram').classList.toggle('hidden', tab!=='telegram');
+  document.getElementById('login-password').classList.toggle('hidden', tab!=='password');
+  clearLoginError();
+}
+
+document.getElementById('password-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  clearLoginError();
+  const password = document.getElementById('p-password').value;
+  if(!password){ showLoginError('missing_fields'); return; }
+  try {
+    const res = await api('POST', '/auth/password-admin', { password });
+    if(res.ok && res.user){
+      adminUser = res.user;
+      saveAdminUser(adminUser);
+      await enterAdmin();
+    } else {
+      showLoginError(res.error || 'invalid_credentials');
+    }
+  } catch(err){ showLoginError('network_error'); }
+});
 
 function logoutAdmin(){
   if(!confirm('Sigur vrei să te deloghezi?')) return;
@@ -777,14 +822,13 @@ async function exportXLSX(){
     if(status.ok && status.user) {
       const su = status.user;
       if(su.role !== 'developer' && su.role !== 'super_admin') {
-        // Valid login, but not an admin-tier role — don't let them into the panel.
         await fetch('/logout', {method:'POST'}).catch(()=>{});
         showLoginError('forbidden_role');
         icons();
         return;
       }
       adminUser = {
-        method: 'telegram',
+        method: su.method || 'telegram',
         id: su.id,
         name: su.first_name,
         username: su.username || '',
@@ -797,7 +841,6 @@ async function exportXLSX(){
       adminUser = null; localStorage.removeItem(ADMIN_USER_KEY); icons();
     }
   } catch(e) {
-    // Server unreachable — fall back to any cached admin so the panel still opens
     adminUser = loadAdminUser();
     if(adminUser) await enterAdmin(); else icons();
   }

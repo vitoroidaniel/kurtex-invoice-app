@@ -34,7 +34,13 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;background:var(--bg);overflow:hidden;}
   body{font-family:var(--font-body);color:var(--white);display:flex;justify-content:center;overscroll-behavior:none;}
-  #app{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+  #app{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;overscroll-behavior:contain;position:relative;}
+
+  /* Lock the page on mobile so nothing can scroll — fixed layout only */
+  @media (max-width: 859px){
+    html{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;}
+    body{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;-webkit-user-select:none;user-select:none;}
+  }
 
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px 20px;border-bottom:1px solid var(--border);}
   .brand{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:2px;}
@@ -207,6 +213,21 @@
     button.btn{width:auto;padding:14px 22px;}
     #screen-add .btn-primary{width:100%;max-width:560px;}
     .btn-row{max-width:560px;}
+  }
+
+  /* ── Short screens: keep the add screen fully visible, no scroll ──────── */
+  @media (max-height: 700px){
+    .screen{padding-top:14px;padding-bottom:calc(60px + env(safe-area-inset-bottom));}
+    h1.page-title{font-size:19px;margin-top:2px;}
+    p.page-sub{font-size:12px;margin-bottom:10px;}
+    .card{padding:12px;margin-bottom:10px;}
+    .field{margin-bottom:9px;}
+    label.field-label{margin-bottom:5px;}
+    input[type=text],input[type=date],input[type=number]{padding:10px;font-size:14px;}
+    .chip{padding:9px 6px;font-size:11px;}
+    .unit-toggle{margin-top:5px;}
+    button.btn{padding:11px;}
+    .summary-bar{padding:10px 12px;}
   }
 </style>
 </head>
@@ -699,6 +720,15 @@ function saveName(){
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async function init(){
+  // Install the showScreen wrapper FIRST so the add-screen scroll blocker
+  // is active even for the very first render (enterApp → showScreen('add')).
+  let isAddScreenActive = false;
+  const originalShowScreen = showScreen;
+  showScreen = function(name){
+    originalShowScreen(name);
+    isAddScreenActive = (name === 'add');
+  };
+
   checkUrlLoginError();
   user = loadUser();
   try {
@@ -751,13 +781,6 @@ function saveName(){
     window.addEventListener('resize', lockAppHeight);
     window.addEventListener('orientationchange', () => setTimeout(lockAppHeight, 100));
   }
-
-  let isAddScreenActive = false;
-  const originalShowScreen = showScreen;
-  showScreen = function(name){
-    originalShowScreen(name);
-    isAddScreenActive = (name === 'add');
-  };
 
   document.addEventListener('touchmove', (e) => {
     if(isAddScreenActive) e.preventDefault();
