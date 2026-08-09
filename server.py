@@ -135,7 +135,7 @@ def telegram_auth():
 
     role = u.get("role", "agent")
     if next_url.startswith("/admin") and role not in ADMIN_ROLES:
-        return redirect("/admin?error=forbidden_role")
+        return redirect("/admin-login?error=forbidden_role")
 
     session["user"] = {
         "id": telegram_id,
@@ -145,6 +145,10 @@ def telegram_auth():
         "auth_date": data.get("auth_date", ""),
         "role": role,
     }
+    # For admin login, redirect back to login page with success flag
+    # The login page will detect the session and redirect to /admin
+    if next_url == "/admin":
+        return redirect("/admin-login?success=1")
     return redirect(next_url)
 
 @app.route("/auth/guest", methods=["POST"])

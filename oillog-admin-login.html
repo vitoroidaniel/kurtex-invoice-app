@@ -93,12 +93,9 @@
   </div>
 
   <div class="login-actions" id="login-telegram">
-    <div id="tg-login-wrap"><script async src="https://telegram.org/js/telegram-widget.js?22"
-      data-telegram-login="kurtexsecuritybot"
-      data-size="large"
-      data-radius="8"
-      data-auth-url="/auth/telegram?next=/admin"
-      data-request-access="write"></script></div>
+    <button class="btn btn-primary" id="tg-login-btn" style="width:100%;max-width:300px;">
+      <i data-lucide="message-circle"></i>Login with Telegram
+    </button>
     <p class="muted">Administrators only.</p>
   </div>
 
@@ -114,6 +111,14 @@
 </div>
 
 <script>
+  // Listen for messages from popup windows (Telegram auth)
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'telegram-auth-success') {
+      // Reload the page to pick up the session cookie set by the popup
+      window.location.reload();
+    }
+  });
+</script>
 const API_BASE = window.location.origin;
 const LOGIN_ERROR_MESSAGES = {
   not_whitelisted: 'Your Telegram account is not yet authorized as admin. Access is granted from the alert bot with /adduser <id> <name> <role>.',
@@ -180,15 +185,67 @@ document.getElementById('password-form').addEventListener('submit', async functi
 // If already logged in as admin, skip login and go straight to admin
 (async function init(){
   checkUrlLoginError();
+  
+  // Check if we just came back from Telegram auth with success flag
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('success') === '1') {
+    // Clear the URL parameter
+    window.history.replaceState({}, '', window.location.pathname);
+    
+    // Check if we're now logged in
+    try {
+      const status = await api('GET', '/auth/status');
+      if(status.ok && status.user) {
+        if(status.user.role === 'developer' || status.user.role === 'super_admin'){
+          window.location.href = '/admin';
+          return;
+        } else {
+          showLoginError('forbidden_role');
+          await api('POST', '/logout').catch(()=>{});
+        }
+      }
+    } catch(e) {}
+  }
+  
+  // Normal init - check if already logged in
   try {
     const status = await api('GET', '/auth/status');
-    if(status.ok && status.user && (status.user.role === 'developer' || status.user.role === 'super_admin')){
-      window.location.href = '/admin';
-      return;
+    if(status.ok && status.user) {
+      if(status.user.role === 'developer' || status.user.role === 'super_admin'){
+        window.location.href = '/admin';
+        return;
+      } else {
+        showLoginError('forbidden_role');
+        await api('POST', '/logout').catch(()=>{});
+      }
     }
   } catch(e) {}
   if(window.lucide) lucide.createIcons();
-})();
+  })();
+
+  // Telegram login button handler - opens auth in popup
+  document.getElementById('tg-login-btn').addEventListener('click', function() {
+    const width = 500;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    
+    // Open Telegram OAuth in a popup
+    const popup = window.open(
+      '/auth/telegram?next=/admin',
+      'telegram-login',
+      'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top
+    );
+    
+    // Poll for popup close and check if login succeeded
+    const checkClosed = setInterval(() => {
+      if (popup && popup.closed) {
+        clearInterval(checkClosed);
+        // Reload the page to pick up the session cookie
+        window.location.reload();
+      }
+    }, 500);
+  });
 </script>
 </body>
 </html>
