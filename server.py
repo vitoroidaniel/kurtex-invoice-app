@@ -132,11 +132,17 @@ def telegram_auth():
         data = dict(request.args)
         next_url = data.pop("next", "/") or "/"
     
+    # If no hash in data, this is a request to initiate OAuth (mobile flow)
+    if not data.get("hash"):
+        # Redirect to Telegram OAuth
+        bot_username = os.getenv("BOT_USERNAME", "@kurtexalertsbot").replace("@", "")
+        origin = request.host_url.rstrip("/")
+        telegram_oauth_url = f"https://oauth.telegram.org/auth?bot_id={bot_username}&origin={origin}&request_access=write"
+        return redirect(telegram_oauth_url)
+    
     if not next_url.startswith("/"):
         next_url = "/"  # never redirect off-site
 
-    if not data.get("hash"):
-        return redirect(f"{next_url}?error=missing")
     if not verify_telegram_login(data):
         return redirect(f"{next_url}?error=invalid")
 
