@@ -97,10 +97,11 @@
 
   <div class="login-actions hidden" id="login-password">
     <form id="password-form" class="login-form" onsubmit="return false;">
-      <input type="password" id="p-password" placeholder="Admin password" autocomplete="current-password">
+      <input type="text" id="p-username" placeholder="Username" autocomplete="username" required>
+      <input type="password" id="p-password" placeholder="Password" autocomplete="current-password" required>
       <button type="submit" class="btn btn-primary"><i data-lucide="log-in"></i>Sign in</button>
     </form>
-    <p class="muted">Temporary admin password (set manually on the server).</p>
+    <p class="muted">Admin accounts are created from the admin panel.</p>
   </div>
 
   <button class="back-link" onclick="window.location.href='/'"><i data-lucide="arrow-left"></i>Back to app</button>
@@ -167,10 +168,11 @@ async function api(method, path, body){
 document.getElementById('password-form').addEventListener('submit', async function(e){
   e.preventDefault();
   clearLoginError();
+  const username = document.getElementById('p-username').value.trim();
   const password = document.getElementById('p-password').value;
-  if(!password){ showLoginError('missing_fields'); return; }
+  if(!username || !password){ showLoginError('missing_fields'); return; }
   try {
-    const res = await api('POST', '/auth/password-admin', { password });
+    const res = await api('POST', '/auth/password-admin', { username, password });
     if(res.ok && res.user){
       window.location.href = '/admin';
     } else {

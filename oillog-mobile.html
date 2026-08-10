@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
@@ -10,225 +10,184 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OILLOG">
-<!-- Telegram widget script loaded in login div below -->
 <script src="https://unpkg.com/lucide@1.27.0/dist/umd/lucide.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#FAFAF8;
-    --surface:#FFFFFF;
-    --surface-2:#F9F7F5;
-    --surface-3:#F3F1EE;
-    --border:#E5E3E0;
-    --white:#1A1A1A;
-    --dim:#6B6B6B;
-    --faint:#999999;
-    --red:#C8102E;
-    --red-tint:rgba(200,16,46,0.08);
-    --r:4px;
-    --font-display:'Oswald',sans-serif;
-    --font-body:'Inter',sans-serif;
-    --font-mono:'JetBrains Mono',monospace;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;height:100%;background:var(--bg);overflow:hidden;}
-  body{font-family:var(--font-body);color:var(--white);display:flex;justify-content:center;overscroll-behavior:none;}
-  #app{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;overscroll-behavior:contain;position:relative;}
+:root{--bg:#F4F4F2;--surface:#FFF;--surface-2:#F9F7F5;--surface-3:#F3F1EE;--border:#E5E3E0;--border-2:#D8D5D0;--white:#1A1A1A;--dim:#6B6B6B;--faint:#9A9A9A;--red:#C8102E;--red-tint:rgba(200,16,46,.09);--amber:#B7791F;--amber-tint:rgba(183,121,31,.11);--green:#3A7D44;--green-tint:rgba(58,125,68,.1);--r:6px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-lg:0 10px 34px rgba(0,0,0,.08);--fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;}
+html[data-theme="dark"]{--bg:#121212;--surface:#1C1C1C;--surface-2:#242424;--surface-3:#1A1A1A;--border:#333;--border-2:#3D3D3D;--white:#ECECEC;--dim:#A2A2A2;--faint:#777;--red-tint:rgba(200,16,46,.16);--amber-tint:rgba(183,121,31,.16);--green-tint:rgba(58,125,68,.16);--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 34px rgba(0,0,0,.5);}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--white);font-family:var(--fb);overflow:hidden;}
+body{display:flex;justify-content:center;overscroll-behavior:none;}
+#app{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;overscroll-behavior:contain;position:relative;}
 
-  /* Lock the page on mobile so nothing can scroll — fixed layout only */
-  @media (max-width: 859px){
-    html{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;}
-    body{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;-webkit-user-select:none;user-select:none;}
-  }
+/* Lock the page on mobile so nothing can scroll — fixed layout only */
+@media (max-width: 859px){
+  html{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;}
+  body{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;-webkit-user-select:none;user-select:none;}
+}
 
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px 20px;border-bottom:1px solid var(--border);}
-  .brand{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:2px;}
-  .brand span{color:var(--red);}
-  .userchip{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:6px 10px;font-size:12px;color:var(--dim);border-radius:var(--r);}
-  .userchip i, .userchip svg{width:13px;height:13px;}
-  .userchip img{width:18px;height:18px;border-radius:50%;object-fit:cover;}
+/* ── Top bar ─────────────────────────────────────────────── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px;border-bottom:1px solid var(--border);background:var(--surface);}
+.brand{font-family:var(--fd);font-weight:700;font-size:19px;letter-spacing:3px;}
+.brand span{color:var(--red);}
+.userchip{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:12.5px;color:var(--dim);}
+.userchip i,.userchip svg{width:14px;height:14px;color:var(--faint);}
+.userchip img{width:20px;height:20px;border-radius:50%;object-fit:cover;}
+.live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-tint);color:var(--green);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-  .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green);border-radius:20px;padding:4px 8px;font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.4px;}
-  .live-pill .s-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.8);animation:pulse 2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── Screens ─────────────────────────────────────────────── */
+.screen{display:none;flex-direction:column;flex:1;padding:20px 20px calc(70px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.screen.active{display:flex;}
+.screen::-webkit-scrollbar{display:none;}
+h1.page-title{font-family:var(--fd);font-size:22px;font-weight:600;margin:4px 0 4px;letter-spacing:1px;text-transform:uppercase;}
+p.page-sub{color:var(--dim);font-size:13px;margin:0 0 18px;line-height:1.5;}
 
-  .screen{display:none;flex-direction:column;flex:1;padding:20px 20px calc(70px + env(safe-area-inset-bottom)) 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  .screen.active{display:flex;}
-  #screen-add{overflow:hidden;touch-action:none;}
+/* ── Login ───────────────────────────────────────────────── */
+#screen-login{justify-content:center;align-items:center;text-align:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;}
+.login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px 28px 32px;box-shadow:var(--shadow-lg);text-align:center;}
+.login-title{font-family:var(--fd);font-size:34px;font-weight:700;letter-spacing:4px;margin:0 0 4px;}
+.login-title span{color:var(--red);}
+.login-tag{font-size:12px;letter-spacing:.5px;color:var(--faint);margin-bottom:8px;text-transform:uppercase;}
+.login-sub{color:var(--dim);font-size:14px;margin-bottom:28px;max-width:320px;line-height:1.6;margin-left:auto;margin-right:auto;}
+.login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,.25);color:var(--red);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:var(--r);margin-bottom:18px;text-align:left;}
+.login-form{display:flex;flex-direction:column;gap:12px;width:100%;text-align:left;}
+.login-form input{width:100%;padding:13px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--fm);font-size:14px;outline:none;transition:all .15s;}
+.login-form input::placeholder{color:var(--faint);}
+.login-form input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:all .15s;width:100%;}
+.btn:hover{background:var(--surface-2);border-color:var(--border-2);}
+.btn i,.btn svg{width:15px;height:15px;}
+.btn-primary{background:var(--red);border-color:var(--red);color:#fff;}
+.btn-primary:hover{background:#A80725;border-color:#A80725;}
+.muted{font-size:10px;color:var(--faint);margin-top:8px;}
 
-  h1.page-title{font-family:var(--font-display);font-size:22px;font-weight:600;margin:4px 0 4px 0;letter-spacing:0.5px;text-transform:uppercase;}
-  p.page-sub{color:var(--dim);font-size:13px;margin:0 0 18px 0;line-height:1.5;}
+/* ── Cards & forms ───────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+label.field-label{display:flex;align-items:center;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin-bottom:8px;font-weight:700;}
+label.field-label i,label.field-label svg{width:13px;height:13px;color:var(--red);}
+.field{margin-bottom:16px;}
+input[type=text],input[type=date],input[type=number],input[type=password]{
+  width:100%;background:var(--surface);border:1px solid var(--border);color:var(--white);
+  border-radius:var(--r);padding:13px 14px;font-family:var(--fm);font-size:15px;outline:none;transition:all .15s;
+}
+input::placeholder{color:var(--faint);}
+input:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px var(--red-tint);}
+input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;}
 
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
-  label.field-label{display:flex;align-items:center;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin-bottom:8px;font-weight:600;}
-  label.field-label i, label.field-label svg{width:13px;height:13px;color:var(--red);}
-  .field{margin-bottom:16px;}
-  input[type=text],input[type=date],input[type=number]{
-    width:100%;background:var(--surface);border:1px solid var(--border);color:var(--white);
-    border-radius:var(--r);padding:14px;font-family:var(--font-mono);font-size:15px;outline:none;transition:all 0.15s;
-  }
-  input::placeholder{color:var(--faint);}
-  input:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px rgba(200,16,46,0.1);}
-  input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;}
+.chip-row{display:flex;gap:8px;}
+.chip{
+  flex:1;text-align:center;padding:13px 8px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--surface);font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.6px;
+  color:var(--dim);cursor:pointer;user-select:none;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s;
+}
+.chip i,.chip svg{width:18px;height:18px;}
+.chip.active{border-color:#1A1A1A;color:#FFF;background:#1A1A1A;font-weight:700;}
+.chip.active i,.chip.active svg{color:#FFF;}
 
-  .chip-row{display:flex;gap:8px;}
-  .chip{
-    flex:1;text-align:center;padding:13px 8px;border-radius:var(--r);border:1px solid var(--border);
-    background:var(--surface);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.6px;
-    color:var(--dim);cursor:pointer;user-select:none;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all 0.15s;
-  }
-  .chip i, .chip svg{width:18px;height:18px;}
-  .chip.active{border-color:#1A1A1A;color:#FFFFFF;background:#1A1A1A;font-weight:700;}
-  .chip.active i, .chip.active svg{color:#FFFFFF;}
+.unit-toggle{display:flex;gap:8px;margin-top:8px;}
+.unit-toggle .chip{padding:9px 10px;font-size:11px;flex-direction:row;border:1px solid var(--border);}
+.unit-toggle .chip i,.unit-toggle .chip svg{width:14px;height:14px;}
 
-  .unit-toggle{display:flex;gap:8px;margin-top:8px;}
-  .unit-toggle .chip{padding:9px 10px;font-size:11px;flex-direction:row;border:1px solid var(--border);}
-  .unit-toggle .chip i, .unit-toggle .chip svg{width:14px;height:14px;}
+/* ── List / filters ──────────────────────────────────────── */
+.filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
+.filters::-webkit-scrollbar{display:none;}
+.filter-pill{flex-shrink:0;padding:8px 13px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
+.filter-pill.active{background:var(--red);color:#FFF;border-color:var(--red);font-weight:700;}
+.day-group{margin-bottom:14px;}
+.day-label{font-family:var(--fm);font-size:11px;color:var(--faint);margin:0 0 6px 2px;letter-spacing:1px;text-transform:uppercase;}
+.entry{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:6px;box-shadow:var(--shadow);}
+.entry .type-badge{width:30px;height:30px;border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.entry .type-badge i,.entry .type-badge svg{width:14px;height:14px;color:var(--dim);}
+.entry .info{flex:1;min-width:0;}
+.entry .unit-num{font-family:var(--fm);font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.entry .meta{font-size:11px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.entry .value{font-family:var(--fm);font-weight:700;font-size:13px;text-align:right;flex-shrink:0;}
+.entry .value small{display:block;font-family:var(--fb);font-weight:600;font-size:9px;color:var(--faint);text-transform:uppercase;}
+.entry .del{background:none;border:none;color:var(--faint);padding:4px;cursor:pointer;}
+.entry .del i,.entry .del svg{width:14px;height:14px;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--faint);}
+.empty-state i,.empty-state svg{width:40px;height:40px;opacity:0.4;margin-bottom:12px;stroke-width:1.2px;}
+.empty-state p{font-size:13px;line-height:1.5;}
+.summary-bar{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow);}
+.summary-bar .num{font-family:var(--fd);font-size:20px;font-weight:700;}
+.summary-bar .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;}
 
-  button.btn{
-    width:100%;padding:15px;border:1px solid var(--border);border-radius:var(--r);
-    font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all 0.15s;
-  }
-  button.btn i, button.btn svg{width:16px;height:16px;}
-  .btn-primary{background:var(--red);color:#FFFFFF;border-color:var(--red);}
-  .btn-primary:hover{background:#A80725;border-color:#A80725;box-shadow:0 2px 8px rgba(200,16,46,0.2);}
-  .btn-secondary{background:var(--surface);color:var(--white);border-color:var(--border);}
-  .btn-secondary:hover{background:var(--surface-2);border-color:var(--border-2);}
-  .btn-outline{background:var(--surface);color:var(--white);border-color:var(--border);}
-  .btn-outline:hover{background:var(--surface-2);border-color:var(--border-2);}
-  .btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
-  .btn-row{display:flex;gap:10px;}
-  .btn-row .btn{flex:1;}
+/* ── Settings ────────────────────────────────────────────── */
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .l{font-size:13px;color:var(--dim);}
+.settings-row .r{color:var(--white);font-size:12px;font-family:var(--fm);}
 
-  #screen-login{justify-content:center;align-items:center;text-align:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom)) 20px;overflow-y:auto;}
-  .login-title{font-family:var(--font-display);font-size:28px;font-weight:700;margin:0 0 8px 0;letter-spacing:3px;}
-  .login-title span{color:var(--red);}
-  .login-sub{color:var(--dim);font-size:14px;margin-bottom:28px;max-width:320px;line-height:1.55;}
-  .login-actions{width:100%;display:flex;flex-direction:column;align-items:center;gap:11px;}
+/* ── Bottom nav ──────────────────────────────────────────── */
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:20;}
+.bottomnav-inner{width:100%;display:flex;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(0,0,0,.04);padding:8px 16px calc(8px + env(safe-area-inset-bottom));}
+html[data-theme="dark"] .bottomnav-inner{background:rgba(28,28,28,.96);}
+.navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--faint);font-family:var(--fd);font-size:10px;font-weight:600;letter-spacing:.5px;cursor:pointer;padding:4px 0;text-transform:uppercase;}
+.navbtn i,.navbtn svg{width:20px;height:20px;}
+.navbtn.active{color:var(--red);}
 
-  .filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
-  .filter-pill{flex-shrink:0;padding:8px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:0.4px;}
-  .filter-pill:hover{border-color:var(--border-2);background:var(--surface-2);}
-  .filter-pill.active{background:#1A1A1A;color:#FFFFFF;border-color:#1A1A1A;font-weight:700;}
+/* ── Toast ───────────────────────────────────────────────── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--red);color:#FFF;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;z-index:50;white-space:nowrap;transition:opacity .15s;}
+.toast.show{opacity:1;}
 
-  .day-group{margin-bottom:14px;}
-  .day-label{font-family:var(--font-mono);font-size:11px;color:var(--faint);margin:0 0 6px 2px;letter-spacing:1px;text-transform:uppercase;}
-  .entry{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:6px;}
-  .entry .type-badge{width:30px;height:30px;border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .entry .type-badge i, .entry .type-badge svg{width:14px;height:14px;color:var(--dim);}
-  .entry .info{flex:1;min-width:0;}
-  .entry .unit-num{font-family:var(--font-mono);font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .entry .meta{font-size:11px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .entry .value{font-family:var(--font-mono);font-weight:700;font-size:13px;text-align:right;flex-shrink:0;}
-  .entry .value small{display:block;font-family:var(--font-body);font-weight:600;font-size:9px;color:var(--faint);text-transform:uppercase;}
-  .entry .del{background:none;border:none;color:var(--faint);padding:4px;cursor:pointer;}
-  .entry .del i, .entry .del svg{width:14px;height:14px;}
+.hidden{display:none !important;}
 
-  .empty-state{text-align:center;padding:40px 20px;color:var(--faint);}
-  .empty-state i, .empty-state svg{width:40px;height:40px;opacity:0.4;margin-bottom:12px;stroke-width:1.2px;}
-  .empty-state p{font-size:13px;line-height:1.5;}
+/* ── Wide phones / small tablets ─────────────────────────── */
+@media (min-width:390px){
+  .topbar{padding:18px 24px 14px;}
+  .screen{padding:20px 24px calc(70px + env(safe-area-inset-bottom));}
+  .bottomnav-inner{padding:8px 20px calc(8px + env(safe-area-inset-bottom));}
+  h1.page-title{font-size:23px;}
+  p.page-sub{font-size:13.5px;}
+  .card{padding:18px;}
+}
 
-  .summary-bar{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;}
-  .summary-bar .num{font-family:var(--font-display);font-size:20px;font-weight:700;}
-  .summary-bar .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.6px;}
+/* ── Desktop adaptation ──────────────────────────────────── */
+@media (min-width:860px){
+  body{background:var(--surface-3);}
+  #app{max-width:1080px;min-height:100vh;min-height:100dvh;box-shadow:0 0 0 1px var(--border);}
+  #screen-login{min-height:100vh;background:var(--surface-3);}
+  .login-card{max-width:400px;padding:40px 32px 32px;}
+  .screen{padding:28px 40px 40px;overflow-y:visible;}
+  .topbar{padding:22px 40px;}
+  #screen-add form{max-width:560px;}
+  #screen-add .card{padding:22px;}
+  #screen-list.active{display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto auto 1fr auto;gap:0 24px;align-content:start;}
+  #screen-list .topbar{grid-column:1/-1;margin:-28px -40px 20px;padding:22px 40px;}
+  #screen-list .summary-bar{grid-column:2;grid-row:2/4;flex-direction:column;align-items:flex-start;gap:18px;height:fit-content;padding:20px;}
+  #screen-list .summary-bar > div{text-align:left !important;}
+  #screen-list .filters{grid-column:1;}
+  #screen-list #list-container{grid-column:1;}
+  #screen-list .btn-row,#screen-list > button.btn{grid-column:1;}
+  .bottomnav{position:sticky;bottom:auto;top:0;left:auto;right:auto;justify-content:flex-start;}
+  .bottomnav-inner{max-width:none;width:auto;background:transparent;backdrop-filter:none;border-top:none;box-shadow:none;padding:0;gap:6px;}
+  html[data-theme="dark"] .bottomnav-inner{background:transparent;}
+  .navbtn{flex:none;flex-direction:row;padding:10px 16px;border-radius:var(--r);gap:7px;}
+  .navbtn:hover{background:var(--surface-2);}
+  .navbtn.active{background:#1A1A1A;color:#fff;}
+  #bottomnav{order:-1;border-bottom:1px solid var(--border);}
+  button.btn{width:auto;padding:14px 22px;}
+  #screen-add .btn-primary{width:100%;max-width:560px;}
+  .btn-row{max-width:560px;}
+}
 
-  .settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--border);}
-  .settings-row:last-child{border-bottom:none;}
-  .settings-row .l{font-size:13px;color:var(--dim);}
-  .settings-row .r{color:var(--white);font-size:12px;font-family:var(--font-mono);}
-
-  .bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:20;}
-  .bottomnav-inner{width:100%;display:flex;background:rgba(255,255,255,0.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(0,0,0,0.04);padding:8px 16px calc(8px + env(safe-area-inset-bottom)) 16px;}
-  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--faint);font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.5px;cursor:pointer;padding:4px 0;text-transform:uppercase;}
-  .navbtn i, .navbtn svg{width:20px;height:20px;}
-  .navbtn.active{color:var(--red);}
-
-  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--red);color:#FFFFFF;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;z-index:50;white-space:nowrap;}
-  .toast.show{opacity:1;}
-
-  .login-tg-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;}
-  .login-tg-btn:hover{background:var(--surface-2);border-color:var(--border-2);box-shadow:0 2px 10px rgba(0,0,0,0.05);transform:translateY(-1px);}
-  .login-tg-btn i, .login-tg-btn svg{width:18px;height:18px;color:#0088CC;}
-
-  .login-card{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px 24px 28px 24px;box-shadow:0 8px 30px rgba(0,0,0,0.06);}
-  .login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,0.25);color:var(--red);font-size:12px;line-height:1.5;padding:10px 12px;border-radius:var(--r);margin-bottom:14px;text-align:left;}
-  .login-hint-toggle{margin-top:18px;background:none;border:none;color:var(--faint);font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-body);}
-  .login-hint-toggle:hover{color:var(--dim);}
-  .login-hint-toggle i, .login-hint-toggle svg{width:13px;height:13px;}
-  .login-hint{margin-top:12px;text-align:left;font-size:12px;line-height:1.6;color:var(--dim);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:12px;}
-  .login-hint b{color:var(--white);}
-
-  .hidden{display:none !important;}
-
-  /* ── Wide phones / small tablets ─────────────────────────────────────────── */
-  @media (min-width: 390px){
-    .topbar{padding:18px 24px 14px 24px;}
-    .screen{padding:20px 24px calc(70px + env(safe-area-inset-bottom)) 24px;}
-    .bottomnav-inner{padding:8px 20px calc(8px + env(safe-area-inset-bottom)) 20px;}
-    h1.page-title{font-size:23px;}
-    p.page-sub{font-size:13.5px;}
-    .card{padding:18px;}
-  }
-
-  @media (min-width: 430px){
-    .topbar{padding:20px 28px 16px 28px;}
-    .screen{padding:24px 28px calc(70px + env(safe-area-inset-bottom)) 28px;}
-    .bottomnav-inner{padding:10px 24px calc(10px + env(safe-area-inset-bottom)) 24px;}
-    h1.page-title{font-size:24px;}
-    .card{padding:18px;}
-    .summary-bar{padding:14px 16px;}
-  }
-
-  /* ── Desktop / wide-screen adaptation ────────────────────────────────────── */
-  @media (min-width: 860px){
-    body{background:var(--surface-3);}
-    #app{max-width:1080px;min-height:100vh;min-height:100dvh;box-shadow:0 0 0 1px var(--border);}
-    #screen-login{min-height:100vh;background:var(--surface-3);}
-    .login-card{max-width:400px;padding:40px 32px 32px 32px;}
-
-    .screen{padding:28px 40px 40px 40px;overflow-y:visible;}
-    .topbar{padding:22px 40px;}
-
-    /* Two-column layout: form/content on the left, quick summary rail on the right */
-    #screen-add form{max-width:560px;}
-    #screen-add .card{padding:22px;}
-
-    #screen-list.active{display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto auto 1fr auto;gap:0 24px;align-content:start;}
-    #screen-list .topbar{grid-column:1/-1;margin:-28px -40px 20px -40px;padding:22px 40px;}
-    #screen-list .summary-bar{grid-column:2;grid-row:2/4;flex-direction:column;align-items:flex-start;gap:18px;height:fit-content;padding:20px;}
-    #screen-list .summary-bar > div{text-align:left !important;}
-    #screen-list .filters{grid-column:1;}
-    #screen-list #list-container{grid-column:1;}
-    #screen-list .btn-row, #screen-list > button.btn{grid-column:1;}
-
-    .bottomnav{position:sticky;bottom:auto;top:0;left:auto;right:auto;justify-content:flex-start;}
-    .bottomnav-inner{max-width:none;width:auto;background:transparent;backdrop-filter:none;border-top:none;box-shadow:none;padding:0;gap:6px;}
-    .navbtn{flex:none;flex-direction:row;padding:10px 16px;border-radius:var(--r);gap:7px;}
-    .navbtn:hover{background:var(--surface-2);}
-    .navbtn.active{background:#1A1A1A;color:#fff;}
-    #bottomnav{order:-1;border-bottom:1px solid var(--border);}
-
-    button.btn{width:auto;padding:14px 22px;}
-    #screen-add .btn-primary{width:100%;max-width:560px;}
-    .btn-row{max-width:560px;}
-  }
-
-  /* ── Short screens: keep the add screen fully visible, no scroll ──────── */
-  @media (max-height: 700px){
-    .screen{padding-top:14px;padding-bottom:calc(60px + env(safe-area-inset-bottom));}
-    h1.page-title{font-size:19px;margin-top:2px;}
-    p.page-sub{font-size:12px;margin-bottom:10px;}
-    .card{padding:12px;margin-bottom:10px;}
-    .field{margin-bottom:9px;}
-    label.field-label{margin-bottom:5px;}
-    input[type=text],input[type=date],input[type=number]{padding:10px;font-size:14px;}
-    .chip{padding:9px 6px;font-size:11px;}
-    .unit-toggle{margin-top:5px;}
-    button.btn{padding:11px;}
-    .summary-bar{padding:10px 12px;}
-  }
+/* ── Short screens ───────────────────────────────────────── */
+@media (max-height:700px){
+  .screen{padding-top:14px;padding-bottom:calc(60px + env(safe-area-inset-bottom));}
+  h1.page-title{font-size:19px;margin-top:2px;}
+  p.page-sub{font-size:12px;margin-bottom:10px;}
+  .card{padding:12px;margin-bottom:10px;}
+  .field{margin-bottom:9px;}
+  label.field-label{margin-bottom:5px;}
+  input[type=text],input[type=date],input[type=number]{padding:10px;font-size:14px;}
+  .chip{padding:9px 6px;font-size:11px;}
+  .unit-toggle{margin-top:5px;}
+  button.btn{padding:11px;}
+  .summary-bar{padding:10px 12px;}
+}
 </style>
 </head>
 <body>
@@ -237,18 +196,15 @@
   <div class="screen active" id="screen-login">
     <div class="login-card">
       <div class="login-title">OIL<span>LOG</span></div>
-      <div class="login-sub">Evidența oil change-urilor de pe yard. Data, tipul unității, unit#-ul și mileage / engine hours.</div>
+      <div class="login-tag">FIELD ENTRY</div>
+      <div class="login-sub">Sign in to log oil changes for the yard.</div>
       <div id="login-error" class="login-error hidden"></div>
-      <div class="login-actions">
-        <div id="tg-login-widget" style="width:100%;max-width:300px;display:flex;justify-content:center;"></div>
-        <button class="login-tg-btn" onclick="loginGuest()"><i data-lucide="user"></i>Continuă ca Guest</button>
-      </div>
-      <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
-        <i data-lucide="help-circle"></i>Nu poți să te loghezi?
-      </button>
-      <div id="login-hint" class="login-hint hidden">
-        Butonul Telegram nu face nimic la click? Domeniul site-ului nu e setat pe bot. Trimite botului <b>/setdomain</b> din <b>@BotFather</b> și alege bot-ul, apoi lipește domeniul exact al acestui site (fără https://). Accesul se dă din botul de alerte, cu <b>/adduser &lt;id&gt; &lt;nume&gt; &lt;rol&gt;</b>.
-      </div>
+      <form id="login-form" class="login-form" onsubmit="return false;">
+        <input type="text" id="l-username" placeholder="Username" autocomplete="username" required>
+        <input type="password" id="l-password" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary"><i data-lucide="log-in"></i>Sign in</button>
+      </form>
+      <p class="muted">Accounts are created by the administrator.</p>
     </div>
   </div>
 
@@ -257,21 +213,20 @@
       <div class="brand">OIL<span>LOG</span></div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="live-pill"><span class="s-dot"></span> Live</span>
-        <div class="userchip" id="userchip"><i data-lucide="user"></i><span id="userchip-name">Guest</span></div>
+        <div class="userchip"><i data-lucide="user"></i><span id="userchip-name">—</span></div>
       </div>
     </div>
-    <div style="padding:20px 20px 0 20px;"></div>
-    <h1 class="page-title">Oil change nou</h1>
-    <p class="page-sub">Completează după fiecare invoice din shop.</p>
+    <h1 class="page-title">New oil change</h1>
+    <p class="page-sub">Complete after each invoice from the shop.</p>
 
     <form id="entry-form">
       <div class="card">
         <div class="field">
-          <label class="field-label"><i data-lucide="calendar"></i>Data oil change</label>
+          <label class="field-label"><i data-lucide="calendar"></i>Date of oil change</label>
           <input type="date" id="f-date" required>
         </div>
         <div class="field">
-          <label class="field-label"><i data-lucide="grid"></i>Tip unitate</label>
+          <label class="field-label"><i data-lucide="grid"></i>Unit type</label>
           <div class="chip-row">
             <div class="chip active" data-type="T" onclick="selectType('T')"><i data-lucide="truck"></i>TRUCK</div>
             <div class="chip" data-type="R" onclick="selectType('R')"><i data-lucide="wind"></i>REEFER</div>
@@ -290,63 +245,56 @@
           </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary"><i data-lucide="check"></i>Salvează în listă</button>
+      <button type="submit" class="btn btn-primary"><i data-lucide="check"></i>Save to list</button>
     </form>
   </div>
 
   <div class="screen" id="screen-list">
-    <div class="topbar"><div class="brand">LISTĂ</div></div>
-    <div style="padding:20px 20px 0 20px;"></div>
-
+    <div class="topbar"><div class="brand">LIST</div></div>
     <div class="summary-bar">
-      <div><div class="num" id="sum-count">0</div><div class="lbl">înregistrări</div></div>
-      <div style="text-align:right"><div class="num" id="sum-pending">0</div><div class="lbl">netrimise</div></div>
-    </div>
-
-    <div class="filters">
-      <div class="filter-pill active" data-scope="mine" onclick="setScope('mine')">Ale mele</div>
-      <div class="filter-pill" data-scope="all" onclick="setScope('all')">Toate</div>
+      <div><div class="num" id="sum-count">0</div><div class="lbl">records</div></div>
+      <div style="text-align:right"><div class="num" id="sum-pending">0</div><div class="lbl">pending</div></div>
     </div>
     <div class="filters">
-      <div class="filter-pill active" data-filter="all" onclick="setFilter('all')">Toate tipurile</div>
+      <div class="filter-pill active" data-scope="mine" onclick="setScope('mine')">Mine</div>
+      <div class="filter-pill" data-scope="all" onclick="setScope('all')">All</div>
+    </div>
+    <div class="filters">
+      <div class="filter-pill active" data-filter="all" onclick="setFilter('all')">All types</div>
       <div class="filter-pill" data-filter="T" onclick="setFilter('T')">Truck</div>
       <div class="filter-pill" data-filter="R" onclick="setFilter('R')">Reefer</div>
     </div>
-
     <div id="list-container"></div>
-
     <div style="margin-top:auto; padding-top:14px;">
-      <div class="btn-row" style="margin-top:0;">
-        <button class="btn btn-secondary" onclick="exportXLSX()"><i data-lucide="download"></i>CSV</button>
-        <button class="btn btn-secondary" onclick="shareList()"><i data-lucide="share"></i>Share</button>
+      <div class="btn-row" style="display:flex;gap:10px;margin-top:0;">
+        <button class="btn" style="flex:1" onclick="exportXLSX()"><i data-lucide="download"></i>Excel</button>
+        <button class="btn" style="flex:1" onclick="shareList()"><i data-lucide="share"></i>Share</button>
       </div>
     </div>
   </div>
 
   <div class="screen" id="screen-settings">
-    <div class="topbar"><div class="brand">SETĂRI</div></div>
-    <div style="padding:20px 20px 0 20px;"></div>
-
+    <div class="topbar"><div class="brand">SETTINGS</div></div>
     <div class="card">
       <div class="field">
-        <label class="field-label"><i data-lucide="user"></i>Numele tău</label>
+        <label class="field-label"><i data-lucide="user"></i>Your name</label>
         <input type="text" id="s-name" placeholder="ex. Mihai" onchange="saveName()">
       </div>
     </div>
     <div class="card">
-      <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">Guest</div></div>
-      <div class="settings-row"><div class="l">Intrări trimise de tine</div><div class="r" id="settings-total">0</div></div>
-      <div class="settings-row"><div class="l">Versiune</div><div class="r">3.0</div></div>
+      <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
+      <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
+      <div class="settings-row"><div class="l">Version</div><div class="r">4.0</div></div>
     </div>
-    <p style="font-size:12px;color:var(--faint);line-height:1.6;margin-bottom:20px;">Datele sunt partajate cu toată echipa — orice intrare adăugată aici apare și în panoul de administrare.</p>
-    <button class="btn btn-outline" onclick="logout()"><i data-lucide="log-out"></i>Delogare</button>
+    <p style="font-size:12px;color:var(--faint);line-height:1.6;margin-bottom:20px;">Data is shared with the whole team — any entry added here appears in the admin panel.</p>
+    <button class="btn" style="border-color:var(--red);color:var(--red);background:transparent;" onclick="logout()"><i data-lucide="log-out"></i>Logout</button>
   </div>
 
   <div class="bottomnav hidden" id="bottomnav">
     <div class="bottomnav-inner">
-      <button class="navbtn active" data-screen="add" onclick="showScreen('add')"><i data-lucide="plus-circle"></i>ADAUGĂ</button>
-      <button class="navbtn" data-screen="list" onclick="showScreen('list')"><i data-lucide="list"></i>LISTĂ</button>
-      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><i data-lucide="settings"></i>SETĂRI</button>
+      <button class="navbtn active" data-screen="add" onclick="showScreen('add')"><i data-lucide="plus-circle"></i>ADD</button>
+      <button class="navbtn" data-screen="list" onclick="showScreen('list')"><i data-lucide="list"></i>LIST</button>
+      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><i data-lucide="settings"></i>SETTINGS</button>
     </div>
   </div>
 
@@ -355,7 +303,7 @@
 
 <script>
 const API_BASE = window.location.origin;
-const USER_KEY = 'oillog_user_v3';
+const USER_KEY = 'oillog_user_v4';
 
 let user = null;
 let entries = [];
@@ -368,12 +316,12 @@ let syncTimer = null;
 function loadUser(){ try{ return JSON.parse(localStorage.getItem(USER_KEY)) || null; }catch(e){ return null; } }
 function saveUserLocal(u){ localStorage.setItem(USER_KEY, JSON.stringify(u)); }
 function icons(){ if(window.lucide) lucide.createIcons(); }
-
 function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   clearTimeout(window._t); window._t = setTimeout(()=>t.classList.remove('show'), 2200);
 }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
 // ── API ────────────────────────────────────────────────────────────────────
 async function api(method, path, body){
@@ -386,60 +334,55 @@ async function api(method, path, body){
   return data;
 }
 
-// ── Telegram Login ─────────────────────────────────────────────────────────
-// Login now happens via full-page redirect (Telegram widget → /auth/telegram
-// → server sets session → redirects back here with ?error=... on failure).
+// ── Login ──────────────────────────────────────────────────────────────────
 const LOGIN_ERROR_MESSAGES = {
-  not_whitelisted: 'Contul tău Telegram nu e încă autorizat. Accesul se dă din botul de alerte, cu /adduser <id> <nume> <rol>.',
-  invalid: 'Autentificare Telegram invalidă. Verifică dacă domeniul acestui site e setat corect în BotFather (/setdomain).',
-  missing: 'Răspunsul primit de la Telegram e incomplet. Încearcă din nou.',
+  missing_fields: 'Enter your username and password.',
+  invalid_credentials: 'Incorrect username or password.',
+  network_error: 'Could not reach the server. Try again.',
 };
 function showLoginError(code, raw){
   const box = document.getElementById('login-error');
   if(!box) return;
-  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Autentificare eșuată. Încearcă din nou.');
+  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Login failed. Try again.');
   box.classList.remove('hidden');
 }
 function clearLoginError(){
   const box = document.getElementById('login-error');
   if(box){ box.classList.add('hidden'); box.textContent=''; }
 }
-function checkUrlLoginError(){
-  const params = new URLSearchParams(window.location.search);
-  const err = params.get('error');
-  if(err){
-    showLoginError(err);
-    params.delete('error');
-    const clean = window.location.pathname + (params.toString() ? '?'+params.toString() : '');
-    window.history.replaceState({}, '', clean);
-  }
-}
 
-async function loginGuest(){
-  const name = prompt('Numele tău (pentru evidență):','Guest') || 'Guest';
+document.getElementById('login-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  clearLoginError();
+  const username = document.getElementById('l-username').value.trim();
+  const password = document.getElementById('l-password').value;
+  if(!username || !password){ showLoginError('missing_fields'); return; }
   try {
-    const res = await api('POST', '/auth/guest', { name });
-    if(res.ok) {
-      user = { method: 'guest', name: name };
+    const res = await api('POST', '/auth/password', { username, password });
+    if(res.ok && res.user){
+      const su = res.user;
+      user = {
+        method: 'password',
+        id: su.id,
+        name: su.first_name || su.username || username,
+        username: su.username || username,
+        role: su.role || 'agent',
+      };
       saveUserLocal(user);
       await enterApp();
     } else {
-      toast('Eroare la autentificare');
+      showLoginError(res.error || 'invalid_credentials');
     }
-  } catch(e) {
-    // Fallback: if server is unreachable, still allow local use
-    user = { method: 'guest', name: name };
-    saveUserLocal(user);
-    await enterApp();
-  }
-}
+  } catch(err){ showLoginError('network_error'); }
+});
 
 function logout(){
-  if(!confirm('Sigur vrei să te deloghezi?')) return;
+  if(!confirm('Are you sure you want to logout?')) return;
   localStorage.removeItem(USER_KEY); user = null;
   stopSync();
   try { api('POST', '/logout'); } catch(e) {}
   document.getElementById('bottomnav').classList.add('hidden');
+  document.getElementById('login-form').reset();
   showScreen('login');
 }
 
@@ -469,14 +412,13 @@ async function fetchAllEntries(){
 
 // ── Enter app ──────────────────────────────────────────────────────────────
 async function enterApp(){
-  const chip = document.getElementById('userchip');
   if(user && user.photo_url) {
-    chip.innerHTML = `<img src="${user.photo_url}" alt=""> <span id="userchip-name">${user.name}</span>`;
+    document.getElementById('userchip').innerHTML = `<img src="${user.photo_url}" alt=""> <span id="userchip-name">${user.name}</span>`;
   } else {
-    document.getElementById('userchip-name').textContent = user.name;
+    document.getElementById('userchip-name').textContent = user ? user.name : '—';
   }
-  document.getElementById('s-name').value = user.name;
-  document.getElementById('settings-login-method').textContent = user.method === 'telegram' ? 'Telegram ('+user.name+')' : 'Guest';
+  document.getElementById('s-name').value = user ? user.name : '';
+  document.getElementById('settings-login-method').textContent = user ? 'Account ('+user.name+')' : '—';
   document.getElementById('bottomnav').classList.remove('hidden');
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
   showScreen('add');
@@ -527,14 +469,14 @@ document.getElementById('entry-form').addEventListener('submit', async function(
     const res = await api('POST', '/api/entries', entry);
     if(res && res.id) {
       entries.unshift(res);
-      toast('✓ Salvat: '+entry.unit);
+      toast('✓ Saved: '+entry.unit);
       document.getElementById('f-unit').value = '';
       document.getElementById('f-value').value = '';
       document.getElementById('f-unit').focus();
     } else {
-      toast('Răspuns invalid de la server');
+      toast('Invalid response from server');
     }
-  } catch(err) { toast('Eroare la salvare, încearcă din nou'); }
+  } catch(err) { toast('Error saving, try again'); }
   btn.disabled = false;
 });
 
@@ -563,7 +505,7 @@ function renderList(){
   document.getElementById('sum-pending').textContent = filtered.filter(e=>!e.sent).length;
 
   if(filtered.length===0){
-    container.innerHTML = `<div class="empty-state"><i data-lucide="inbox"></i><p>Nicio înregistrare încă.<br>Adaugă primul oil change din tab-ul „Adaugă".</p></div>`;
+    container.innerHTML = `<div class="empty-state"><i data-lucide="inbox"></i><p>No records yet.<br>Add your first oil change from the "Add" tab.</p></div>`;
     icons(); return;
   }
   const groups = {};
@@ -578,7 +520,7 @@ function renderList(){
           <div class="type-badge"><i data-lucide="${typeIcon(e.type)}"></i></div>
           <div class="info">
             <div class="unit-num">#${escapeHtml(e.unit)}</div>
-            <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}${e.sent ? ' · trimis' : ''}</div>
+            <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}${e.sent ? ' · sent' : ''}</div>
           </div>
           <div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div>
           <button class="del" onclick="deleteEntry('${e.id}')"><i data-lucide="x"></i></button>
@@ -591,18 +533,17 @@ function renderList(){
 
 function formatDate(iso){
   const d = new Date(iso+'T00:00:00');
-  return d.toLocaleDateString('ro-RO', {weekday:'short', day:'2-digit', month:'2-digit'}).toUpperCase();
+  return d.toLocaleDateString('en-US', {weekday:'short', day:'2-digit', month:'2-digit'}).toUpperCase();
 }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
 async function deleteEntry(id){
-  if(!confirm('Ștergi definitiv această înregistrare?')) return;
+  if(!confirm('Delete this record permanently?')) return;
   try{
     await api('DELETE', '/api/entries/' + id);
     entries = entries.filter(e=>e.id!==id);
     renderList();
-    toast('Șters');
-  } catch(e){ toast('Eroare la ștergere'); }
+    toast('Deleted');
+  } catch(e){ toast('Error deleting'); }
 }
 
 function buildListText(list){
@@ -610,7 +551,7 @@ function buildListText(list){
   if(rows.length===0) return null;
   let txt = `OIL CHANGE LIST\n`;
   rows.forEach(e=>{ txt += `${formatShortDate(e.date)}  ${e.type.padEnd(2,' ')}  #${e.unit}  ->  ${Number(e.value).toLocaleString('en-US')} ${unitSuffix(e.unitOfValue)}\n`; });
-  txt += `\nTotal: ${rows.length} unități`;
+  txt += `\nTotal: ${rows.length} units`;
   return txt;
 }
 function formatShortDate(iso){ const [y,m,d] = iso.split('-'); return `${m}/${d}`; }
@@ -623,7 +564,7 @@ function getVisibleList(){
 
 async function exportXLSX(){
   const list = getVisibleList();
-  if(list.length===0){ toast('Nu ai nicio înregistrare'); return; }
+  if(list.length===0){ toast('No records'); return; }
   const rows = [...list].sort((a,b)=>a.date.localeCompare(b.date));
 
   const wb = new ExcelJS.Workbook();
@@ -634,8 +575,8 @@ async function exportXLSX(){
     { header:'Date', key:'date', width:13 },
     { header:'Unit Type', key:'type', width:12 },
     { header:'Unit Number', key:'unit', width:14 },
-    { header:'Hours', key:'hours', width:11 },
-    { header:'Miles', key:'miles', width:11 },
+    { header:'Value', key:'value', width:14 },
+    { header:'Unit', key:'unitOfValue', width:10 },
     { header:'Added By', key:'addedBy', width:18 },
   ];
 
@@ -655,8 +596,8 @@ async function exportXLSX(){
       date: e.date,
       type: typeLabel(e.type),
       unit: e.unit,
-      hours: e.unitOfValue==='hr' ? Number(e.value) : null,
-      miles: e.unitOfValue==='mi' ? Number(e.value) : null,
+      value: Number(e.value),
+      unitOfValue: e.unitOfValue==='hr' ? 'Hours' : 'Miles',
       addedBy: e.addedBy,
     });
     row.eachCell(cell=>{
@@ -666,7 +607,8 @@ async function exportXLSX(){
       if(i % 2 === 1) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:LIGHT} };
     });
     row.getCell('unit').font = { name:'Consolas', size:11, bold:true, color:{argb:DARK} };
-    ['hours','miles'].forEach(k=>{ row.getCell(k).numFmt = '#,##0'; row.getCell(k).alignment = { horizontal:'right' }; });
+    row.getCell('value').numFmt = '#,##0';
+    row.getCell('value').alignment = { horizontal:'right' };
   });
 
   ws.autoFilter = { from:'A1', to: String.fromCharCode(65+ws.columns.length-1)+'1' };
@@ -677,46 +619,30 @@ async function exportXLSX(){
   const a = document.createElement('a');
   a.href = url; a.download = `oil-change-list_${new Date().toISOString().slice(0,10)}.xlsx`;
   a.click(); URL.revokeObjectURL(url);
-  toast('Excel descărcat');
+  toast('Excel downloaded');
 }
 function shareList(){
   const txt = buildListText(getVisibleList());
-  if(!txt){ toast('Nu ai nicio înregistrare'); return; }
+  if(!txt){ toast('No records'); return; }
   if(navigator.share){
     navigator.share({ title:'Oil Change List', text:txt }).catch(()=>{});
   } else {
-    navigator.clipboard.writeText(txt).then(()=> toast('Copiat')).catch(()=> toast('Nu am putut copia'));
+    navigator.clipboard.writeText(txt).then(()=> toast('Copied')).catch(()=> toast('Could not copy'));
   }
-}
-async function sendTelegram(){
-  const list = getVisibleList();
-  const txt = buildListText(list);
-  if(!txt){ toast('Nu ai nicio înregistrare'); return; }
-  window.open('https://t.me/share/url?url=&text=' + encodeURIComponent(txt), '_blank');
-  try{
-    await Promise.all(list.filter(e=>!e.sent).map(e => { e.sent = true; return api('PUT', '/api/entries/' + e.id, e); }));
-    renderList();
-  } catch(err) {}
 }
 
 function renderSettings(){
   document.getElementById('settings-total').textContent = user ? entries.filter(e=>e.addedBy===user.name).length : 0;
 }
 function saveName(){
-  const name = document.getElementById('s-name').value.trim() || 'Guest';
+  const name = document.getElementById('s-name').value.trim() || user.name;
   user.name = name; saveUserLocal(user);
-  if(user.photo_url) {
-    document.getElementById('userchip').innerHTML = `<img src="${user.photo_url}" alt=""> <span id="userchip-name">${user.name}</span>`;
-  } else {
-    document.getElementById('userchip-name').textContent = user.name;
-  }
-  toast('Nume actualizat');
+  document.getElementById('userchip-name').textContent = user.name;
+  toast('Name updated');
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async function init(){
-  // Install the showScreen wrapper FIRST so the add-screen scroll blocker
-  // is active even for the very first render (enterApp → showScreen('add')).
   let isAddScreenActive = false;
   const originalShowScreen = showScreen;
   showScreen = function(name){
@@ -724,55 +650,29 @@ function saveName(){
     isAddScreenActive = (name === 'add');
   };
 
-  checkUrlLoginError();
-  
-  // Initialize the Telegram Login Widget (works in PWA standalone mode)
-  initTelegramLoginWidget();
-  
-  // Check if we just came back from Telegram OAuth (URL has no error but we might have a session)
-  const params = new URLSearchParams(window.location.search);
-  const justReturnedFromTelegram = params.toString() === '' && !params.get('error');
-  
-  // If we just returned from Telegram, wait a moment then check for session
-  if (justReturnedFromTelegram) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-  
   user = loadUser();
   try {
     const status = await api('GET', '/auth/status');
     if(status.ok && status.user) {
-      // Valid server session — sync local user object to it (covers both
-      // localStorage-cached logins and fresh Telegram redirect logins).
       const su = status.user;
       user = {
-        method: su.id ? 'telegram' : 'guest',
+        method: su.method || 'password',
         id: su.id,
         name: su.first_name || (user ? user.name : 'Guest'),
         username: su.username || '',
-        photo_url: su.photo_url || '',
         role: su.role || 'agent',
       };
       saveUserLocal(user);
       await enterApp();
     } else if(user) {
-      // No server session but we have a cached local user — try silent re-auth for guests
-      if(user.method === 'guest') {
-        try {
-          const res = await api('POST', '/auth/guest', { name: user.name });
-          if(res.ok) await enterApp();
-          else { user = null; localStorage.removeItem(USER_KEY); icons(); }
-        } catch(e) {
-          await enterApp(); // server offline — still allow local entry
-        }
-      } else {
-        user = null; localStorage.removeItem(USER_KEY); icons();
-      }
+      // No server session — try silent re-login with username/password
+      user = null; localStorage.removeItem(USER_KEY);
+      icons();
     } else {
       icons();
     }
   } catch(e) {
-    // Server unreachable
+    // Server unreachable — if we have a cached user, enter anyway
     if(user) await enterApp(); else icons();
   }
   if('serviceWorker' in navigator){
@@ -797,111 +697,6 @@ function saveName(){
     if(isAddScreenActive) e.preventDefault();
   }, { passive: false });
 })();
-
-// ── Telegram Login Widget ───────────────────────────────────────────────────
-// Uses the official Telegram Login Widget (iframe-based) which works in any
-// context — including PWA standalone mode where full-page OAuth redirects fail.
-// The widget posts auth data back via postMessage, which we send to the server.
-let TG_BOT_USERNAME = '';
-
-async function initTelegramLoginWidget() {
-  const container = document.getElementById('tg-login-widget');
-  if (!container) return;
-
-  // Fetch the bot username from the server (only used for messaging/labels now)
-  try {
-    const res = await fetch('/api/bot-info');
-    const data = await res.json();
-    TG_BOT_USERNAME = data.username || '';
-  } catch(e) {
-    console.error('Failed to fetch bot info:', e);
-  }
-
-  // Always use the server-side redirect flow (/auth/telegram?next=/), the
-  // same one used successfully by oillog-admin-login.html via data-auth-url.
-  //
-  // We previously used the widget's client-side data-onauth callback, which
-  // relies on a popup posting back to this page via postMessage while the
-  // original tab/JS context stays alive. That works on desktop browsers but
-  // is unreliable on phones: mobile Telegram login typically switches to the
-  // Telegram app or does a full navigation, and when control returns to the
-  // browser the original JS context (and the onauth callback registered on
-  // it) is often gone — so login silently does nothing on mobile. The
-  // redirect flow avoids that entirely because the server sets the session
-  // and redirects, and our init() already re-checks /auth/status afterward.
-  container.innerHTML = `
-    <button class="login-tg-btn" style="width:100%;" onclick="handleTelegramLogin()">
-      <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
-    </button>
-  `;
-  icons();
-}
-
-// Callback invoked by the Telegram Login Widget after successful auth
-async function onTelegramAuth(user) {
-  if (!user || !user.id) {
-    showLoginError('missing');
-    return;
-  }
-  
-  try {
-    // Send the auth data to our server to establish the session
-    const res = await fetch('/auth/telegram', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(user)
-    });
-    
-    if (res.redirected) {
-      // Server redirected — follow it
-      window.location.href = res.url;
-      return;
-    }
-    
-    const data = await res.json();
-    if (data.ok) {
-      // Session established — enter the app
-      const su = data.user;
-      user = {
-        method: 'telegram',
-        id: su.id,
-        name: su.first_name || su.username || 'Telegram User',
-        username: su.username || '',
-        photo_url: su.photo_url || '',
-        role: su.role || 'agent',
-      };
-      saveUserLocal(user);
-      await enterApp();
-    } else {
-      showLoginError(data.error || 'invalid');
-    }
-  } catch(e) {
-    showLoginError('invalid', e.message);
-  }
-}
-
-// Fallback handler for when bot username isn't configured
-function handleTelegramLogin() {
-  const telegramUrl = '/auth/telegram?next=/';
-  
-  // Detect if running in standalone/PWA mode (installed on home screen)
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                       window.navigator.standalone === true;
-  
-  if (isStandalone) {
-    // In standalone mode, open in system browser using window.open
-    // This allows OAuth to work properly outside the PWA sandbox
-    const systemBrowser = window.open(telegramUrl, '_blank', 'location=yes');
-    if (!systemBrowser) {
-      // Fallback: if popup was blocked, try direct navigation
-      window.location.href = telegramUrl;
-    }
-  } else {
-    // In regular browser mode, direct redirect works fine
-    window.location.href = telegramUrl;
-  }
-}
 </script>
 </body>
 </html>

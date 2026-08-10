@@ -78,6 +78,7 @@ input[type=number],input[type=text],input[type=password],input[type=email],selec
     <button class="s-item" data-page="units" onclick="navigate('units')"><i data-lucide="truck"></i>Units</button>
     <button class="s-item" data-page="alerts" onclick="navigate('alerts')"><i data-lucide="bell"></i>Alerts <span class="badge hidden" id="nav-badge-alerts">0</span></button>
     <div class="s-section">System</div>
+    <button class="s-item" data-page="users" onclick="navigate('users')"><i data-lucide="users"></i>Users</button>
     <button class="s-item" data-page="settings" onclick="navigate('settings')"><i data-lucide="settings"></i>Settings</button>
   </nav>
   <div class="s-footer">OILLOG v4.0<br>&copy; Kurtex Fleet</div>
@@ -199,6 +200,31 @@ input[type=number],input[type=text],input[type=password],input[type=email],selec
       </div>
     </div>
 
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="page-head">
+        <div><h2>Users</h2><p>Manage accounts for the mobile app — create, edit roles, reset passwords.</p></div>
+        <button class="btn btn-primary" onclick="openUserModal()"><i data-lucide="user-plus"></i>Add user</button>
+      </div>
+      <div class="toolbar">
+        <div class="search" style="width:100%;max-width:360px;"><i data-lucide="search"></i><input id="user-search" placeholder="Search name or username..." oninput="renderUsersPage()"></div>
+        <div class="pill-group">
+          <div class="pill" data-urole="all" onclick="setUserRoleFilter('all')">All</div>
+          <div class="pill" data-urole="agent" onclick="setUserRoleFilter('agent')">Agent</div>
+          <div class="pill" data-urole="developer" onclick="setUserRoleFilter('developer')">Developer</div>
+          <div class="pill" data-urole="super_admin" onclick="setUserRoleFilter('super_admin')">Super Admin</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Username</th><th>Name</th><th>Role</th><th>Created</th><th style="text-align:right;">Actions</th>
+          </tr></thead>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="5"><i data-lucide="users"></i><div>Loading users...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="page-head"><div><h2>Settings</h2><p>Oil change intervals, notifications and appearance.</p></div></div>
@@ -292,6 +318,39 @@ input[type=number],input[type=text],input[type=password],input[type=email],selec
     <div class="history-list" id="u-alert-history"></div>
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" onclick="closeUnitDetail()" style="flex:none;margin-left:auto;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- User add/edit modal -->
+<div class="overlay" id="user-overlay">
+  <div class="modal">
+    <h3 id="user-modal-title">Add user</h3>
+    <p class="sub" id="user-modal-sub">Create a mobile app account with a role and password.</p>
+    <div class="field">
+      <label class="f-label">Username</label>
+      <input type="text" id="u-username" placeholder="e.g. mihai" autocomplete="off" required>
+    </div>
+    <div class="field">
+      <label class="f-label">Display name</label>
+      <input type="text" id="u-name" placeholder="e.g. Mihai Popescu">
+    </div>
+    <div class="field">
+      <label class="f-label">Role</label>
+      <select id="u-role">
+        <option value="agent">Agent</option>
+        <option value="developer">Developer</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="f-label">Password <span style="text-transform:none;font-weight:500;">(&ge; 4 characters)</span></label>
+      <input type="text" id="u-password" placeholder="••••••••" autocomplete="new-password" style="font-family:var(--fm);">
+      <button type="button" class="btn btn-sm" style="margin-top:8px;" onclick="generatePassword()"><i data-lucide="dice"></i>Generate</button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeUserModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="saveUser()"><i data-lucide="check"></i>Save</button>
     </div>
   </div>
 </div>
@@ -442,7 +501,7 @@ function updateClock(){
 function ctDateStr(){ return getCentralTime().toISOString().slice(0,10); }
 
 // ── Navigation ────────────────────────────────────────────────────────────
-const PAGE_TITLES = { dashboard:'Dashboard', entries:'Entries', units:'Units', alerts:'Alerts', settings:'Settings' };
+const PAGE_TITLES = { dashboard:'Dashboard', entries:'Entries', units:'Units', alerts:'Alerts', users:'Users', settings:'Settings' };
 function navigate(page){
   document.querySelectorAll('.s-item').forEach(b=>b.classList.toggle('active', b.dataset.page===page));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -453,6 +512,7 @@ function navigate(page){
   if(page==='entries') render();
   if(page==='units') renderUnits();
   if(page==='alerts') renderAlerts();
+  if(page==='users') loadUsers();
   if(page==='settings') { applyTheme(loadTheme()); applyNotifPrefs(); }
   icons();
 }
@@ -822,6 +882,121 @@ async function confirmComplete(){
   renderDashboard();
   updateBadges();
   toast('Completed — next oil change at ' + (next ? Number(next).toLocaleString('en-US') + ' ' + suffix : '—'));
+}
+
+// ── Users page ────────────────────────────────────────────────────────────
+let userRoleFilter = 'all';
+let allUsers = [];
+
+function setUserRoleFilter(r){
+  userRoleFilter = r;
+  document.querySelectorAll('[data-urole]').forEach(p=>p.classList.toggle('active', p.dataset.urole===r));
+  renderUsersPage();
+}
+
+async function loadUsers(){
+  try{
+    const data = await api('GET', '/api/users');
+    allUsers = data.users || [];
+    renderUsersPage();
+  } catch(e){ toast('Error loading users'); }
+}
+
+function renderUsersPage(){
+  const q = (document.getElementById('user-search').value||'').toLowerCase().trim();
+  let list = allUsers.filter(u=>{
+    if(userRoleFilter!=='all' && u.role!==userRoleFilter) return false;
+    if(q && !(u.username.toLowerCase().includes(q) || (u.name||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const tbody = document.getElementById('users-tbody');
+  if(list.length===0){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5"><i data-lucide="users"></i><div>No users found.</div></td></tr>`;
+  } else {
+    tbody.innerHTML = list.map(u=>`
+      <tr>
+        <td class="unit">@${escapeHtml(u.username)}</td>
+        <td>${escapeHtml(u.name)}</td>
+        <td><span class="type-tag" style="border-color:${u.role==='agent'?'var(--border-2)':u.role==='developer'?'var(--green)':'var(--red)'}; color:${u.role==='agent'?'var(--dim)':u.role==='developer'?'var(--green)':'var(--red)'};">${u.role.replace('_',' ')}</span></td>
+        <td class="date">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US') : '—'}</td>
+        <td><div class="row-actions">
+          <button class="icon-btn" onclick="openUserModal('${escapeHtml(u.username)}')" title="Edit"><i data-lucide="pencil"></i></button>
+          <button class="icon-btn" onclick="deleteUser('${escapeHtml(u.username)}')" title="Delete" style="color:var(--red);"><i data-lucide="trash-2"></i></button>
+        </div></td>
+      </tr>`).join('');
+  }
+  icons();
+}
+
+let editingUsername = null;
+
+function openUserModal(username){
+  editingUsername = username || null;
+  const modal = document.getElementById('user-overlay');
+  if(username){
+    const u = allUsers.find(x=>x.username===username);
+    document.getElementById('user-modal-title').textContent = 'Edit user';
+    document.getElementById('user-modal-sub').textContent = 'Update @' + username + ' details and role.';
+    document.getElementById('u-username').value = u ? u.username : '';
+    document.getElementById('u-username').disabled = true;
+    document.getElementById('u-name').value = u ? (u.name||'') : '';
+    document.getElementById('u-role').value = u ? (u.role||'agent') : 'agent';
+    document.getElementById('u-password').value = '';
+    document.getElementById('u-password').placeholder = 'Leave blank to keep current';
+  } else {
+    document.getElementById('user-modal-title').textContent = 'Add user';
+    document.getElementById('user-modal-sub').textContent = 'Create a mobile app account with a role and password.';
+    document.getElementById('u-username').value = '';
+    document.getElementById('u-username').disabled = false;
+    document.getElementById('u-name').value = '';
+    document.getElementById('u-role').value = 'agent';
+    document.getElementById('u-password').value = '';
+    document.getElementById('u-password').placeholder = 'Set password';
+  }
+  modal.classList.add('show');
+  icons();
+}
+
+function closeUserModal(){ document.getElementById('user-overlay').classList.remove('show'); editingUsername = null; }
+
+function generatePassword(){
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
+  let pwd = '';
+  for(let i=0;i<10;i++) pwd += chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('u-password').value = pwd;
+}
+
+async function saveUser(){
+  const username = document.getElementById('u-username').value.trim().toLowerCase();
+  const name = document.getElementById('u-name').value.trim() || username;
+  const role = document.getElementById('u-role').value;
+  const password = document.getElementById('u-password').value;
+
+  if(!username){ toast('Enter a username'); return; }
+  if(!editingUsername && password.length < 4){ toast('Password must be at least 4 characters'); return; }
+
+  try{
+    if(editingUsername){
+      const payload = { name, role };
+      if(password && password.length >= 4) payload.password = password;
+      await api('PUT', '/api/users/' + encodeURIComponent(editingUsername), payload);
+      toast('User updated');
+    } else {
+      await api('POST', '/api/users', { username, name, role, password });
+      toast('User created');
+    }
+    closeUserModal();
+    await loadUsers();
+  } catch(e){ toast(e.message || 'Error saving user'); }
+}
+
+async function deleteUser(username){
+  if(!confirm('Delete user @' + username + '? This cannot be undone.')) return;
+  try{
+    await api('DELETE', '/api/users/' + encodeURIComponent(username));
+    toast('User deleted');
+    await loadUsers();
+  } catch(e){ toast(e.message || 'Error deleting user'); }
 }
 
 // ── Settings: intervals ──────────────────────────────────────────────────

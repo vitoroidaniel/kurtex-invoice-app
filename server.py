@@ -2,13 +2,12 @@
 OILLOG — Flask server for Railway deployment
 Serves mobile + admin PWA, Telegram auth, JSON-file storage on Railway volume, real-time sync API.
 
-User accounts/roles are NOT managed here — they live in the shared user_store
-(storage/user_store.py), the same store used by the Kurtex Alert Bot. That bot
-is the single source of truth: an admin adds/removes people and sets roles
-there (via /adduser, /removeuser, /editrole in Telegram), and this app just
-reads that same data to decide who gets in. See storage/user_store.py.
+User accounts/roles ARE managed here in users_auth.json (Railway volume).
+Admins create users via the Admin Panel "Users" page. Telegram auth remains
+for admin login only. No credentials are hardcoded — all config comes from
+Railway environment variables.
 """
-import hashlib, hmac, json, logging, os, time
+import hashlib, hmac, json, logging, os, secrets, string, time
 from pathlib import Path
 from functools import wraps
 
@@ -27,9 +26,9 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_DOMAIN'] = None
 
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8959304512:AAHdXtlWgobRXnnCEcNlNzCn9ZzsSn35DR8")  # ← SET THIS to the SAME bot token as the alert bot
-BOT_USERNAME = os.getenv("BOT_USERNAME", "@kurtexalertsbot").replace("@", "")  # Bot username without @
-BOT_ID = os.getenv("BOT_ID", "8959304512")  # Bot ID (numeric)
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")  # Telegram bot token — set in Railway env
+BOT_USERNAME = os.getenv("BOT_USERNAME", "").replace("@", "")  # Bot username — set in Railway env
+BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric) — set in Railway env
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
@@ -61,11 +60,33 @@ def _save_passwords(data):
     except Exception as e:
         logger.error(f"Failed to save password users: {e}")
 
-def _hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+def _hash_password(password, salt=None):
+    """Hash a password with a random salt (salted SHA-256)."""
+    if salt is None:
+        salt = secrets.token_hex(16)
+    hashed = hashlib.sha256(f"{salt}:{password}".encode()).hexdigest()
+    return f"{salt}${hashed}"
 
 def _verify_password(password, stored_hash):
-    return hashlib.sha256(password.encode()).hexdigest() == stored_hash
+    """Verify a password against a salted hash stored as 'salt$hash'."""
+    try:
+        salt, hashed = stored_hash.split("$", 1)
+    except ValueError:
+        # Legacy unsalted SHA-256 — migrate silently
+        return hashlib.sha256(password.encode()).hexdigest() == stored_hash
+    computed = hashlib.sha256(f"{salt}:{password}".encode()).hexdigest()
+    return computed == hashed
+
+def _sanitize_user(u):
+    """Return a user dict without sensitive fields."""
+    if u is None:
+        return None
+    return {
+        "username": u.get("username", ""),
+        "name": u.get("name", ""),
+        "role": u.get("role", "agent"),
+        "createdAt": u.get("createdAt", 0),
+    }
 
 # ── File-backed stores ─────────────────────────────────────────────────────
 
@@ -229,6 +250,18 @@ def logout():
 
 # ── Password auth ───────────────────────────────────────────────────────────
 
+def admin_required(f):
+    """Require an admin role (developer or super_admin)."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        user = session.get("user")
+        if not user:
+            return jsonify({"error": "unauthorized"}), 401
+        if user.get("role") not in ADMIN_ROLES:
+            return jsonify({"error": "forbidden_role"}), 403
+        return f(*args, **kwargs)
+    return wrapper
+
 @app.route("/auth/register", methods=["POST"])
 def register():
     data = request.json or {}
@@ -236,7 +269,7 @@ def register():
     password = data.get("password") or ""
     name = (data.get("name") or "").strip() or username
     # Force agent role on self-registration — admin access is granted only via
-    # Telegram admin roles or the hardcoded password-admin fallback.
+    # Telegram admin roles or the admin-created users.
     role = "agent"
 
     if not username or not password:
@@ -252,6 +285,7 @@ def register():
         "name": name,
         "password_hash": _hash_password(password),
         "role": role,
+        "createdAt": int(time.time() * 1000),
     }
     _save_passwords(users)
 
@@ -281,10 +315,7 @@ def password_login():
     if not user or not _verify_password(password, user.get("password_hash", "")):
         return jsonify({"error": "invalid_credentials"}), 401
 
-    # Temporary hardcoded admin fallback
     role = user.get("role", "agent")
-    if username == "admin" and password == "oillog2024":
-        role = "super_admin"
 
     session["user"] = {
         "id": username,
@@ -300,21 +331,132 @@ def password_login():
 
 @app.route("/auth/password-admin", methods=["POST"])
 def password_admin_login():
+    """Admin password login — checks against the same users_auth.json store,
+    but only allows users with developer/super_admin roles."""
     data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
     password = data.get("password") or ""
-    if password != "oillog2024":
+
+    if not username or not password:
+        return jsonify({"error": "missing_fields"}), 400
+
+    users = _load_passwords()
+    user = users.get(username)
+    if not user or not _verify_password(password, user.get("password_hash", "")):
         return jsonify({"error": "invalid_credentials"}), 401
 
+    role = user.get("role", "agent")
+    if role not in ADMIN_ROLES:
+        return jsonify({"error": "forbidden_role"}), 403
+
     session["user"] = {
-        "id": "temp_admin",
-        "first_name": "Admin",
-        "username": "admin",
+        "id": username,
+        "first_name": user.get("name", username),
+        "username": username,
         "photo_url": "",
         "auth_date": str(int(time.time())),
-        "role": "super_admin",
+        "role": role,
         "method": "password",
     }
     return jsonify({"ok": True, "user": session["user"]})
+
+
+# ── User management API (admin only) ────────────────────────────────────────
+
+@app.route("/api/users", methods=["GET"])
+@admin_required
+def api_list_users():
+    users = _load_passwords()
+    result = []
+    for username, u in users.items():
+        result.append({
+            "username": username,
+            "name": u.get("name", username),
+            "role": u.get("role", "agent"),
+            "createdAt": u.get("createdAt", 0),
+        })
+    result.sort(key=lambda x: x["username"])
+    return jsonify({"users": result})
+
+
+@app.route("/api/users", methods=["POST"])
+@admin_required
+def api_create_user():
+    data = request.json or {}
+    username = (data.get("username") or "").strip().lower()
+    password = data.get("password") or ""
+    name = (data.get("name") or "").strip() or username
+    role = (data.get("role") or "agent").strip().lower()
+
+    if not username or not password:
+        return jsonify({"error": "missing_fields"}), 400
+    if len(password) < 4:
+        return jsonify({"error": "password_too_short"}), 400
+    if role not in ("agent", "developer", "super_admin"):
+        return jsonify({"error": "invalid_role"}), 400
+
+    users = _load_passwords()
+    if username in users:
+        return jsonify({"error": "user_exists"}), 409
+
+    users[username] = {
+        "name": name,
+        "password_hash": _hash_password(password),
+        "role": role,
+        "createdAt": int(time.time() * 1000),
+    }
+    _save_passwords(users)
+    return jsonify({"ok": True, "user": {
+        "username": username, "name": name, "role": role,
+        "createdAt": users[username]["createdAt"],
+    }}), 201
+
+
+@app.route("/api/users/<username>", methods=["PUT"])
+@admin_required
+def api_update_user(username):
+    username = username.strip().lower()
+    data = request.json or {}
+    users = _load_passwords()
+    if username not in users:
+        return jsonify({"error": "not_found"}), 404
+
+    user = users[username]
+    if "name" in data:
+        user["name"] = (data.get("name") or "").strip() or username
+    if "role" in data:
+        role = (data.get("role") or "").strip().lower()
+        if role not in ("agent", "developer", "super_admin"):
+            return jsonify({"error": "invalid_role"}), 400
+        user["role"] = role
+    if "password" in data and data.get("password"):
+        if len(data["password"]) < 4:
+            return jsonify({"error": "password_too_short"}), 400
+        user["password_hash"] = _hash_password(data["password"])
+
+    users[username] = user
+    _save_passwords(users)
+    return jsonify({"ok": True, "user": {
+        "username": username, "name": user.get("name", username),
+        "role": user.get("role", "agent"), "createdAt": user.get("createdAt", 0),
+    }})
+
+
+@app.route("/api/users/<username>", methods=["DELETE"])
+@admin_required
+def api_delete_user(username):
+    username = username.strip().lower()
+    users = _load_passwords()
+    if username not in users:
+        return jsonify({"error": "not_found"}), 404
+
+    # Prevent deleting yourself
+    if session.get("user", {}).get("id") == username:
+        return jsonify({"error": "cannot_delete_self"}), 400
+
+    del users[username]
+    _save_passwords(users)
+    return jsonify({"ok": True})
 
 
 # ── API ──────────────────────────────────────────────────────────────────
