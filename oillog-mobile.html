@@ -460,7 +460,7 @@ document.getElementById('entry-form').addEventListener('submit', async function(
     unit: document.getElementById('f-unit').value.trim(),
     unitOfValue: currentUnit,
     value: document.getElementById('f-value').value.trim(),
-    addedBy: user ? user.name : 'Guest',
+    addedBy: user ? user.name : 'Unknown',
     sent: false,
     createdAt: now
   };
@@ -658,7 +658,7 @@ function saveName(){
       user = {
         method: su.method || 'password',
         id: su.id,
-        name: su.first_name || (user ? user.name : 'Guest'),
+        name: su.first_name || (user ? user.name : 'Unknown'),
         username: su.username || '',
         role: su.role || 'agent',
       };

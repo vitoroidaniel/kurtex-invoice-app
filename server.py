@@ -223,20 +223,6 @@ def telegram_auth():
         return redirect("/admin")
     return redirect(next_url)
 
-@app.route("/auth/guest", methods=["POST"])
-def guest_auth():
-    data = request.json or {}
-    name = data.get("name", "Guest")
-    session["user"] = {
-        "id": 0,
-        "first_name": name,
-        "username": name.lower(),
-        "photo_url": "",
-        "auth_date": str(int(time.time())),
-        "role": "guest",
-    }
-    return jsonify({"ok": True, "user": session["user"]})
-
 @app.route("/auth/status", methods=["GET"])
 def auth_status():
     if session.get("user"):

@@ -1,32 +1,28 @@
-# 🔧 OILLOG
+# OILLOG
 
 <div align="center">
 
 ![Flask](https://img.shields.io/badge/Flask-2.0+-000000?style=for-the-badge&logo=flask)
 ![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa)
-![Telegram](https://img.shields.io/badge/Telegram-Bot-26A5E4?style=for-the-badge&logo=telegram)
 ![Excel](https://img.shields.io/badge/Excel-Export-217346?style=for-the-badge&logo=microsoft-excel)
 
 **Fleet Oil Change Tracking System**
 
 *Track, manage, and export oil change records for trucks and reefers — all in real-time.*
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Authentication](#-authentication) • [API](#-api) • [Screenshots](#-screenshots)
-
 </div>
 
 ---
 
-## 📋 Overview
+## Overview
 
-**OILLOG** is a modern, full-stack fleet management application designed to track oil changes across your yard operations. Built with Flask backend and vanilla JavaScript frontend, it provides a seamless experience for both field agents and administrators.
+**OILLOG** is a full-stack fleet management application for tracking oil changes across yard operations. Built with a Flask backend and vanilla JavaScript frontend, it provides a seamless experience for both field agents and administrators.
 
 ### What It Does
 
 - ✅ **Track oil changes** for trucks (mileage-based) and reefers (engine hours-based)
 - ✅ **Real-time sync** across all devices every 5 seconds
-- ✅ **Telegram authentication** — secure, bot-based access control
-- ✅ **Guest mode** — quick access without authentication
+- ✅ **Username/password authentication** — accounts managed by administrators
 - ✅ **Excel export** — generate professional reports with one click
 - ✅ **Smart alerts** — get notified when units are due or overdue for service
 - ✅ **PWA ready** — install on mobile devices like a native app
@@ -34,44 +30,43 @@
 
 ---
 
-## ✨ Features
+## Features
 
-### 📱 Mobile App (Field Agents)
+### Mobile App (Field Agents)
 - **Quick Entry Form** — Log oil changes in seconds with intuitive date picker and unit selector
 - **Unit Type Selection** — Switch between Truck (miles) and Reefer (engine hours) with one tap
 - **Entry History** — View all your submissions with date grouping and filtering
 - **Export Options** — Download as Excel (.xlsx) or share via native share sheet
-- **Offline Support** — Service worker enables basic functionality even without internet
 - **Responsive Design** — Optimized for phones, tablets, and desktop browsers
 
-### 🖥️ Admin Panel (Managers)
+### Admin Panel (Managers)
 - **Dashboard** — Real-time overview with stats cards and recent activity
 - **Entries Management** — View, search, sort, and filter all oil change records
 - **Units Tracking** — Monitor unit status, last oil change, and next due date
 - **Alert System** — Visual indicators for overdue and near-interval units
-- **Complete Alerts** — Mark units as serviced with automatic next-date calculation
+- **User Management** — Create, edit, and delete user accounts with role assignment
+- **Password Generation** — Auto-generate secure passwords for new users
 - **Excel Export** — Generate filtered reports with preview before download
-- **Settings Management** — Configure oil change intervals (Truck: 15,000 mi, Reefer: 500 hrs)
+- **Settings Management** — Configure oil change intervals
 - **Theme Toggle** — Switch between light and dark modes
-- **Notification Preferences** — Control browser and in-app alerts
 
-### 🔐 Authentication & Security
-- **Telegram Login** — Single sign-on via Telegram Bot (Kurtex Security Bot)
-- **Role-Based Access** — Developers and Super Admins get admin panel access
-- **Guest Mode** — Temporary access for quick entries without account
+### Authentication & Security
+- **Username/Password Login** — For both mobile app and admin panel
+- **Role-Based Access** — `developer`, `super_admin`, and `agent` roles
+- **Salted Password Hashing** — Passwords stored as salted SHA-256 hashes, never plaintext
 - **Session Management** — Secure Flask sessions with configurable secret key
-- **Password Auth** — Optional username/password registration for agents
+- **Admin-Only User Management** — Only `developer`/`super_admin` roles can manage users
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |-----------|-----------|
 | **Backend** | Flask (Python) |
 | **Frontend** | Vanilla JavaScript, HTML5, CSS3 |
-| **Authentication** | Telegram Login Widget, Flask Sessions |
-| **Storage** | JSON files (production) / Railway volume |
+| **Authentication** | Username/Password, Flask Sessions |
+| **Storage** | JSON files on Railway persistent volume |
 | **Export** | ExcelJS library |
 | **Icons** | Lucide Icons |
 | **Fonts** | Oswald, Inter, JetBrains Mono |
@@ -80,19 +75,18 @@
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
 - Python 3.8+
 - pip package manager
-- Telegram Bot token (from [@BotFather](https://t.me/BotFather))
 
 ### Quick Start (Local Development)
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/oillog.git
+git clone <your-repo-url>
 cd oillog
 
 # Create virtual environment
@@ -104,32 +98,25 @@ pip install -r requirements.txt
 
 # Set environment variables (optional for local dev)
 export OILLOG_SECRET="your-secret-key-here"
-export BOT_TOKEN="your-telegram-bot-token"
-export ADMIN_IDS="your-telegram-id"  # Comma-separated admin IDs
-export DEVELOPER_ID="your-telegram-id"  # Optional: auto-bootstrap developer
+export OILLOG_DATA_DIR="./data"
 
-# Run both server and bot
-chmod +x start.sh
-./start.sh
+# Run the server
+python server.py
 ```
 
 Visit `http://localhost:8080` in your browser.
 
 ### Environment Variables
 
-All configuration is done via environment variables. **No hardcoded values** - everything can be set in Railway dashboard.
+All configuration is done via environment variables. **No hardcoded values** — everything can be set in the Railway dashboard.
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `OILLOG_SECRET` | Flask session secret key | Yes (for production) | `oillog-secret-change-me` |
-| `BOT_TOKEN` | Telegram bot token from @BotFather | Yes | `""` |
-| `BOT_USERNAME` | Telegram bot username | No | `@kurtexalertsbot` |
-| `ADMIN_IDS` | Comma-separated Telegram IDs of bot admins | No | `""` |
-| `DEVELOPER_ID` | Auto-bootstrap developer account on startup | No | `""` |
 | `OILLOG_DATA_DIR` | Directory for JSON data files | No | `/app/data` |
 | `PORT` | Server port (Railway sets this automatically) | No | `8080` |
 
-**Note:** On Railway, `PORT` is set automatically. The `DATA_DIR` defaults to `/app/data` which is Railway's persistent volume.
+**Note:** On Railway, `PORT` is set automatically. `OILLOG_DATA_DIR` defaults to `/app/data` which is Railway's persistent volume.
 
 ### Production Deployment (Railway)
 
@@ -142,61 +129,64 @@ All configuration is done via environment variables. **No hardcoded values** - e
 
 2. **Deploy on Railway**
    - Connect your GitHub repository
-   - Set environment variables in Railway dashboard
+   - Set environment variables in the Railway dashboard
    - Deploy!
 
-3. **Configure Telegram Bot**
-   ```
-   /setdomain your-app.up.railway.app
-   /setcommands
-   ```
+3. **Create your first admin user**
+   - After deployment, the `users_auth.json` file will be created on the Railway volume
+   - Seed it with an initial admin user (see the data structure below), or use the Telegram login option on the admin page if configured
 
 ---
 
-## 🚀 Usage
+## Usage
 
 ### For Field Agents
 
 1. **Login**
-   - Click "Login with Telegram" and authorize via Telegram app
-   - Or continue as Guest (enter your name for tracking)
+   - Enter your username and password (provided by your administrator)
 
 2. **Add Oil Change Entry**
-   - Navigate to **ADAUGA** tab
+   - Navigate to the **ADD** tab
    - Select date (defaults to today)
    - Choose unit type: **TRUCK** or **REEFER**
    - Enter unit number (e.g., `437` or `R162`)
    - Enter mileage (miles) or engine hours
-   - Click **SALVEAZĂ ÎN LISTĂ**
+   - Click **SAVE TO LIST**
 
 3. **View & Export**
-   - Go to **LISTĂ** tab to see all entries
-   - Filter by type (All/Truck/Reefer) and scope (Ale mele/Toate)
-   - Export to Excel or share via SMS/email
+   - Go to the **LIST** tab to see all entries
+   - Filter by type (All/Truck/Reefer) and scope (Mine/All)
+   - Export to Excel or share via the native share sheet
 
 ### For Administrators
 
 1. **Access Admin Panel**
    - Navigate to `/admin` or `/admin-login`
-   - Login with Telegram (requires developer/super_admin role)
-   - Or use password: `admin` / `oillog2024`
+   - Login with your admin username and password (requires `developer` or `super_admin` role)
 
-2. **Monitor Dashboard**
+2. **Manage Users**
+   - Go to the **Users** page
+   - Click **Add user** to create a new account
+   - Set username, display name, role, and password (or use the **Generate** button)
+   - Edit existing users to change roles or reset passwords
+   - Delete users when needed
+
+3. **Monitor Dashboard**
    - View total records, truck/reefer counts, and overdue units
    - Check recent entries and active alerts
 
-3. **Manage Units & Alerts**
+4. **Manage Units & Alerts**
    - Go to **Units** tab to see all units with status indicators
-   - Click on unit to view oil change history
+   - Click on a unit to view oil change history
    - Go to **Alerts** tab to see due/overdue units
    - Click **Complete** to log oil change and update next due date
 
-4. **Configure Settings**
+5. **Configure Settings**
    - Set oil change intervals: Truck (default: 15,000 mi), Reefer (default: 500 hrs)
    - Toggle notification preferences
    - Switch between light/dark theme
 
-5. **Export Reports**
+6. **Export Reports**
    - Go to **Entries** tab
    - Click **Export** button
    - Select time period (today, week, month, custom, or all)
@@ -204,54 +194,41 @@ All configuration is done via environment variables. **No hardcoded values** - e
 
 ---
 
-## 🔑 Authentication
+## Authentication
 
-### Telegram-Based Auth
+### Roles
 
-The app uses [Telegram Login Widget](https://core.telegram.org/widgets/login) for authentication. Users must be whitelisted via the Kurtex Alert Bot:
+| Role | Access |
+|------|--------|
+| `agent` | Mobile app only |
+| `developer` | Full admin panel access |
+| `super_admin` | Full admin panel access |
 
-```bash
-# In Telegram, send to @kurtexsecuritybot:
-/adduser <telegram_id> <name> <role>
-```
+### User Management
 
-**Available Roles:**
-- `developer` — Full admin access
-- `super_admin` — Full admin access
-- `agent` — Mobile app access only
-
-### Password-Based Auth
-
-Agents can self-register via the mobile app:
-```javascript
-POST /auth/register
-{
-  "username": "john_doe",
-  "password": "secure123",
-  "name": "John Doe"
-}
-```
-
-**Hardcoded Admin Fallback:**
-- Username: `admin`
-- Password: `oillog2024`
-- Role: `super_admin`
+Users are created and managed by administrators from the **Users** page in the admin panel. Passwords are stored as **salted SHA-256 hashes** — never in plaintext.
 
 ---
 
-## 🔌 API Reference
+## API Reference
 
 ### Authentication Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/auth/telegram` | Telegram OAuth callback |
-| `POST` | `/auth/guest` | Guest login (no auth required) |
-| `POST` | `/auth/register` | Register new user (agent role) |
-| `POST` | `/auth/password` | Password login |
+| `POST` | `/auth/password` | Password login (mobile app) |
 | `POST` | `/auth/password-admin` | Admin password login |
 | `GET` | `/auth/status` | Check current session |
 | `POST` | `/logout` | Clear session |
+
+### User Management (Admin Only)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/users` | List all users |
+| `POST` | `/api/users` | Create a new user |
+| `PUT` | `/api/users/<username>` | Update user (name, role, password) |
+| `DELETE` | `/api/users/<username>` | Delete a user |
 
 ### Data Endpoints
 
@@ -275,7 +252,7 @@ POST /auth/register
 
 ---
 
-## 📊 Data Structure
+## Data Structure
 
 ### Oil Change Entry
 ```json
@@ -292,13 +269,14 @@ POST /auth/register
 }
 ```
 
-### Unit Profile
+### User Account
 ```json
 {
-  "T_437": {
-    "currentValue": 319670,
-    "updatedAt": 1704067200000,
-    "updatedBy": "John Doe"
+  "john_doe": {
+    "name": "John Doe",
+    "password_hash": "a1b2c3...$e4f5g6...",
+    "role": "agent",
+    "createdAt": 1704067200000
   }
 }
 ```
@@ -313,30 +291,7 @@ POST /auth/register
 
 ---
 
-## 🎨 Screenshots
-
-<div align="center">
-
-### Mobile App
-*Add oil change entry with intuitive form*
-
-![Mobile App](https://via.placeholder.com/300x600/FAFAF8/C8102E?text=Mobile+App+Screenshot)
-
-### Admin Dashboard
-*Real-time overview with stats and alerts*
-
-![Admin Dashboard](https://via.placeholder.com/1200x600/F4F4F2/1A1A1A?text=Admin+Dashboard+Screenshot)
-
-### Excel Export
-*Professional reports with filtering*
-
-![Excel Export](https://via.placeholder.com/800x500/FFFFFF/C8102E?text=Excel+Export+Preview)
-
-</div>
-
----
-
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 oillog/
@@ -362,7 +317,7 @@ oillog/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -385,41 +340,23 @@ Contributions are welcome! Please follow these steps:
 
 - Follow existing code style (vanilla JS, no frameworks)
 - Test on both mobile and desktop viewports
-- Ensure Telegram auth flow works correctly
 - Verify Excel export generates valid .xlsx files
 - Update this README if you add new features
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👨‍💻 Author
-
-**Kurtex Fleet** — Built for yard operations efficiency.
-
----
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Flask](https://flask.palletsprojects.com/) — Backend framework
 - [ExcelJS](https://github.com/exceljs/exceljs) — Excel file generation
 - [Lucide Icons](https://lucide.dev/) — Beautiful icon set
-- [Telegram Login Widget](https://core.telegram.org/widgets/login) — Secure authentication
 - [Railway](https://railway.app/) — Deployment platform
-
----
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-
-1. Check the [Issues](https://github.com/yourusername/oillog/issues) page
-2. Create a new issue with detailed description
-3. Contact via Telegram: [@kurtexsecuritybot](https://t.me/kurtexsecuritybot)
 
 ---
 
