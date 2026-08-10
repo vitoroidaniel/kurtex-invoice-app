@@ -807,8 +807,8 @@ let TG_BOT_USERNAME = '';
 async function initTelegramLoginWidget() {
   const container = document.getElementById('tg-login-widget');
   if (!container) return;
-  
-  // Fetch the bot username from the server
+
+  // Fetch the bot username from the server (only used for messaging/labels now)
   try {
     const res = await fetch('/api/bot-info');
     const data = await res.json();
@@ -816,30 +816,25 @@ async function initTelegramLoginWidget() {
   } catch(e) {
     console.error('Failed to fetch bot info:', e);
   }
-  
-  if (!TG_BOT_USERNAME) {
-    // No bot configured — show a fallback button that uses the OAuth redirect
-    container.innerHTML = `
-      <button class="login-tg-btn" style="width:100%;" onclick="handleTelegramLogin()">
-        <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
-      </button>
-    `;
-    icons();
-    return;
-  }
-  
-  // Create the widget script dynamically
-  const script = document.createElement('script');
-  script.src = 'https://telegram.org/js/telegram-widget.js?22';
-  script.setAttribute('data-telegram-login', TG_BOT_USERNAME);
-  script.setAttribute('data-size', 'large');
-  script.setAttribute('data-radius', '4');
-  script.setAttribute('data-request-access', 'write');
-  script.setAttribute('data-userpic', 'false');
-  // Use data-onauth callback (no data-auth-url) so auth happens client-side
-  // and works in PWA standalone mode. The widget posts back via postMessage.
-  script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-  container.appendChild(script);
+
+  // Always use the server-side redirect flow (/auth/telegram?next=/), the
+  // same one used successfully by oillog-admin-login.html via data-auth-url.
+  //
+  // We previously used the widget's client-side data-onauth callback, which
+  // relies on a popup posting back to this page via postMessage while the
+  // original tab/JS context stays alive. That works on desktop browsers but
+  // is unreliable on phones: mobile Telegram login typically switches to the
+  // Telegram app or does a full navigation, and when control returns to the
+  // browser the original JS context (and the onauth callback registered on
+  // it) is often gone — so login silently does nothing on mobile. The
+  // redirect flow avoids that entirely because the server sets the session
+  // and redirects, and our init() already re-checks /auth/status afterward.
+  container.innerHTML = `
+    <button class="login-tg-btn" style="width:100%;" onclick="handleTelegramLogin()">
+      <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
+    </button>
+  `;
+  icons();
 }
 
 // Callback invoked by the Telegram Login Widget after successful auth
