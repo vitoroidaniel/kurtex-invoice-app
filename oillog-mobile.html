@@ -240,9 +240,7 @@
       <div class="login-sub">Evidența oil change-urilor de pe yard. Data, tipul unității, unit#-ul și mileage / engine hours.</div>
       <div id="login-error" class="login-error hidden"></div>
       <div class="login-actions">
-        <button class="login-tg-btn" id="tg-login-btn" style="width:100%;max-width:300px;padding:14px 24px;" onclick="handleTelegramLogin()">
-          <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
-        </button>
+        <div id="tg-login-widget" style="width:100%;max-width:300px;display:flex;justify-content:center;"></div>
         <button class="login-tg-btn" onclick="loginGuest()"><i data-lucide="user"></i>Continuă ca Guest</button>
       </div>
       <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
@@ -728,6 +726,9 @@ function saveName(){
 
   checkUrlLoginError();
   
+  // Initialize the Telegram Login Widget (works in PWA standalone mode)
+  initTelegramLoginWidget();
+  
   // Check if we just came back from Telegram OAuth (URL has no error but we might have a session)
   const params = new URLSearchParams(window.location.search);
   const justReturnedFromTelegram = params.toString() === '' && !params.get('error');
@@ -797,10 +798,114 @@ function saveName(){
   }, { passive: false });
 })();
 
-// ── Telegram Login Click Handler ────────────────────────────────────────────
-// Use inline onclick for reliability on mobile
+// ── Telegram Login Widget ───────────────────────────────────────────────────
+// Uses the official Telegram Login Widget (iframe-based) which works in any
+// context — including PWA standalone mode where full-page OAuth redirects fail.
+// The widget posts auth data back via postMessage, which we send to the server.
+let TG_BOT_USERNAME = '';
+
+async function initTelegramLoginWidget() {
+  const container = document.getElementById('tg-login-widget');
+  if (!container) return;
+  
+  // Fetch the bot username from the server
+  try {
+    const res = await fetch('/api/bot-info');
+    const data = await res.json();
+    TG_BOT_USERNAME = data.username || '';
+  } catch(e) {
+    console.error('Failed to fetch bot info:', e);
+  }
+  
+  if (!TG_BOT_USERNAME) {
+    // No bot configured — show a fallback button that uses the OAuth redirect
+    container.innerHTML = `
+      <button class="login-tg-btn" style="width:100%;" onclick="handleTelegramLogin()">
+        <i data-lucide="message-circle" style="width:18px;height:18px;color:#0088CC;"></i>Login with Telegram
+      </button>
+    `;
+    icons();
+    return;
+  }
+  
+  // Create the widget script dynamically
+  const script = document.createElement('script');
+  script.src = 'https://telegram.org/js/telegram-widget.js?22';
+  script.setAttribute('data-telegram-login', TG_BOT_USERNAME);
+  script.setAttribute('data-size', 'large');
+  script.setAttribute('data-radius', '4');
+  script.setAttribute('data-request-access', 'write');
+  script.setAttribute('data-userpic', 'false');
+  // Use data-onauth callback (no data-auth-url) so auth happens client-side
+  // and works in PWA standalone mode. The widget posts back via postMessage.
+  script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+  container.appendChild(script);
+}
+
+// Callback invoked by the Telegram Login Widget after successful auth
+async function onTelegramAuth(user) {
+  if (!user || !user.id) {
+    showLoginError('missing');
+    return;
+  }
+  
+  try {
+    // Send the auth data to our server to establish the session
+    const res = await fetch('/auth/telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(user)
+    });
+    
+    if (res.redirected) {
+      // Server redirected — follow it
+      window.location.href = res.url;
+      return;
+    }
+    
+    const data = await res.json();
+    if (data.ok) {
+      // Session established — enter the app
+      const su = data.user;
+      user = {
+        method: 'telegram',
+        id: su.id,
+        name: su.first_name || su.username || 'Telegram User',
+        username: su.username || '',
+        photo_url: su.photo_url || '',
+        role: su.role || 'agent',
+      };
+      saveUserLocal(user);
+      await enterApp();
+    } else {
+      showLoginError(data.error || 'invalid');
+    }
+  } catch(e) {
+    showLoginError('invalid', e.message);
+  }
+}
+
+// Fallback handler for when bot username isn't configured
 function handleTelegramLogin() {
-  window.location.href = '/auth/telegram?next=/';
+  const telegramUrl = '/auth/telegram?next=/';
+  
+  // Detect if running in standalone/PWA mode (installed on home screen)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone === true;
+  
+  if (isStandalone) {
+    // In standalone mode, open in system browser using window.open
+    // This allows OAuth to work properly outside the PWA sandbox
+    const systemBrowser = window.open(telegramUrl, '_blank', 'location=yes');
+    if (!systemBrowser) {
+      // Fallback: if popup was blocked, try direct navigation
+      window.location.href = telegramUrl;
+    }
+  } else {
+    // In regular browser mode, direct redirect works fine
+    window.location.href = telegramUrl;
+  }
 }
 </script>
 </body>

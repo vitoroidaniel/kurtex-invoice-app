@@ -27,8 +27,8 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_DOMAIN'] = None
 
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")  # ← SET THIS to the SAME bot token as the alert bot
-BOT_USERNAME = os.getenv("BOT_USERNAME", "").replace("@", "")  # Bot username without @
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8783000783:AAH0nsNC0Mh0egLVdKd9i5lm1-fZuQ7Ltos")  # ← SET THIS to the SAME bot token as the alert bot
+BOT_USERNAME = os.getenv("BOT_USERNAME", "@kurtexalertsbot").replace("@", "")  # Bot username without @
 BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric)
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
@@ -131,8 +131,9 @@ def login_required(f):
 
 @app.route("/auth/telegram", methods=["GET", "POST"])
 def telegram_auth():
-    # Handle both GET (from Telegram widget redirect) and POST (from client-side)
-    if request.method == "POST":
+    # Handle both GET (from Telegram widget redirect) and POST (from client-side widget)
+    is_post = request.method == "POST"
+    if is_post:
         data = request.get_json(force=True) or {}
         next_url = "/"
     else:
@@ -151,6 +152,8 @@ def telegram_auth():
         
         if not bot_id:
             logger.error("BOT_ID not configured. Set BOT_ID env var or ensure BOT_TOKEN is in format 'bot_id:token'")
+            if is_post:
+                return jsonify({"ok": False, "error": "bot_not_configured"}), 500
             return redirect("/?error=bot_not_configured")
         
         # Use the configured domain or fallback to host
@@ -163,15 +166,21 @@ def telegram_auth():
         next_url = "/"  # never redirect off-site
 
     if not verify_telegram_login(data):
+        if is_post:
+            return jsonify({"ok": False, "error": "invalid"}), 401
         return redirect(f"{next_url}?error=invalid")
 
     telegram_id = int(data.get("id", 0))
     u = get_user(telegram_id)
     if not u:
+        if is_post:
+            return jsonify({"ok": False, "error": "not_whitelisted"}), 403
         return redirect(f"{next_url}?error=not_whitelisted")
 
     role = u.get("role", "agent")
     if next_url.startswith("/admin") and role not in ADMIN_ROLES:
+        if is_post:
+            return jsonify({"ok": False, "error": "forbidden_role"}), 403
         return redirect("/admin-login?error=forbidden_role")
 
     session["user"] = {
@@ -182,6 +191,11 @@ def telegram_auth():
         "auth_date": data.get("auth_date", ""),
         "role": role,
     }
+    
+    # For POST (client-side widget), return JSON so the page can enter the app
+    if is_post:
+        return jsonify({"ok": True, "user": session["user"]})
+    
     # For admin login, redirect directly to admin page
     # The admin page will check auth and show the interface
     if next_url == "/admin":
@@ -405,6 +419,13 @@ def serve_static(filename):
     return send_from_directory(str(FRONTEND_DIR), filename)
 
 # ── Health check ─────────────────────────────────────────────────────────────
+@app.route("/api/bot-info")
+def bot_info():
+    return jsonify({
+        "username": BOT_USERNAME,
+        "configured": bool(BOT_USERNAME),
+    })
+
 @app.route("/health")
 def health():
     return jsonify({
