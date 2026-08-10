@@ -29,7 +29,7 @@ app.config['SESSION_COOKIE_DOMAIN'] = None
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8959304512:AAHdXtlWgobRXnnCEcNlNzCn9ZzsSn35DR8")  # ← SET THIS to the SAME bot token as the alert bot
 BOT_USERNAME = os.getenv("BOT_USERNAME", "@kurtexalertsbot").replace("@", "kurtexalertsbot")  # Bot username without @
-BOT_ID = os.getenv("BOT_ID", "8783000783")  # Bot ID (numeric)
+BOT_ID = os.getenv("BOT_ID", "8959304512")  # Bot ID (numeric)
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
