@@ -70,6 +70,32 @@
   input:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px rgba(200,16,46,0.1);}
   input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;}
 
+  .date-trigger{
+    width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);
+    border:1px solid var(--border);color:var(--white);border-radius:var(--r);padding:13px 14px;
+    font-family:var(--font-mono);font-size:15px;cursor:pointer;text-align:left;
+  }
+  .date-trigger span.placeholder{color:var(--faint);}
+  .date-trigger i,.date-trigger svg{width:16px;height:16px;color:var(--faint);flex-shrink:0;}
+  .date-trigger:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,0.1);outline:none;}
+  .dp-overlay{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px;}
+  .dp-overlay.hidden{display:none;}
+  .dp-modal{width:100%;max-width:320px;max-height:calc(100% - 8px);overflow-y:auto;background:var(--surface);border-radius:14px;padding:16px;box-shadow:0 10px 34px rgba(0,0,0,.18);}
+  .dp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .dp-month-label{font-family:var(--font-display);font-weight:600;font-size:15px;letter-spacing:.5px;text-transform:uppercase;}
+  .dp-nav{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--white);flex-shrink:0;}
+  .dp-nav i,.dp-nav svg{width:16px;height:16px;}
+  .dp-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10.5px;color:var(--faint);font-weight:700;text-transform:uppercase;margin-bottom:6px;}
+  .dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .dp-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:none;background:none;border-radius:8px;font-family:var(--font-mono);font-size:13px;color:var(--white);cursor:pointer;}
+  .dp-cell:hover{background:var(--surface-2);}
+  .dp-cell.empty{cursor:default;visibility:hidden;}
+  .dp-cell.today{color:var(--red);font-weight:700;}
+  .dp-cell.selected{background:#1A1A1A;color:#fff;font-weight:700;}
+  .dp-footer{display:flex;gap:8px;margin-top:14px;}
+  .dp-footer button{flex:1;padding:10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface-2);color:var(--white);font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;}
+  .dp-today{border-color:var(--red) !important;color:var(--red) !important;}
+
   .chip-row{display:flex;gap:8px;}
   .chip{
     flex:1;text-align:center;padding:13px 8px;border-radius:var(--r);border:1px solid var(--border);
@@ -167,6 +193,12 @@
   .hidden{display:none !important;}
   .muted{color:var(--faint);font-size:12px;line-height:1.5;}
 
+  .update-banner{position:fixed;top:0;left:0;right:0;z-index:250;background:#1A1A1A;color:#fff;padding:11px 20px;display:flex;align-items:center;justify-content:center;gap:14px;transform:translateY(-100%);transition:transform .25s ease;box-shadow:0 4px 14px rgba(0,0,0,.15);}
+  .update-banner.show{transform:translateY(0);}
+  .update-banner span{font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:7px;}
+  .update-banner span i,.update-banner span svg{width:15px;height:15px;color:var(--red);flex-shrink:0;}
+  .update-banner button{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:8px 16px;font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;flex-shrink:0;}
+
   @media (max-width:860px){
     .two-col{grid-template-columns:1fr;}
     #app{max-width:none;}
@@ -179,6 +211,27 @@
 </style>
 </head>
 <body>
+
+<div class="update-banner" id="update-banner">
+  <span><i data-lucide="refresh-cw"></i>New version available</span>
+  <button type="button" onclick="applyUpdate()">Refresh</button>
+</div>
+
+<div class="dp-overlay hidden" id="date-picker-overlay" onclick="closeDatePicker(event)">
+  <div class="dp-modal" onclick="event.stopPropagation()">
+    <div class="dp-header">
+      <button type="button" class="dp-nav" onclick="dpChangeMonth(-1)"><i data-lucide="chevron-left"></i></button>
+      <div class="dp-month-label" id="dp-month-label"></div>
+      <button type="button" class="dp-nav" onclick="dpChangeMonth(1)"><i data-lucide="chevron-right"></i></button>
+    </div>
+    <div class="dp-weekdays"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="dp-grid" id="dp-grid"></div>
+    <div class="dp-footer">
+      <button type="button" class="dp-today" onclick="dpSelectToday()">Azi</button>
+      <button type="button" class="dp-close" onclick="closeDatePicker()">Anulează</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════ LOGIN SCREEN ══════════ -->
 <div id="login-screen" class="login-screen">
@@ -243,7 +296,11 @@
         <div class="card">
           <div class="field">
             <label class="field-label"><i data-lucide="calendar"></i>Data oil change</label>
-            <input type="date" id="f-date" required>
+            <button type="button" class="date-trigger" id="f-date-trigger" onclick="openDatePicker()">
+              <span id="f-date-display" class="placeholder">Selectează data</span>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <input type="hidden" id="f-date" required>
           </div>
           <div class="field">
             <label class="field-label"><i data-lucide="grid"></i>Tip unitate</label>
@@ -476,7 +533,9 @@ async function enterApp(){
   document.getElementById('s-name').value = user.name;
   document.getElementById('settings-login-method').textContent = user.method === 'password' ? 'Cont și parolă' : 'Guest';
   document.getElementById('settings-username').textContent = user.username || '—';
-  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-date').value = '';
+  const fDateDisp = document.getElementById('f-date-display');
+  if(fDateDisp){ fDateDisp.textContent = 'Selectează data'; fDateDisp.classList.add('placeholder'); }
   showScreen('add');
   entries = await fetchAllEntries();
   updateSidebar();
@@ -508,11 +567,17 @@ function selectUnit(u){
 // ── Submit form ────────────────────────────────────────────────────────────
 document.getElementById('entry-form').addEventListener('submit', async function(e){
   e.preventDefault();
+  const dateField = document.getElementById('f-date');
+  if(!dateField.value){
+    toast('⚠ Selectează data schimbului de ulei');
+    openDatePicker();
+    return;
+  }
   const btn = e.target.querySelector('button[type=submit]');
   const now = Date.now();
   const entry = {
     id: now + '_' + Math.random().toString(36).slice(2,8),
-    date: document.getElementById('f-date').value,
+    date: dateField.value,
     type: currentType,
     unit: document.getElementById('f-unit').value.trim(),
     unitOfValue: currentUnit,
@@ -586,7 +651,7 @@ function renderList(){
           <div class="type-badge"><i data-lucide="${typeIcon(e.type)}"></i></div>
           <div class="info">
             <div class="unit-num">#${escapeHtml(e.unit)}</div>
-            <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}${e.sent ? ' · trimis' : ''}</div>
+            <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)} · adăugat ${formatAddedAt(e.createdAt)}${e.sent ? ' · trimis' : ''}</div>
           </div>
           <div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div>
           <button class="del" onclick="deleteEntry('${e.id}')"><i data-lucide="x"></i></button>
@@ -600,6 +665,14 @@ function renderList(){
 function formatDate(iso){
   const d = new Date(iso+'T00:00:00');
   return d.toLocaleDateString('ro-RO', {weekday:'short', day:'2-digit', month:'2-digit'}).toUpperCase();
+}
+
+function formatAddedAt(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  const datePart = d.toLocaleDateString('ro-RO', {day:'2-digit', month:'2-digit'});
+  const timePart = d.toLocaleTimeString('ro-RO', {hour:'2-digit', minute:'2-digit'});
+  return `${datePart} ${timePart}`;
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
 
@@ -735,7 +808,87 @@ function saveName(){
     // Server unreachable
     if(user) await enterApp(); else icons();
   }
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('service-worker.js').then(reg=>{
+        if(reg.waiting) showUpdateBanner(reg.waiting);
+        reg.addEventListener('updatefound', ()=>{
+          const nw = reg.installing;
+          if(!nw) return;
+          nw.addEventListener('statechange', ()=>{
+            if(nw.state === 'installed' && navigator.serviceWorker.controller){
+              showUpdateBanner(nw);
+            }
+          });
+        });
+      }).catch(()=>{});
+
+      let hasReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+        if(hasReloaded) return;
+        hasReloaded = true;
+        window.location.reload();
+      });
+    });
+  }
 })();
+
+let pendingWorker = null;
+function showUpdateBanner(worker){
+  pendingWorker = worker;
+  document.getElementById('update-banner').classList.add('show');
+}
+function applyUpdate(){
+  if(pendingWorker) pendingWorker.postMessage({type:'SKIP_WAITING'});
+  document.getElementById('update-banner').classList.remove('show');
+}
+
+// ── Custom date picker ──────────────────────────────────────────────────
+let dpCurrentMonth = new Date();
+function openDatePicker(){
+  const existing = document.getElementById('f-date').value;
+  dpCurrentMonth = existing ? new Date(existing+'T00:00:00') : new Date();
+  dpRender();
+  document.getElementById('date-picker-overlay').classList.remove('hidden');
+}
+function closeDatePicker(e){
+  document.getElementById('date-picker-overlay').classList.add('hidden');
+}
+function dpChangeMonth(delta){
+  dpCurrentMonth = new Date(dpCurrentMonth.getFullYear(), dpCurrentMonth.getMonth()+delta, 1);
+  dpRender();
+}
+function dpRender(){
+  const y = dpCurrentMonth.getFullYear(), m = dpCurrentMonth.getMonth();
+  document.getElementById('dp-month-label').textContent = dpCurrentMonth.toLocaleDateString('ro-RO',{month:'long', year:'numeric'});
+  const selected = document.getElementById('f-date').value;
+  const todayIso = new Date().toISOString().slice(0,10);
+  const firstDay = new Date(y, m, 1);
+  const startOffset = (firstDay.getDay()+6)%7; // Monday-first grid
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  let html = '';
+  for(let i=0;i<startOffset;i++) html += `<div class="dp-cell empty">0</div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cls = ['dp-cell'];
+    if(iso===todayIso) cls.push('today');
+    if(iso===selected) cls.push('selected');
+    html += `<button type="button" class="${cls.join(' ')}" onclick="dpSelectDate('${iso}')">${d}</button>`;
+  }
+  document.getElementById('dp-grid').innerHTML = html;
+}
+function dpSelectDate(iso){
+  document.getElementById('f-date').value = iso;
+  const d = new Date(iso+'T00:00:00');
+  const disp = document.getElementById('f-date-display');
+  disp.textContent = d.toLocaleDateString('ro-RO',{weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+  disp.classList.remove('placeholder');
+  closeDatePicker();
+}
+function dpSelectToday(){
+  dpSelectDate(new Date().toISOString().slice(0,10));
+}
 </script>
 </body>
 </html>
