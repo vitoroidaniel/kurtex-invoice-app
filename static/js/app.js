@@ -6,7 +6,7 @@ const OFFLINE_QUEUE_KEY = 'oillog_offline_queue_v1';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '22';
+const APP_BUILD = '23';
 
 let user = null;
 let entries = [];
@@ -640,6 +640,12 @@ function activityDayLabel(iso){
   if(diff===1)return 'YESTERDAY';
   return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',month:'short',day:'2-digit'}).format(d).toUpperCase();
 }
+function clearActivityFilters(){
+  ['activity-unit','activity-from','activity-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const action=document.getElementById('activity-action'); if(action)action.value='all';
+  renderActivity();
+}
+function activityActionLabel(action){ return action==='added'?'Added':action==='edited'?'Edited':action==='deleted'?'Deleted':'Activity'; }
 function renderActivity(){
   const box=document.getElementById('activity-list'); if(!box)return;
   const q=(document.getElementById('activity-unit')?.value||'').trim().toLowerCase();
@@ -651,15 +657,17 @@ function renderActivity(){
   ['total','added','edited','deleted'].forEach(k=>{const el=document.getElementById('activity-'+k);if(el)el.textContent=counts[k];});
   const rows=activityEntries.filter(a=>{
     const day=activityDateISO(a.timestamp);
-    return (!q||String(a.unit||'').toLowerCase().includes(q)||String(a.description||'').toLowerCase().includes(q)) &&
+    return (!q||String(a.unit||'').toLowerCase().includes(q)||String(a.description||'').toLowerCase().includes(q)||String(a.user||'').toLowerCase().includes(q)) &&
       (action==='all'||a.action===action) && (!from||day>=from) && (!to||day<=to);
   }).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-  if(!rows.length){box.innerHTML='<div class="table-empty"><span class="ph ph-clock-counter-clockwise"></span><p>No activity found.</p><small>Try a different unit, action or date range.</small></div>';return;}
+  if(!rows.length){box.innerHTML='<div class="table-empty activity-empty"><span class="ph ph-clock-counter-clockwise"></span><p>No activity found</p><small>Try changing your filters.</small></div>';return;}
   const groups=[];
   rows.forEach(a=>{const day=activityDateISO(a.timestamp);let g=groups.find(x=>x.day===day);if(!g){g={day,rows:[]};groups.push(g);}g.rows.push(a);});
-  box.innerHTML=groups.map(g=>`<section class="activity-group"><div class="activity-day">${activityDayLabel(g.day)}</div>${g.rows.map(a=>{
+  box.innerHTML=groups.map(g=>`<section class="activity-group"><div class="activity-day"><span>${activityDayLabel(g.day)}</span><em>${g.rows.length} ${g.rows.length===1?'event':'events'}</em></div>${g.rows.map(a=>{
     const icon=a.action==='added'?'plus':a.action==='edited'?'pencil-simple':'trash';
-    return `<div class="activity-row"><div class="activity-icon action-${escapeHtml(a.action)}"><span class="ph ph-${icon}"></span></div><div class="activity-main"><strong>${escapeHtml(a.description||a.action)}</strong><span>${escapeHtml(a.user||'Unknown')} · ${formatActivityTime(a.timestamp)}</span></div><span class="activity-action action-${escapeHtml(a.action)}">${escapeHtml(a.action)}</span></div>`;
+    const title=escapeHtml(a.description||activityActionLabel(a.action));
+    const user=escapeHtml(a.user||'Unknown');
+    return `<div class="activity-row"><div class="activity-icon action-${escapeHtml(a.action)}"><span class="ph ph-${icon}"></span></div><div class="activity-main"><strong>${title}</strong><div class="activity-meta"><span>${user}</span><span>${formatActivityTime(a.timestamp)}</span></div></div><span class="activity-action action-${escapeHtml(a.action)}">${escapeHtml(activityActionLabel(a.action))}</span></div>`;
   }).join('')}</section>`).join('');
 }
 function formatActivityTime(ts){ if(!ts)return '—'; return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'2-digit',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(ts))+' CT'; }

@@ -387,3 +387,21 @@ button.unit-history-link{border:0;background:none;padding:0;color:inherit;font:i
 .edit-type-chip.active{background:#1A1A1A;border-color:#1A1A1A;color:#fff;}
 .edit-record-actions{margin-top:16px;padding-top:13px;border-top:1px solid var(--border);}
 .edit-record-actions .btn{width:auto;min-width:120px;}
+
+/* ── V23 Activity polish ───────────────────────────────── */
+.activity-list-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;color:var(--dim);}
+.activity-list-head strong{font:600 14px var(--fd);letter-spacing:.4px;color:var(--navy);}
+.activity-list-head span{font-size:10px;color:var(--faint);}
+.activity-list-head button{border:0;background:transparent;color:var(--navy);font:600 10px var(--fd);display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:5px 0;}
+.activity-filters{grid-template-columns:minmax(240px,1fr) 150px 145px 145px auto;}
+.activity-clear{height:38px;padding:0 13px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--dim);font:600 10px var(--fd);cursor:pointer;}
+.activity-clear:hover{background:var(--navy-tint);color:var(--navy);}
+.activity-group{box-shadow:none;}
+.activity-day{display:flex;align-items:center;justify-content:space-between;}
+.activity-day em{font:500 9px var(--fb);font-style:normal;color:var(--faint);letter-spacing:0;}
+.activity-main strong{display:block;}
+.activity-meta{display:flex;align-items:center;gap:10px;margin-top:3px;}
+.activity-meta span{font-size:10px;color:var(--dim);}
+.activity-meta span+span{position:relative;}
+.activity-meta span+span:before{content:'•';position:absolute;left:-7px;color:var(--faint);}
+.activity-empty{box-shadow:none;}

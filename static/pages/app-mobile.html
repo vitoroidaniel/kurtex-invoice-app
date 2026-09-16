@@ -13,8 +13,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=22">
-<link rel="stylesheet" href="css/app-mobile.css?v=22">
+<link rel="stylesheet" href="css/app-base.css?v=23">
+<link rel="stylesheet" href="css/app-mobile.css?v=23">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -181,10 +181,16 @@
       <div><span>DELETED</span><strong id="activity-deleted">0</strong></div>
     </div>
     <div class="activity-filters card">
-      <div class="activity-filter-search"><span class="ph ph-magnifying-glass"></span><input type="text" id="activity-unit" placeholder="Search unit" oninput="renderActivity()"></div>
-      <div class="activity-filter-row"><select id="activity-action" onchange="renderActivity()"><option value="all">All actions</option><option value="added">Added</option><option value="edited">Edited</option><option value="deleted">Deleted</option></select></div>
-      <div class="activity-date-row"><input type="date" id="activity-from" onchange="renderActivity()" aria-label="From date"><span>TO</span><input type="date" id="activity-to" onchange="renderActivity()" aria-label="To date"></div>
+      <div class="activity-filter-search"><span class="ph ph-magnifying-glass"></span><input type="text" id="activity-unit" placeholder="Search unit or activity" oninput="renderActivity()"></div>
+      <div class="activity-filter-row">
+        <select id="activity-action" onchange="renderActivity()">
+          <option value="all">All actions</option><option value="added">Added</option><option value="edited">Edited</option><option value="deleted">Deleted</option>
+        </select>
+        <button type="button" class="activity-clear" onclick="clearActivityFilters()">Clear</button>
+      </div>
+      <div class="activity-date-row"><div><label>FROM</label><input type="date" id="activity-from" onchange="renderActivity()" aria-label="From date"></div><span>→</span><div><label>TO</label><input type="date" id="activity-to" onchange="renderActivity()" aria-label="To date"></div></div>
     </div>
+    <div class="activity-list-head"><strong>Recent activity</strong><button type="button" onclick="loadActivity()"><span class="ph ph-arrows-clockwise"></span> Refresh</button></div>
     <div id="activity-list" class="activity-list"></div>
   </div>
 
@@ -225,6 +231,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=22"></script>
+<script src="js/app.js?v=23"></script>
 </body>
 </html>
