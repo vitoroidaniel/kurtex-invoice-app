@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro" data-theme="light">
+<html lang="ro">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,8 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#FFFFFF;
-    --surface:#FAF9F6;
+    --bg:#FAFAF8;
+    --surface:#FFFFFF;
     --surface-2:#F9F7F5;
     --surface-3:#F3F1EE;
     --border:#E5E3E0;
@@ -20,45 +20,24 @@
     --white:#1A1A1A;
     --dim:#6B6B6B;
     --faint:#999999;
-    --red:#E0592A;
-    --red-tint:rgba(224,89,42,0.08);
-    --r:10px;
+    --red:#C8102E;
+    --red-tint:rgba(200,16,46,0.08);
+    --r:4px;
     --font-display:'Oswald',sans-serif;
     --font-body:'Inter',sans-serif;
     --font-mono:'JetBrains Mono',monospace;
-  }
-  html[data-theme="dark"]{
-    --bg:#000000;
-    --surface:#1C1C1C;
-    --surface-2:#242424;
-    --surface-3:#1A1A1A;
-    --border:#333;
-    --border-2:#3D3D3D;
-    --white:#ECECEC;
-    --dim:#A2A2A2;
-    --faint:#777;
-    --red-tint:rgba(224,89,42,0.16);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;height:100%;background:var(--surface-3);color:var(--white);font-family:var(--font-body);}
   body{display:flex;justify-content:center;}
 
-  #app{width:100%;max-width:1180px;min-height:100vh;background:var(--bg);box-shadow:0 0 0 1px var(--border);display:flex;}
+  #app{width:100%;max-width:1180px;min-height:100vh;background:var(--bg);box-shadow:0 0 0 1px var(--border);display:flex;flex-direction:column;}
 
-  /* ── Sidebar ─────────────────────────────── */
-  .sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:26px 18px;}
-  .sidebar-logo{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:2px;margin-bottom:22px;padding:0 6px;}
-  .sidebar-logo span{color:var(--red);}
-  .sidebar-cta{display:flex;align-items:center;gap:9px;background:var(--red);color:#fff;border-radius:var(--r);padding:11px 14px;font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;margin-bottom:18px;border:none;width:100%;}
-  .sidebar-cta:hover{background:#B0431E;}
-  .sidebar-cta i,.sidebar-cta svg{width:16px;height:16px;}
-  .sidebar-nav{display:flex;flex-direction:column;gap:2px;}
-  .sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);}
-  .sidebar-footer .btn{width:100%;margin-bottom:10px;justify-content:flex-start;}
-
-  /* ── Top bar (legacy — retained for the login screen / unused in app shell) ── */
+  /* ── Top bar ─────────────────────────────── */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border);background:var(--surface);}
   .brand{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:3px;}
   .brand span{color:var(--red);}
+  .topbar-right{display:flex;align-items:center;gap:10px;}
   .userchip{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:8px 14px;font-size:13px;color:var(--dim);border-radius:var(--r);}
   .userchip i, .userchip svg{width:15px;height:15px;}
   .userchip img{width:22px;height:22px;border-radius:50%;object-fit:cover;}
@@ -66,25 +45,15 @@
   .live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.8);animation:pulse 2s infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-  .user-block{display:flex;align-items:center;gap:9px;padding:2px 4px 14px;}
-  .avatar-wrap{position:relative;flex-shrink:0;}
-  .avatar{width:32px;height:32px;border-radius:50%;background:var(--red-tint);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:var(--font-display);overflow:hidden;}
-  .avatar img{width:100%;height:100%;object-fit:cover;}
-  .status-dot{position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:var(--green,#3A7D44);border:2px solid var(--surface);}
-  .status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1.5px solid var(--green,#3A7D44);opacity:.5;animation:pulse-ring 2s ease-out infinite;}
-  @keyframes pulse-ring{0%{transform:scale(.6);opacity:.6;}100%{transform:scale(1.6);opacity:0;}}
-  .user-name{font-size:13px;font-weight:600;color:var(--white);line-height:1.25;}
-  .user-time{font-size:10.5px;color:var(--faint);margin-top:1px;font-family:var(--font-mono);}
-
   /* ── Nav ─────────────────────────────────── */
-  .navbtn{display:inline-flex;align-items:center;gap:10px;padding:11px 14px;border:none;border-radius:var(--r);background:transparent;color:var(--dim);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;width:100%;text-align:left;}
-  .navbtn i, .navbtn svg{width:17px;height:17px;flex-shrink:0;}
+  .nav{display:flex;gap:6px;padding:14px 40px;border-bottom:1px solid var(--border);background:var(--surface);}
+  .navbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:none;border-radius:var(--r);background:transparent;color:var(--dim);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+  .navbtn i, .navbtn svg{width:16px;height:16px;}
   .navbtn:hover{background:var(--surface-2);color:var(--white);}
-  .navbtn.active{background:var(--red-tint);color:var(--red);}
+  .navbtn.active{background:#1A1A1A;color:#fff;}
 
   /* ── Screens ─────────────────────────────── */
-  .main-content{flex:1;min-width:0;overflow-y:auto;}
-  .screen{display:none;padding:32px 40px 48px 40px;}
+  .screen{display:none;padding:24px 40px 48px 40px;}
   .screen.active{display:block;}
   h1.page-title{font-family:var(--font-display);font-size:24px;font-weight:600;margin:0 0 4px 0;letter-spacing:0.5px;text-transform:uppercase;}
   p.page-sub{color:var(--dim);font-size:14px;margin:0 0 20px 0;line-height:1.5;}
@@ -98,7 +67,7 @@
     border-radius:var(--r);padding:13px 14px;font-family:var(--font-mono);font-size:15px;outline:none;transition:all 0.15s;
   }
   input::placeholder{color:var(--faint);}
-  input:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px rgba(224,89,42,0.1);}
+  input:focus{border-color:var(--red);background:var(--surface);box-shadow:0 0 0 3px rgba(200,16,46,0.1);}
   input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;}
 
   .date-trigger{
@@ -108,7 +77,7 @@
   }
   .date-trigger span.placeholder{color:var(--faint);}
   .date-trigger i,.date-trigger svg{width:16px;height:16px;color:var(--faint);flex-shrink:0;}
-  .date-trigger:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(224,89,42,0.1);outline:none;}
+  .date-trigger:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,0.1);outline:none;}
   .dp-overlay{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px;}
   .dp-overlay.hidden{display:none;}
   .dp-modal{width:100%;max-width:320px;max-height:calc(100% - 8px);overflow-y:auto;background:var(--surface);border-radius:14px;padding:16px;box-shadow:0 10px 34px rgba(0,0,0,.18);}
@@ -148,7 +117,7 @@
   }
   button.btn i, button.btn svg{width:16px;height:16px;}
   .btn-primary{background:var(--red);color:#FFFFFF;border-color:var(--red);}
-  .btn-primary:hover{background:#B0431E;border-color:#B0431E;box-shadow:0 2px 8px rgba(224,89,42,0.2);}
+  .btn-primary:hover{background:#A80725;border-color:#A80725;box-shadow:0 2px 8px rgba(200,16,46,0.2);}
   .btn-secondary{background:var(--surface);color:var(--white);border-color:var(--border);}
   .btn-secondary:hover{background:var(--surface-2);border-color:var(--border-2);}
   .btn-outline{background:var(--surface);color:var(--white);border-color:var(--border);}
@@ -204,6 +173,20 @@
   .login-title span{color:var(--red);}
   .login-tag{font-size:12px;letter-spacing:0.5px;color:var(--faint);margin-bottom:8px;}
   .login-sub{color:var(--dim);font-size:14px;margin-bottom:28px;max-width:340px;line-height:1.6;margin-left:auto;margin-right:auto;}
+  .login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,0.25);color:var(--red);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:var(--r);margin-bottom:18px;text-align:left;}
+  .login-tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--surface-2);border-radius:var(--r);padding:4px;}
+  .login-tab{flex:1;padding:11px;border:none;border-radius:var(--r);background:transparent;color:var(--dim);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.6px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+  .login-tab.active{background:var(--surface);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .login-tab:hover:not(.active){color:var(--white);}
+  .login-form{display:flex;flex-direction:column;gap:12px;text-align:left;}
+  .login-form input{width:100%;}
+  .login-form .btn{width:100%;}
+  .login-link{background:none;border:none;color:var(--dim);font-size:13px;cursor:pointer;font-family:var(--font-body);margin-top:14px;}
+  .login-link:hover{color:var(--red);text-decoration:underline;}
+  .login-hint-toggle{margin-top:20px;background:none;border:none;color:var(--faint);font-size:12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-body);}
+  .login-hint-toggle:hover{color:var(--dim);}
+  .login-hint{margin-top:14px;text-align:left;font-size:12px;line-height:1.6;color:var(--dim);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+  .login-hint b{color:var(--white);}
 
   .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--red);color:#FFFFFF;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .15s;z-index:200;white-space:nowrap;}
   .toast.show{opacity:1;}
@@ -218,16 +201,9 @@
 
   @media (max-width:860px){
     .two-col{grid-template-columns:1fr;}
-    #app{max-width:none;flex-direction:column;}
-    .sidebar{width:100%;flex-direction:row;align-items:center;flex-wrap:wrap;padding:14px 16px;gap:10px 16px;}
-    .sidebar-logo{margin-bottom:0;padding:0;}
-    .sidebar-cta{width:auto;margin-bottom:0;order:3;}
-    .sidebar-nav{flex-direction:row;order:2;}
-    .navbtn{width:auto;}
-    .sidebar-footer{margin-top:0;padding-top:0;border-top:none;border-left:1px solid var(--border);padding-left:14px;display:flex;align-items:center;gap:10px;order:4;margin-left:auto;}
-    .sidebar-footer .btn{width:auto;margin-bottom:0;}
-    .user-block{padding:0;}
-    .user-time{display:none;}
+    #app{max-width:none;}
+    .topbar{padding:16px 20px;}
+    .nav{padding:10px 16px;overflow-x:auto;}
     .screen{padding:20px 16px 40px 16px;}
     .login-card{padding:34px 24px 28px 24px;}
     .summary-bar{flex-wrap:wrap;gap:16px;}
@@ -262,34 +238,54 @@
   <div class="login-card">
     <div class="login-title">OIL<span>LOG</span></div>
     <div class="login-tag">PLATFORMA WEB</div>
-    <div class="login-sub">Se verifică sesiunea…</div>
+    <div class="login-sub">Evidența oil change-urilor de pe yard. Login cu cont sau înregistrare rapidă.</div>
+    <div id="login-error" class="login-error hidden"></div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="showAuthTab('login')" id="tab-login">Login</button>
+      <button class="login-tab" onclick="showAuthTab('register')" id="tab-register">Cont nou</button>
+    </div>
+
+    <!-- Login form -->
+    <form id="login-form" class="login-form" onsubmit="return adminLogin(event)">
+      <input type="text" id="l-username" placeholder="Utilizator" autocomplete="username" required>
+      <input type="password" id="l-password" placeholder="Parolă" autocomplete="current-password" required>
+      <button type="submit" class="btn btn-primary"><i data-lucide="log-in"></i>Autentifică-te</button>
+    </form>
+
+    <!-- Register form -->
+    <form id="register-form" class="login-form hidden" onsubmit="return adminRegister(event)">
+      <input type="text" id="r-name" placeholder="Nume complet" autocomplete="name">
+      <input type="text" id="r-username" placeholder="Utilizator" autocomplete="username" required>
+      <input type="password" id="r-password" placeholder="Parolă (min 4 caractere)" autocomplete="new-password" required>
+      <button type="submit" class="btn btn-primary"><i data-lucide="user-plus"></i>Creează cont</button>
+    </form>
+
+    <button class="login-hint-toggle" onclick="document.getElementById('login-hint').classList.toggle('hidden')" type="button">
+      <i data-lucide="help-circle"></i>Ajutor
+    </button>
+    <div id="login-hint" class="login-hint hidden">
+      Nu ai cont? Apasă „Cont nou" și creează unul cu un utilizator și o parolă. După înregistrare ești logat automat. Contul va apărea în evidența echipei cu numele ales.
+    </div>
   </div>
 </div>
 
 <!-- ══════════ APP ══════════ -->
 <div id="app" class="hidden">
-  <aside class="sidebar">
-    <div class="sidebar-logo">OIL<span>LOG</span></div>
-    <button type="button" class="sidebar-cta" onclick="showScreen('add')"><i data-lucide="plus"></i>New entry</button>
-    <nav class="sidebar-nav">
-      <button class="navbtn active" data-screen="add" onclick="showScreen('add')"><i data-lucide="home"></i>ACASĂ</button>
-      <button class="navbtn" data-screen="list" onclick="showScreen('list')"><i data-lucide="list"></i>LISTĂ</button>
-      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><i data-lucide="settings"></i>SETĂRI</button>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="btn btn-secondary" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" id="theme-icon"></i> Theme</button>
-      <div class="user-block">
-        <div class="avatar-wrap"><div class="avatar" id="user-avatar">—</div><span class="status-dot"></span></div>
-        <div>
-          <div class="user-name" id="userchip-name">User</div>
-          <div class="user-time" id="chicago-time">--:-- CT</div>
-        </div>
-      </div>
-      <button class="btn btn-secondary" onclick="logout()" title="Delogare"><i data-lucide="log-out"></i> Delogare</button>
+  <div class="topbar">
+    <div class="brand">OIL<span>LOG</span></div>
+    <div class="topbar-right">
+      <span class="live-pill"><span class="s-dot"></span> Live</span>
+      <div class="userchip" id="userchip"><i data-lucide="user"></i><span id="userchip-name">User</span></div>
+      <button class="btn btn-secondary" onclick="logout()" title="Delogare" style="padding:8px 12px;"><i data-lucide="log-out"></i></button>
     </div>
-  </aside>
+  </div>
 
-  <main class="main-content">
+  <div class="nav">
+    <button class="navbtn active" data-screen="add" onclick="showScreen('add')"><i data-lucide="plus-circle"></i>ADAUGĂ</button>
+    <button class="navbtn" data-screen="list" onclick="showScreen('list')"><i data-lucide="list"></i>LISTĂ</button>
+    <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><i data-lucide="settings"></i>SETĂRI</button>
+  </div>
 
   <!-- Add screen -->
   <div class="screen active" id="screen-add">
@@ -361,7 +357,6 @@
       <button class="btn btn-secondary" onclick="exportXLSX()"><i data-lucide="download"></i>Export Excel</button>
       <button class="btn btn-secondary" onclick="shareList()"><i data-lucide="share"></i>Share</button>
     </div>
-    <button class="btn btn-danger" style="max-width:400px;width:100%;margin-top:10px;" onclick="wipeList()"><i data-lucide="trash-2"></i>Wipe list</button>
   </div>
 
   <!-- Settings screen -->
@@ -380,8 +375,6 @@
     <p class="muted" style="max-width:560px;margin-bottom:20px;">Datele sunt partajate cu toată echipa — orice intrare adăugată aici apare și în panoul de administrare.</p>
     <button class="btn btn-outline" onclick="logout()"><i data-lucide="log-out"></i>Delogare</button>
   </div>
-
-  </main>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -389,26 +382,6 @@
 <script>
 const API_BASE = window.location.origin;
 const WEB_USER_KEY = 'oillog_web_user_v3';
-const THEME_KEY = 'oillog_theme';
-
-function loadTheme(){ return localStorage.getItem(THEME_KEY) || 'light'; }
-function applyTheme(t){
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem(THEME_KEY, t);
-  const icon = document.getElementById('theme-icon');
-  if(icon) icon.setAttribute('data-lucide', t==='dark' ? 'sun' : 'moon');
-  if(window.lucide) lucide.createIcons();
-}
-function toggleTheme(){ applyTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark'); }
-applyTheme(loadTheme());
-
-function updateChicagoTime(){
-  const formatted = new Intl.DateTimeFormat('en-US', {timeZone:'America/Chicago', hour:'2-digit', minute:'2-digit', hour12:false}).format(new Date()) + ' CT';
-  const el = document.getElementById('chicago-time');
-  if(el) el.textContent = formatted;
-}
-updateChicagoTime();
-setInterval(updateChicagoTime, 30000);
 
 let user = null;
 let entries = [];
@@ -439,9 +412,82 @@ async function api(method, path, body){
   return data;
 }
 
-// ── Login (handled by the shared /login page — this app only redirects there) ──
-function goToLogin(){
-  window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+// ── Auth ───────────────────────────────────────────────────────────────────
+const AUTH_ERRORS = {
+  missing_fields: 'Completează toate câmpurile.',
+  password_too_short: 'Parola trebuie să aibă cel puțin 4 caractere.',
+  user_exists: 'Acest utilizator există deja. Încearcă altul sau loghează-te.',
+  invalid_credentials: 'Utilizator sau parolă incorecte.',
+  network_error: 'Nu s-a putut contacta serverul. Încearcă din nou.',
+};
+function showAuthError(code, raw){
+  const box = document.getElementById('login-error');
+  box.textContent = AUTH_ERRORS[code] || (raw || 'Eroare la autentificare.');
+  box.classList.remove('hidden');
+}
+function clearAuthError(){
+  const box = document.getElementById('login-error');
+  box.classList.add('hidden'); box.textContent = '';
+}
+function showAuthTab(tab){
+  document.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('login-form').classList.toggle('hidden', tab!=='login');
+  document.getElementById('register-form').classList.toggle('hidden', tab!=='register');
+  clearAuthError();
+}
+
+async function adminLogin(e){
+  e.preventDefault();
+  clearAuthError();
+  const username = document.getElementById('l-username').value.trim();
+  const password = document.getElementById('l-password').value;
+  if(!username || !password){ showAuthError('missing_fields'); return false; }
+  try {
+    const res = await api('POST', '/auth/password', { username, password });
+    if(res.ok && res.user){
+      user = {
+        method: 'password',
+        id: res.user.id,
+        name: res.user.first_name,
+        username: res.user.username,
+        role: res.user.role || 'agent',
+      };
+      saveUserLocal(user);
+      await enterApp();
+    } else {
+      showAuthError(res.error || 'invalid_credentials');
+    }
+  } catch(err){ showAuthError('network_error'); }
+  return false;
+}
+
+async function adminRegister(e){
+  e.preventDefault();
+  clearAuthError();
+  const name = document.getElementById('r-name').value.trim();
+  const username = document.getElementById('r-username').value.trim();
+  const password = document.getElementById('r-password').value;
+  if(!username || !password){ showAuthError('missing_fields'); return false; }
+  if(password.length < 4){ showAuthError('password_too_short'); return false; }
+  try {
+    const res = await api('POST', '/auth/register', { username, password, name });
+    if(res.ok && res.user){
+      user = {
+        method: 'password',
+        id: res.user.id,
+        name: res.user.first_name,
+        username: res.user.username,
+        role: res.user.role || 'agent',
+      };
+      saveUserLocal(user);
+      toast('Cont creat! Bine ai venit, ' + user.name);
+      await enterApp();
+    } else {
+      showAuthError(res.error || 'user_exists');
+    }
+  } catch(err){ showAuthError('network_error'); }
+  return false;
 }
 
 function logout(){
@@ -449,7 +495,9 @@ function logout(){
   localStorage.removeItem(WEB_USER_KEY); user = null;
   stopSync();
   try { api('POST', '/logout'); } catch(e) {}
-  goToLogin();
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  showAuthTab('login');
 }
 
 // ── Sync ───────────────────────────────────────────────────────────────────
@@ -482,7 +530,6 @@ async function enterApp(){
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('userchip-name').textContent = user.name;
-  document.getElementById('user-avatar').textContent = user.name ? user.name.trim().charAt(0).toUpperCase() : '—';
   document.getElementById('s-name').value = user.name;
   document.getElementById('settings-login-method').textContent = user.method === 'password' ? 'Cont și parolă' : 'Guest';
   document.getElementById('settings-username').textContent = user.username || '—';
@@ -640,24 +687,6 @@ async function deleteEntry(id){
   } catch(e){ toast('Eroare la ștergere'); }
 }
 
-async function wipeList(){
-  const visible = getVisibleList();
-  if(visible.length === 0){ toast('Nimic de șters'); return; }
-  const scopeLabel = currentScope === 'mine' ? 'înregistrările tale' : 'TOATE înregistrările (ale întregii echipe)';
-  const typeLabel = currentFilter === 'all' ? '' : ' de tip ' + currentFilter;
-  if(!confirm(`Ștergi ${visible.length} înregistrare(ări) — ${scopeLabel}${typeLabel}? Nu poate fi anulat.`)) return;
-  const ids = visible.map(e => e.id);
-  let failed = 0;
-  for(const id of ids){
-    try { await api('DELETE', '/api/entries/' + id); }
-    catch(e){ failed++; }
-  }
-  entries = entries.filter(e => !ids.includes(e.id));
-  renderList();
-  updateSidebar();
-  toast(failed ? `Șterse ${ids.length - failed}, ${failed} eșuate` : `Șterse ${ids.length} înregistrare(ări)`);
-}
-
 function buildListText(list){
   const rows = [...list].sort((a,b)=> a.date.localeCompare(b.date));
   if(rows.length===0) return null;
@@ -692,7 +721,7 @@ async function exportXLSX(){
     { header:'Added By', key:'addedBy', width:18 },
   ];
 
-  const RED = 'FFE0592A', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0';
+  const RED = 'FFC8102E', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0';
 
   const header = ws.getRow(1);
   header.height = 24;
@@ -729,10 +758,7 @@ async function exportXLSX(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `oil-change-list_${new Date().toISOString().slice(0,10)}.xlsx`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  a.click(); URL.revokeObjectURL(url);
   toast('Excel descărcat');
 }
 function shareList(){
@@ -752,7 +778,6 @@ function saveName(){
   const name = document.getElementById('s-name').value.trim() || user.name;
   user.name = name; saveUserLocal(user);
   document.getElementById('userchip-name').textContent = name;
-  document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
   toast('Nume actualizat');
 }
 
@@ -772,14 +797,16 @@ function saveName(){
       };
       saveUserLocal(user);
       await enterApp();
-    } else {
-      // No server session — send to the shared login page
+    } else if(user && user.method === 'password') {
+      // Try silent re-login with cached credentials is not possible (no stored pwd) — show login
       user = null; localStorage.removeItem(WEB_USER_KEY);
-      goToLogin();
+      icons();
+    } else {
+      icons();
     }
   } catch(e) {
-    // Server unreachable — if we have a cached user, enter anyway; otherwise go log in
-    if(user) await enterApp(); else goToLogin();
+    // Server unreachable
+    if(user) await enterApp(); else icons();
   }
 
   if('serviceWorker' in navigator){

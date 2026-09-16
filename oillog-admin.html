@@ -9,8 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#FFFFFF;--surface:#FAF9F6;--surface-2:#F9F7F5;--border:#E5E3E0;--border-2:#D8D5D0;--white:#1A1A1A;--dim:#6B6B6B;--faint:#9A9A9A;--red:#E0592A;--red-tint:rgba(224,89,42,.09);--amber:#B7791F;--amber-tint:rgba(183,121,31,.11);--green:#3A7D44;--green-tint:rgba(58,125,68,.1);--sidebar:#1A1A1A;--sidebar-text:#C9C7C2;--sidebar-active:#FFF;--sidebar-active-bg:rgba(255,255,255,.1);--r:10px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-lg:0 10px 34px rgba(0,0,0,.08);--fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;--bg-img:url("https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=60");}
-html[data-theme="dark"]{--bg:#000000;--surface:#1C1C1C;--surface-2:#242424;--border:#333;--border-2:#3D3D3D;--white:#ECECEC;--dim:#A2A2A2;--faint:#777;--red-tint:rgba(224,89,42,.16);--amber-tint:rgba(183,121,31,.16);--green-tint:rgba(58,125,68,.16);--sidebar:#0D0D0D;--sidebar-text:#8A8A8A;--sidebar-active:#FFF;--sidebar-active-bg:rgba(255,255,255,.09);--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 34px rgba(0,0,0,.5);}
+:root{--bg:#F4F4F2;--surface:#FFF;--surface-2:#F9F7F5;--border:#E5E3E0;--border-2:#D8D5D0;--white:#1A1A1A;--dim:#6B6B6B;--faint:#9A9A9A;--red:#C8102E;--red-tint:rgba(200,16,46,.09);--amber:#B7791F;--amber-tint:rgba(183,121,31,.11);--green:#3A7D44;--green-tint:rgba(58,125,68,.1);--sidebar:#1A1A1A;--sidebar-text:#C9C7C2;--sidebar-active:#FFF;--sidebar-active-bg:rgba(255,255,255,.1);--r:6px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-lg:0 10px 34px rgba(0,0,0,.08);--fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;--bg-img:url("https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=60");}
+html[data-theme="dark"]{--bg:#121212;--surface:#1C1C1C;--surface-2:#242424;--border:#333;--border-2:#3D3D3D;--white:#ECECEC;--dim:#A2A2A2;--faint:#777;--red-tint:rgba(200,16,46,.16);--amber-tint:rgba(183,121,31,.16);--green-tint:rgba(58,125,68,.16);--sidebar:#0D0D0D;--sidebar-text:#8A8A8A;--sidebar-active:#FFF;--sidebar-active-bg:rgba(255,255,255,.09);--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 34px rgba(0,0,0,.5);}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--white);font-family:var(--fb);height:100%}body{display:flex}
 .sidebar{width:240px;min-width:240px;background:var(--sidebar);color:var(--sidebar-text);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;transition:transform .2s}
 .s-brand{padding:24px 22px 18px;border-bottom:1px solid rgba(255,255,255,.09)}.brand{font-family:var(--fd);font-weight:700;font-size:22px;letter-spacing:3px;color:#fff}.brand span{color:var(--red)}.s-brand small{display:block;font-family:var(--fb);font-weight:500;font-size:10.5px;letter-spacing:.5px;color:var(--sidebar-text);margin-top:2px;text-transform:uppercase}
@@ -30,7 +30,7 @@ html[data-theme="dark"]{--bg:#000000;--surface:#1C1C1C;--surface-2:#242424;--bor
 .content{padding:24px 28px 60px;position:relative;z-index:1}
 .main::before{content:'';position:fixed;top:0;right:0;width:100%;height:100%;background-image:var(--bg-img);background-repeat:no-repeat;background-size:cover;background-position:center;opacity:.05;pointer-events:none;z-index:0}
 button{cursor:pointer;font-family:var(--fb)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.8px;text-transform:uppercase;transition:all .15s}.btn:hover{background:var(--surface-2);border-color:var(--border-2)}.btn i,.btn svg{width:15px;height:15px}.btn-primary{background:var(--red);border-color:var(--red);color:#fff}.btn-primary:hover{background:#B0431E;border-color:#B0431E}.btn-danger{background:transparent;color:var(--red);border-color:var(--red)}.btn-ghost{background:transparent;border-color:transparent;color:var(--dim)}.btn-sm{padding:6px 10px;font-size:11px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.8px;text-transform:uppercase;transition:all .15s}.btn:hover{background:var(--surface-2);border-color:var(--border-2)}.btn i,.btn svg{width:15px;height:15px}.btn-primary{background:var(--red);border-color:var(--red);color:#fff}.btn-primary:hover{background:#A80725;border-color:#A80725}.btn-danger{background:transparent;color:var(--red);border-color:var(--red)}.btn-ghost{background:transparent;border-color:transparent;color:var(--dim)}.btn-sm{padding:6px 10px;font-size:11px}
 .page{display:none}.page.active{display:block;animation:fadeIn .2s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}.page-head h2{font-family:var(--fd);font-size:22px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0}.page-head p{color:var(--dim);font-size:13px;margin:4px 0 0}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}.stat-card .s-icon{width:38px;height:38px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin-bottom:12px}.stat-card .s-icon i,.stat-card .s-icon svg{width:18px;height:18px}.stat-card .n{font-family:var(--fd);font-size:30px;font-weight:700;line-height:1.1}.stat-card .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}.stat-card.accent .s-icon{background:var(--red-tint);color:var(--red)}.stat-card.accent .n{color:var(--red)}.stat-card.green .s-icon{background:var(--green-tint);color:var(--green)}.stat-card.green .n{color:var(--green)}.stat-card.amber .s-icon{background:var(--amber-tint);color:var(--amber)}.stat-card.amber .n{color:var(--amber)}.stat-card.blue .s-icon{background:rgba(59,130,246,.1);color:#3B82F6}.stat-card.blue .n{color:#3B82F6}
@@ -203,14 +203,13 @@ input[type=number],input[type=text],input[type=password],input[type=email],selec
     <!-- USERS -->
     <div class="page" id="page-users">
       <div class="page-head">
-        <div><h2>Users</h2><p>Manage accounts for the mobile app — create, edit roles, reset passwords, approve new registrations.</p></div>
+        <div><h2>Users</h2><p>Manage accounts for the mobile app — create, edit roles, reset passwords.</p></div>
         <button class="btn btn-primary" onclick="openUserModal()"><i data-lucide="user-plus"></i>Add user</button>
       </div>
       <div class="toolbar">
         <div class="search" style="width:100%;max-width:360px;"><i data-lucide="search"></i><input id="user-search" placeholder="Search name or username..." oninput="renderUsersPage()"></div>
         <div class="pill-group">
           <div class="pill" data-urole="all" onclick="setUserRoleFilter('all')">All</div>
-          <div class="pill" data-urole="pending" onclick="setUserRoleFilter('pending')">Pending <span id="pending-count-pill"></span></div>
           <div class="pill" data-urole="agent" onclick="setUserRoleFilter('agent')">Agent</div>
           <div class="pill" data-urole="developer" onclick="setUserRoleFilter('developer')">Developer</div>
           <div class="pill" data-urole="super_admin" onclick="setUserRoleFilter('super_admin')">Super Admin</div>
@@ -219,9 +218,9 @@ input[type=number],input[type=text],input[type=password],input[type=email],selec
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Username</th><th>Name</th><th>Role</th><th>Status</th><th>Created</th><th style="text-align:right;">Actions</th>
+            <th>Username</th><th>Name</th><th>Role</th><th>Created</th><th style="text-align:right;">Actions</th>
           </tr></thead>
-          <tbody id="users-tbody"><tr class="empty-row"><td colspan="6"><i data-lucide="users"></i><div>Loading users...</div></td></tr></tbody>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="5"><i data-lucide="users"></i><div>Loading users...</div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -403,7 +402,7 @@ input[type=number],input[type=text],input[type=password],input[type=email],selec
 <script>
 const API_BASE = window.location.origin;
 const ADMIN_USER_KEY = 'oillog_admin_user_v3';
-const THEME_KEY = 'oillog_theme';
+const THEME_KEY = 'oillog_admin_theme';
 const NOTIF_KEY = 'oillog_admin_notif';
 
 let adminUser = null;
@@ -899,9 +898,6 @@ async function loadUsers(){
   try{
     const data = await api('GET', '/api/users');
     allUsers = data.users || [];
-    const pendingCount = allUsers.filter(u => !u.approved).length;
-    const badge = document.getElementById('pending-count-pill');
-    if(badge) badge.textContent = pendingCount > 0 ? `(${pendingCount})` : '';
     renderUsersPage();
   } catch(e){ toast('Error loading users'); }
 }
@@ -909,41 +905,27 @@ async function loadUsers(){
 function renderUsersPage(){
   const q = (document.getElementById('user-search').value||'').toLowerCase().trim();
   let list = allUsers.filter(u=>{
-    if(userRoleFilter==='pending'){ if(u.approved) return false; }
-    else if(userRoleFilter!=='all' && u.role!==userRoleFilter) return false;
+    if(userRoleFilter!=='all' && u.role!==userRoleFilter) return false;
     if(q && !(u.username.toLowerCase().includes(q) || (u.name||'').toLowerCase().includes(q))) return false;
     return true;
   });
   const tbody = document.getElementById('users-tbody');
   if(list.length===0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6"><i data-lucide="users"></i><div>No users found.</div></td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5"><i data-lucide="users"></i><div>No users found.</div></td></tr>`;
   } else {
     tbody.innerHTML = list.map(u=>`
       <tr>
         <td class="unit">@${escapeHtml(u.username)}</td>
         <td>${escapeHtml(u.name)}</td>
         <td><span class="type-tag" style="border-color:${u.role==='agent'?'var(--border-2)':u.role==='developer'?'var(--green)':'var(--red)'}; color:${u.role==='agent'?'var(--dim)':u.role==='developer'?'var(--green)':'var(--red)'};">${u.role.replace('_',' ')}</span></td>
-        <td>${u.approved
-            ? `<span class="type-tag" style="border-color:var(--green);color:var(--green);">Approved</span>`
-            : `<span class="type-tag" style="border-color:var(--amber);color:var(--amber);">Pending</span>`}</td>
         <td class="date">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US') : '—'}</td>
         <td><div class="row-actions">
-          ${u.approved ? '' : `<button class="icon-btn" onclick="approveUser('${escapeHtml(u.username)}')" title="Approve" style="color:var(--green);"><i data-lucide="check"></i></button>`}
           <button class="icon-btn" onclick="openUserModal('${escapeHtml(u.username)}')" title="Edit"><i data-lucide="pencil"></i></button>
           <button class="icon-btn" onclick="deleteUser('${escapeHtml(u.username)}')" title="Delete" style="color:var(--red);"><i data-lucide="trash-2"></i></button>
         </div></td>
       </tr>`).join('');
   }
   icons();
-}
-
-async function approveUser(username){
-  if(!confirm(`Approve @${username}? They will be able to sign in.`)) return;
-  try{
-    await api('POST', `/api/users/${encodeURIComponent(username)}/approve`);
-    toast('User approved');
-    await loadUsers();
-  } catch(e){ toast('Error approving user'); }
 }
 
 let editingUsername = null;

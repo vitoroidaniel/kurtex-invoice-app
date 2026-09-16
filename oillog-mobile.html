@@ -14,8 +14,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#FFFFFF;--surface:#FAF9F6;--surface-2:#F9F7F5;--surface-3:#F3F1EE;--border:#E5E3E0;--border-2:#D8D5D0;--white:#1A1A1A;--dim:#6B6B6B;--faint:#9A9A9A;--red:#E0592A;--red-deep:#B0431E;--red-tint:rgba(224,89,42,.09);--amber:#B7791F;--amber-tint:rgba(183,121,31,.11);--green:#3A7D44;--green-tint:rgba(58,125,68,.1);--r:10px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-lg:0 10px 34px rgba(0,0,0,.08);--fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;}
-html[data-theme="dark"]{--bg:#000000;--surface:#1C1C1C;--surface-2:#242424;--surface-3:#1A1A1A;--border:#333;--border-2:#3D3D3D;--white:#ECECEC;--dim:#A2A2A2;--faint:#777;--red:#F27A47;--red-deep:#E0592A;--red-tint:rgba(224,89,42,.16);--amber-tint:rgba(183,121,31,.16);--green-tint:rgba(58,125,68,.16);--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 34px rgba(0,0,0,.5);}
+:root{--bg:#F4F4F2;--surface:#FFF;--surface-2:#F9F7F5;--surface-3:#F3F1EE;--border:#E5E3E0;--border-2:#D8D5D0;--white:#1A1A1A;--dim:#6B6B6B;--faint:#9A9A9A;--red:#C8102E;--red-tint:rgba(200,16,46,.09);--amber:#B7791F;--amber-tint:rgba(183,121,31,.11);--green:#3A7D44;--green-tint:rgba(58,125,68,.1);--r:6px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-lg:0 10px 34px rgba(0,0,0,.08);--fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;}
+html[data-theme="dark"]{--bg:#121212;--surface:#1C1C1C;--surface-2:#242424;--surface-3:#1A1A1A;--border:#333;--border-2:#3D3D3D;--white:#ECECEC;--dim:#A2A2A2;--faint:#777;--red-tint:rgba(200,16,46,.16);--amber-tint:rgba(183,121,31,.16);--green-tint:rgba(58,125,68,.16);--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 34px rgba(0,0,0,.5);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--white);font-family:var(--fb);overflow:hidden;}
 body{display:flex;justify-content:center;overscroll-behavior:none;}
@@ -36,16 +36,6 @@ body{display:flex;justify-content:center;overscroll-behavior:none;}
 .userchip img{width:20px;height:20px;border-radius:50%;object-fit:cover;}
 .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--green-tint);color:var(--green);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
 .live-pill .s-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
-
-.user-block{display:flex;align-items:center;gap:9px;}
-.avatar-wrap{position:relative;flex-shrink:0;}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--red-tint);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:var(--fd);overflow:hidden;}
-.avatar img{width:100%;height:100%;object-fit:cover;}
-.status-dot{position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--surface);}
-.status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1.5px solid var(--green);opacity:.5;animation:pulse-ring 2s ease-out infinite;}
-@keyframes pulse-ring{0%{transform:scale(.6);opacity:.6;}100%{transform:scale(1.6);opacity:0;}}
-.user-name{font-size:13px;font-weight:600;color:var(--white);line-height:1.25;}
-.user-time{font-size:10.5px;color:var(--faint);margin-top:1px;font-family:var(--fm);}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── Screens ─────────────────────────────────────────────── */
@@ -62,13 +52,16 @@ p.page-sub{color:var(--dim);font-size:13px;margin:0 0 18px;line-height:1.5;}
 .login-title span{color:var(--red);}
 .login-tag{font-size:12px;letter-spacing:.5px;color:var(--faint);margin-bottom:8px;text-transform:uppercase;}
 .login-sub{color:var(--dim);font-size:14px;margin-bottom:28px;max-width:320px;line-height:1.6;margin-left:auto;margin-right:auto;}
+.login-error{width:100%;background:var(--red-tint);border:1px solid rgba(200,16,46,.25);color:var(--red);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:var(--r);margin-bottom:18px;text-align:left;}
+.login-form{display:flex;flex-direction:column;gap:12px;width:100%;text-align:left;}
+.login-form input{width:100%;padding:13px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:var(--fm);font-size:14px;outline:none;transition:all .15s;}
+.login-form input::placeholder{color:var(--faint);}
+.login-form input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint);}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--white);font-family:var(--fd);font-weight:600;font-size:12px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:all .15s;width:100%;}
 .btn:hover{background:var(--surface-2);border-color:var(--border-2);}
 .btn i,.btn svg{width:15px;height:15px;}
 .btn-primary{background:var(--red);border-color:var(--red);color:#fff;}
-.btn-primary:hover{background:#B0431E;border-color:#B0431E;}
-.btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
-.btn-danger:hover{background:var(--red-tint);}
+.btn-primary:hover{background:#A80725;border-color:#A80725;}
 .muted{font-size:10px;color:var(--faint);margin-top:8px;}
 
 /* ── Cards & forms ───────────────────────────────────────── */
@@ -156,19 +149,12 @@ input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;}
 .settings-row .r{color:var(--white);font-size:12px;font-family:var(--fm);}
 
 /* ── Bottom nav ──────────────────────────────────────────── */
-.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:0 16px calc(16px + env(safe-area-inset-bottom));z-index:20;}
-.bottomnav-inner{display:flex;align-items:center;gap:4px;background:var(--red);border-radius:999px;box-shadow:0 10px 28px rgba(224,89,42,.35);padding:8px;}
-.navbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 14px;border-radius:999px;background:none;border:none;color:rgba(255,255,255,.72);font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.4px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:background .15s,color .15s,padding .15s,flex .15s;flex:0 0 auto;}
-.navbtn i,.navbtn svg{width:19px;height:19px;flex-shrink:0;}
-.navbtn .navbtn-label{display:none;}
-.navbtn.active{background:#fff;color:var(--red-deep);padding:0 18px 0 14px;flex:1 1 auto;}
-.navbtn.active .navbtn-label{display:inline;}
-html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red-deep);}
-
-/* floating add button, deliberately separate from the nav so it can't be tapped by mistake */
-.add-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:20;display:flex;align-items:center;gap:8px;height:48px;padding:0 22px;border-radius:999px;background:var(--red);color:#fff;border:none;font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 8px 20px rgba(224,89,42,.4);cursor:pointer;}
-.add-fab:active{background:var(--red-deep);}
-.add-fab i,.add-fab svg{width:18px;height:18px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:20;}
+.bottomnav-inner{width:100%;display:flex;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(0,0,0,.04);padding:8px 16px calc(8px + env(safe-area-inset-bottom));}
+html[data-theme="dark"] .bottomnav-inner{background:rgba(28,28,28,.96);}
+.navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--faint);font-family:var(--fd);font-size:10px;font-weight:600;letter-spacing:.5px;cursor:pointer;padding:4px 0;text-transform:uppercase;}
+.navbtn i,.navbtn svg{width:20px;height:20px;}
+.navbtn.active{color:var(--red);}
 
 /* ── Toast ───────────────────────────────────────────────── */
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--red);color:#FFF;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;pointer-events:none;z-index:50;white-space:nowrap;transition:opacity .15s;}
@@ -210,14 +196,13 @@ html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red
   #screen-list .filters{grid-column:1;}
   #screen-list #list-container{grid-column:1;}
   #screen-list .btn-row,#screen-list > button.btn{grid-column:1;}
-  .bottomnav{position:sticky;bottom:auto;top:0;left:auto;right:auto;justify-content:flex-start;padding:0;}
-  .bottomnav-inner{max-width:none;width:auto;background:transparent;box-shadow:none;padding:0;gap:6px;border-radius:0;}
-  .navbtn{flex:none !important;padding:10px 16px !important;border-radius:var(--r);gap:7px;background:none;color:var(--dim);}
-  .navbtn .navbtn-label{display:inline !important;}
+  .bottomnav{position:sticky;bottom:auto;top:0;left:auto;right:auto;justify-content:flex-start;}
+  .bottomnav-inner{max-width:none;width:auto;background:transparent;backdrop-filter:none;border-top:none;box-shadow:none;padding:0;gap:6px;}
+  html[data-theme="dark"] .bottomnav-inner{background:transparent;}
+  .navbtn{flex:none;flex-direction:row;padding:10px 16px;border-radius:var(--r);gap:7px;}
   .navbtn:hover{background:var(--surface-2);}
-  .navbtn.active{background:var(--red);color:#fff;padding:10px 16px !important;}
+  .navbtn.active{background:#1A1A1A;color:#fff;}
   #bottomnav{order:-1;border-bottom:1px solid var(--border);}
-  .add-fab{display:none;}
   button.btn{width:auto;padding:14px 22px;}
   #screen-add .btn-primary{width:100%;max-width:560px;}
   .btn-row{max-width:560px;}
@@ -265,19 +250,23 @@ html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red
     <div class="login-card">
       <div class="login-title">OIL<span>LOG</span></div>
       <div class="login-tag">FIELD ENTRY</div>
-      <div class="login-sub">Checking your session…</div>
+      <div class="login-sub">Sign in to log oil changes for the yard.</div>
+      <div id="login-error" class="login-error hidden"></div>
+      <form id="login-form" class="login-form" onsubmit="return false;">
+        <input type="text" id="l-username" placeholder="Username" autocomplete="username" required>
+        <input type="password" id="l-password" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary"><i data-lucide="log-in"></i>Sign in</button>
+      </form>
+      <p class="muted">Accounts are created by the administrator.</p>
     </div>
   </div>
 
   <div class="screen" id="screen-add">
     <div class="topbar">
       <div class="brand">OIL<span>LOG</span></div>
-      <div class="user-block">
-        <div class="avatar-wrap"><div class="avatar" id="user-avatar">—</div><span class="status-dot"></span></div>
-        <div>
-          <div class="user-name" id="userchip-name">—</div>
-          <div class="user-time" id="chicago-time-add">--:-- CT</div>
-        </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="live-pill"><span class="s-dot"></span> Live</span>
+        <div class="userchip"><i data-lucide="user"></i><span id="userchip-name">—</span></div>
       </div>
     </div>
     <h1 class="page-title">New oil change</h1>
@@ -318,15 +307,7 @@ html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red
   </div>
 
   <div class="screen" id="screen-list">
-    <div class="topbar"><div class="brand">LIST</div>
-      <div class="user-block">
-        <div class="avatar-wrap"><div class="avatar user-avatar-mirror">—</div><span class="status-dot"></span></div>
-        <div>
-          <div class="user-name userchip-name-mirror">—</div>
-          <div class="user-time" id="chicago-time-list">--:-- CT</div>
-        </div>
-      </div>
-    </div>
+    <div class="topbar"><div class="brand">LIST</div></div>
     <div class="summary-bar">
       <div><div class="num" id="sum-count">0</div><div class="lbl">records</div></div>
       <div style="text-align:right"><div class="num" id="sum-pending">0</div><div class="lbl">pending</div></div>
@@ -346,20 +327,11 @@ html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red
         <button class="btn" style="flex:1" onclick="exportXLSX()"><i data-lucide="download"></i>Excel</button>
         <button class="btn" style="flex:1" onclick="shareList()"><i data-lucide="share"></i>Share</button>
       </div>
-      <button class="btn btn-danger" style="width:100%;margin-top:10px;" onclick="wipeList()"><i data-lucide="trash-2"></i>Wipe list</button>
     </div>
   </div>
 
   <div class="screen" id="screen-settings">
-    <div class="topbar"><div class="brand">SETTINGS</div>
-      <div class="user-block">
-        <div class="avatar-wrap"><div class="avatar user-avatar-mirror">—</div><span class="status-dot"></span></div>
-        <div>
-          <div class="user-name userchip-name-mirror">—</div>
-          <div class="user-time" id="chicago-time-settings">--:-- CT</div>
-        </div>
-      </div>
-    </div>
+    <div class="topbar"><div class="brand">SETTINGS</div></div>
     <div class="card">
       <div class="field">
         <label class="field-label"><i data-lucide="user"></i>Your name</label>
@@ -371,28 +343,17 @@ html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red
       <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
       <div class="settings-row"><div class="l">Version</div><div class="r">4.0</div></div>
     </div>
-    <div class="card">
-      <div class="settings-row">
-        <div class="l">Appearance</div>
-        <div style="display:flex;gap:6px;">
-          <button type="button" class="chip theme-opt active" data-theme-choice="light" onclick="setTheme('light')" style="padding:6px 12px;font-size:11px;flex-direction:row;"><i data-lucide="sun"></i>Light</button>
-          <button type="button" class="chip theme-opt" data-theme-choice="dark" onclick="setTheme('dark')" style="padding:6px 12px;font-size:11px;flex-direction:row;"><i data-lucide="moon"></i>Dark</button>
-        </div>
-      </div>
-    </div>
     <p style="font-size:12px;color:var(--faint);line-height:1.6;margin-bottom:20px;">Data is shared with the whole team — any entry added here appears in the admin panel.</p>
     <button class="btn" style="border-color:var(--red);color:var(--red);background:transparent;" onclick="logout()"><i data-lucide="log-out"></i>Logout</button>
   </div>
 
   <div class="bottomnav hidden" id="bottomnav">
     <div class="bottomnav-inner">
-      <button class="navbtn active" data-screen="add" onclick="showScreen('add')"><i data-lucide="home"></i><span class="navbtn-label">HOME</span></button>
-      <button class="navbtn" data-screen="list" onclick="showScreen('list')"><i data-lucide="list"></i><span class="navbtn-label">LIST</span></button>
-      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><i data-lucide="settings"></i><span class="navbtn-label">SETTINGS</span></button>
+      <button class="navbtn active" data-screen="add" onclick="showScreen('add')"><i data-lucide="plus-circle"></i>ADD</button>
+      <button class="navbtn" data-screen="list" onclick="showScreen('list')"><i data-lucide="list"></i>LIST</button>
+      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><i data-lucide="settings"></i>SETTINGS</button>
     </div>
   </div>
-
-  <button class="add-fab hidden" id="add-fab" onclick="showScreen('add')"><i data-lucide="plus"></i>ADD</button>
 
   <div class="toast" id="toast"></div>
 </div>
@@ -400,28 +361,6 @@ html[data-theme="dark"] .navbtn.active{background:var(--surface);color:var(--red
 <script>
 const API_BASE = window.location.origin;
 const USER_KEY = 'oillog_user_v4';
-const THEME_KEY = 'oillog_theme';
-
-function loadTheme(){ return localStorage.getItem(THEME_KEY) || 'light'; }
-function applyTheme(t){
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem(THEME_KEY, t);
-  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.toggle('active', o.dataset.themeChoice===t));
-  if(window.lucide) lucide.createIcons();
-}
-function toggleTheme(){ applyTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark'); }
-function setTheme(t){ applyTheme(t); }
-applyTheme(loadTheme());
-
-function updateChicagoTime(){
-  const formatted = new Intl.DateTimeFormat('en-US', {timeZone:'America/Chicago', hour:'2-digit', minute:'2-digit', hour12:false}).format(new Date()) + ' CT';
-  ['chicago-time-add','chicago-time-list','chicago-time-settings'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.textContent = formatted;
-  });
-}
-updateChicagoTime();
-setInterval(updateChicagoTime, 30000);
 
 let user = null;
 let entries = [];
@@ -452,17 +391,56 @@ async function api(method, path, body){
   return data;
 }
 
-// ── Login (handled by the shared /login page — this app only redirects there) ──
-function goToLogin(){
-  window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+// ── Login ──────────────────────────────────────────────────────────────────
+const LOGIN_ERROR_MESSAGES = {
+  missing_fields: 'Enter your username and password.',
+  invalid_credentials: 'Incorrect username or password.',
+  network_error: 'Could not reach the server. Try again.',
+};
+function showLoginError(code, raw){
+  const box = document.getElementById('login-error');
+  if(!box) return;
+  box.textContent = LOGIN_ERROR_MESSAGES[code] || (raw || 'Login failed. Try again.');
+  box.classList.remove('hidden');
 }
+function clearLoginError(){
+  const box = document.getElementById('login-error');
+  if(box){ box.classList.add('hidden'); box.textContent=''; }
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  clearLoginError();
+  const username = document.getElementById('l-username').value.trim();
+  const password = document.getElementById('l-password').value;
+  if(!username || !password){ showLoginError('missing_fields'); return; }
+  try {
+    const res = await api('POST', '/auth/password', { username, password });
+    if(res.ok && res.user){
+      const su = res.user;
+      user = {
+        method: 'password',
+        id: su.id,
+        name: su.first_name || su.username || username,
+        username: su.username || username,
+        role: su.role || 'agent',
+      };
+      saveUserLocal(user);
+      await enterApp();
+    } else {
+      showLoginError(res.error || 'invalid_credentials');
+    }
+  } catch(err){ showLoginError('network_error'); }
+});
 
 function logout(){
   if(!confirm('Are you sure you want to logout?')) return;
   localStorage.removeItem(USER_KEY); user = null;
   stopSync();
   try { api('POST', '/logout'); } catch(e) {}
-  goToLogin();
+  document.getElementById('bottomnav').classList.add('hidden');
+  document.getElementById('login-form').reset();
+  showScreen('login');
 }
 
 // ── Sync ───────────────────────────────────────────────────────────────────
@@ -491,20 +469,14 @@ async function fetchAllEntries(){
 
 // ── Enter app ──────────────────────────────────────────────────────────────
 async function enterApp(){
-  const initial = user && user.name ? user.name.trim().charAt(0).toUpperCase() : '—';
   if(user && user.photo_url) {
-    document.getElementById('user-avatar').innerHTML = `<img src="${user.photo_url}" alt="">`;
-    document.querySelectorAll('.user-avatar-mirror').forEach(el=>el.innerHTML = `<img src="${user.photo_url}" alt="">`);
+    document.getElementById('userchip').innerHTML = `<img src="${user.photo_url}" alt=""> <span id="userchip-name">${user.name}</span>`;
   } else {
-    document.getElementById('user-avatar').textContent = initial;
-    document.querySelectorAll('.user-avatar-mirror').forEach(el=>el.textContent = initial);
+    document.getElementById('userchip-name').textContent = user ? user.name : '—';
   }
-  document.getElementById('userchip-name').textContent = user ? user.name : '—';
-  document.querySelectorAll('.userchip-name-mirror').forEach(el=>el.textContent = user ? user.name : '—');
   document.getElementById('s-name').value = user ? user.name : '';
   document.getElementById('settings-login-method').textContent = user ? 'Account ('+user.name+')' : '—';
   document.getElementById('bottomnav').classList.remove('hidden');
-  document.getElementById('add-fab').classList.remove('hidden');
   document.getElementById('f-date').value = '';
   const fDateDisp = document.getElementById('f-date-display');
   if(fDateDisp){ fDateDisp.textContent = 'Select date'; fDateDisp.classList.add('placeholder'); }
@@ -647,23 +619,6 @@ async function deleteEntry(id){
   } catch(e){ toast('Error deleting'); }
 }
 
-async function wipeList(){
-  const visible = getVisibleList();
-  if(visible.length === 0){ toast('Nothing to wipe'); return; }
-  const scopeLabel = currentScope === 'mine' ? 'your entries' : 'ALL entries (everyone\'s)';
-  const typeLabel = currentFilter === 'all' ? '' : ' of type ' + currentFilter;
-  if(!confirm(`Delete ${visible.length} record(s) — ${scopeLabel}${typeLabel}? This cannot be undone.`)) return;
-  const ids = visible.map(e => e.id);
-  let failed = 0;
-  for(const id of ids){
-    try { await api('DELETE', '/api/entries/' + id); }
-    catch(e){ failed++; }
-  }
-  entries = entries.filter(e => !ids.includes(e.id));
-  renderList();
-  toast(failed ? `Wiped ${ids.length - failed}, ${failed} failed` : `Wiped ${ids.length} record(s)`);
-}
-
 function buildListText(list){
   const rows = [...list].sort((a,b)=> a.date.localeCompare(b.date));
   if(rows.length===0) return null;
@@ -698,7 +653,7 @@ async function exportXLSX(){
     { header:'Added By', key:'addedBy', width:18 },
   ];
 
-  const RED = 'FFE0592A', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0';
+  const RED = 'FFC8102E', DARK = 'FF1A1A1A', LIGHT = 'FFF9F7F5', BORDER = 'FFE5E3E0';
 
   const header = ws.getRow(1);
   header.height = 24;
@@ -736,10 +691,7 @@ async function exportXLSX(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `oil-change-list_${new Date().toISOString().slice(0,10)}.xlsx`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  a.click(); URL.revokeObjectURL(url);
   toast('Excel downloaded');
 }
 function shareList(){
@@ -785,14 +737,16 @@ function saveName(){
       };
       saveUserLocal(user);
       await enterApp();
-    } else {
-      // No server session — send to the shared login page
+    } else if(user) {
+      // No server session — try silent re-login with username/password
       user = null; localStorage.removeItem(USER_KEY);
-      goToLogin();
+      icons();
+    } else {
+      icons();
     }
   } catch(e) {
-    // Server unreachable — if we have a cached user, enter anyway; otherwise go log in
-    if(user) await enterApp(); else goToLogin();
+    // Server unreachable — if we have a cached user, enter anyway
+    if(user) await enterApp(); else icons();
   }
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
