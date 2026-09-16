@@ -116,3 +116,23 @@ html[data-theme="dark"] .bottomnav-inner{background:rgba(28,28,28,.96);}
 /* ── Chicago live clock ───────────────────────────────── */
 .chicago-time{font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.15px;white-space:nowrap;}
 @media (max-width:380px){.chicago-time{font-size:8px;}}
+
+.sync-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid var(--border);border-radius:999px;background:var(--surface);font-family:var(--fd);font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.sync-dot{width:5px;height:5px;border-radius:50%;background:#5B8DEF;}
+.sync-pill.syncing .sync-dot{background:#E0A33A;} .sync-pill.offline .sync-dot{background:#999;}
+.unit-history-link{cursor:pointer;}
+button.unit-history-link{border:0;background:none;padding:0;color:inherit;font:inherit;text-align:left;}
+.unit-history-overlay{position:fixed;inset:0;z-index:90;background:rgba(10,18,32,.42);display:flex;align-items:flex-end;justify-content:center;padding:0;}
+.unit-history-overlay.hidden{display:none;}
+.unit-history-modal{width:100%;max-height:82vh;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:18px 18px 0 0;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;}
+.unit-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px;border-bottom:1px solid var(--border);}
+.unit-history-kicker{font-family:var(--fd);font-size:8px;letter-spacing:1.3px;color:var(--red);font-weight:700;}
+.unit-history-head h2{margin:3px 0 2px;font-family:var(--fm);font-size:20px;color:var(--navy);}
+.unit-history-head p{margin:0;font-size:11px;color:var(--dim);}
+.unit-history-close{width:32px;height:32px;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--dim);}
+.unit-history-list{overflow:auto;padding:8px 14px 20px;}
+.history-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 4px;border-bottom:1px solid var(--border);}
+.history-row strong{display:block;font-family:var(--fd);font-size:13px;color:var(--navy);}
+.history-row span{display:block;margin-top:3px;font-size:10px;color:var(--dim);}
+.history-reading{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;}
+.history-reading small{font-family:var(--fb);font-size:8px;color:var(--faint);text-transform:uppercase;}

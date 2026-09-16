@@ -1,4 +1,4 @@
-const CACHE = 'oillog-v13';
+const CACHE = 'oillog-v14';
 // './' is the app shell: the server picks mobile or desktop from the
 // User-Agent, so whatever gets cached here is already the right layout for
 // this device. The pages are never cached at their /pages/*.html path,
@@ -7,10 +7,10 @@ const CACHE = 'oillog-v13';
 const SHELL = './';
 const ASSETS = [
   './',
-  './css/app-base.css?v=11',
-  './css/app-mobile.css?v=11',
-  './css/app-desktop.css?v=11',
-  './js/app.js?v=11',
+  './css/app-base.css?v=12',
+  './css/app-mobile.css?v=14',
+  './css/app-desktop.css?v=14',
+  './js/app.js?v=14',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

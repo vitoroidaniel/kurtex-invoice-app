@@ -9,8 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=9">
-<link rel="stylesheet" href="css/app-desktop.css?v=13">
+<link rel="stylesheet" href="css/app-base.css?v=14">
+<link rel="stylesheet" href="css/app-desktop.css?v=14">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -34,19 +34,28 @@
   </div>
 </div>
 
+<div class="unit-history-overlay hidden" id="unit-history-overlay" onclick="closeUnitHistory(event)">
+  <div class="unit-history-modal" onclick="event.stopPropagation()">
+    <div class="unit-history-head">
+      <div><div class="unit-history-kicker">UNIT HISTORY</div><h2 id="unit-history-title">Unit</h2><p id="unit-history-summary">Oil change history</p></div>
+      <button type="button" class="unit-history-close" onclick="closeUnitHistory()"><span class="ph ph-x"></span></button>
+    </div>
+    <div id="unit-history-list" class="unit-history-list"></div>
+  </div>
+</div>
+
 <div id="app" data-layout="desktop">
 
   <!-- ── Sidebar ────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
-    <div class="side-brand">OIL<span>LOG</span></div>
     <div class="side-section-label">Workspace</div>
     <nav class="side-nav">
       <button type="button" class="side-navbtn" data-screen="add" onclick="showScreen('add')"><span class="ph ph-plus-circle"></span>Add record</button>
       <button type="button" class="side-navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list"></span>Records</button>
       <button type="button" class="side-navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six"></span>Settings</button>
     </nav>
-    <div class="side-live"><span class="dot"></span><div><strong>Live system</strong><small>Chicago time · Central</small></div></div>
     <div class="side-foot">
+      <div class="side-live"><span class="dot"></span><div><strong>Live system</strong><small>Chicago time · Central · <span class="side-chicago-time chicago-time">--:-- -- CT</span></small></div></div>
       <div class="side-user">
         <div class="avatar"><span class="ph ph-user"></span></div>
         <div class="who">
@@ -66,6 +75,7 @@
         <p class="head-sub" id="head-sub">Complete after each invoice from the shop.</p>
       </div>
       <div class="head-right">
+        <span class="sync-pill" id="sync-pill"><span class="sync-dot"></span><span id="sync-label">Synced</span></span>
         <span class="live-pill"><span class="s-dot"></span> Live <span class="chicago-time" id="chicago-time">--:-- -- CT</span></span>
         <div class="userchip"><span class="ph ph-user"></span><span class="userchip-name">—</span></div>
       </div>
@@ -196,6 +206,6 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="js/app.js?v=13"></script>
+<script src="js/app.js?v=14"></script>
 </body>
 </html>

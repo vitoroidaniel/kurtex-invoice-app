@@ -46,7 +46,7 @@ BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric) — set in Railway env
 # Build stamp — bump this with every release. It is exposed at /api/version and
 # echoed by the front-end, so a stale deployment or a stuck service-worker cache
 # is instantly visible instead of silently serving an old layout.
-APP_BUILD = "13"
+APP_BUILD = "14"
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
@@ -487,6 +487,11 @@ def api_create_entry():
     if not data.get("id") or not data.get("unit"):
         return jsonify({"error": "missing_fields"}), 400
     entries = load_entries()
+    # Offline-first clients may retry the same record. Treat the id as an
+    # idempotency key so reconnecting never creates duplicates.
+    for existing in entries:
+        if str(existing.get("id")) == str(data.get("id")):
+            return jsonify(existing), 200
     entries.append(data)
     save_entries(entries)
     return jsonify(data), 201

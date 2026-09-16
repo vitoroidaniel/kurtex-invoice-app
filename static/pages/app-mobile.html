@@ -13,8 +13,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=9">
-<link rel="stylesheet" href="css/app-mobile.css?v=13">
+<link rel="stylesheet" href="css/app-base.css?v=14">
+<link rel="stylesheet" href="css/app-mobile.css?v=14">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -35,6 +35,16 @@
       <button type="button" class="dp-today" onclick="dpSelectToday()">Today</button>
       <button type="button" class="dp-close" onclick="closeDatePicker()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<div class="unit-history-overlay hidden" id="unit-history-overlay" onclick="closeUnitHistory(event)">
+  <div class="unit-history-modal" onclick="event.stopPropagation()">
+    <div class="unit-history-head">
+      <div><div class="unit-history-kicker">UNIT HISTORY</div><h2 id="unit-history-title">Unit</h2><p id="unit-history-summary">Oil change history</p></div>
+      <button type="button" class="unit-history-close" onclick="closeUnitHistory()"><span class="ph ph-x"></span></button>
+    </div>
+    <div id="unit-history-list" class="unit-history-list"></div>
   </div>
 </div>
 
@@ -61,7 +71,7 @@
     <div class="topbar">
       <div class="brand">OIL<span>LOG</span></div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <span class="live-pill"><span class="s-dot"></span> Live <span class="chicago-time" id="chicago-time">--:-- -- CT</span></span>
+        <span class="sync-pill" id="sync-pill"><span class="sync-dot"></span><span id="sync-label">Synced</span></span><span class="live-pill"><span class="s-dot"></span> Live <span class="chicago-time" id="chicago-time">--:-- -- CT</span></span>
         <div class="userchip"><span class="ph ph-user"></span><span class="userchip-name">—</span></div>
       </div>
     </div>
@@ -157,6 +167,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=13"></script>
+<script src="js/app.js?v=14"></script>
 </body>
 </html>

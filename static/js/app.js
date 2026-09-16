@@ -1,10 +1,12 @@
 const API_BASE = window.location.origin;
 const USER_KEY = 'oillog_user_v4';
+const OFFLINE_CACHE_PREFIX = 'oillog_entries_cache_v1_';
+const OFFLINE_QUEUE_KEY = 'oillog_offline_queue_v1';
 
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '13';
+const APP_BUILD = '14';
 
 let user = null;
 let entries = [];
@@ -47,6 +49,7 @@ function updateChicagoClock(){
 }
 updateChicagoClock();
 setInterval(updateChicagoClock, 1000);
+installOfflineListeners();
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -54,6 +57,63 @@ function toast(msg){
   clearTimeout(window._t); window._t = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+
+// ── Offline-first storage ─────────────────────────────────────────────────
+function userCacheKey(){ return OFFLINE_CACHE_PREFIX + (user?.id || user?.username || 'guest'); }
+function readCachedEntries(){
+  try { return JSON.parse(localStorage.getItem(userCacheKey()) || '[]'); } catch(e){ return []; }
+}
+function writeCachedEntries(){
+  if(!user) return;
+  try { localStorage.setItem(userCacheKey(), JSON.stringify(entries)); } catch(e) {}
+}
+function userQueueKey(){ return OFFLINE_QUEUE_KEY + '_' + (user?.id || user?.username || 'guest'); }
+function readOfflineQueue(){
+  try { return JSON.parse(localStorage.getItem(userQueueKey()) || '[]'); } catch(e){ return []; }
+}
+function writeOfflineQueue(q){ try { localStorage.setItem(userQueueKey(), JSON.stringify(q)); } catch(e) {} updateSyncIndicator(); }
+function queueEntry(entry){
+  const q = readOfflineQueue();
+  if(!q.some(e => e.id === entry.id)){ q.push(entry); writeOfflineQueue(q); }
+}
+function removeQueuedEntry(id){ writeOfflineQueue(readOfflineQueue().filter(e => e.id !== id)); }
+function mergeEntries(serverEntries, queued){
+  const map = new Map();
+  (serverEntries || []).forEach(e => map.set(String(e.id), e));
+  (queued || []).forEach(e => { if(!map.has(String(e.id))) map.set(String(e.id), e); });
+  return Array.from(map.values());
+}
+function updateSyncIndicator(forceOffline=false){
+  const pill = document.getElementById('sync-pill'), label = document.getElementById('sync-label');
+  if(!pill || !label) return;
+  const q = readOfflineQueue().length;
+  const offline = forceOffline || !navigator.onLine;
+  pill.classList.toggle('offline', offline);
+  pill.classList.toggle('syncing', !offline && q>0);
+  label.textContent = offline ? (q ? `Offline · ${q} waiting` : 'Offline') : (q ? `Syncing · ${q}` : 'Synced');
+}
+async function flushOfflineQueue(){
+  if(!navigator.onLine || !user) { updateSyncIndicator(true); return; }
+  let q = readOfflineQueue();
+  if(!q.length){ updateSyncIndicator(); return; }
+  updateSyncIndicator();
+  for(const entry of [...q]){
+    try {
+      const res = await api('POST','/api/entries',entry);
+      if(res && res.id) removeQueuedEntry(entry.id);
+    } catch(err){
+      if(err.message === 'unauthorized') forceRelogin('Your session has expired — please sign in again');
+      updateSyncIndicator(!navigator.onLine);
+      return;
+    }
+  }
+  updateSyncIndicator();
+}
+function installOfflineListeners(){
+  window.addEventListener('online', async ()=>{ updateSyncIndicator(); await flushOfflineQueue(); await doSync(); });
+  window.addEventListener('offline', ()=>updateSyncIndicator(true));
+  updateSyncIndicator();
+}
 
 // ── API ────────────────────────────────────────────────────────────────────
 async function api(method, path, body){
@@ -162,24 +222,34 @@ async function wipeAll(){
 function startSync(){
   stopSync();
   syncTimer = setInterval(doSync, 5000);
+  flushOfflineQueue();
 }
 function stopSync(){
   if(syncTimer) { clearInterval(syncTimer); syncTimer = null; }
 }
 async function doSync(){
+  if(!navigator.onLine){ updateSyncIndicator(true); return; }
   try {
+    await flushOfflineQueue();
     const data = await api('GET', '/api/sync');
-    if(data.entries) entries = data.entries;
+    entries = mergeEntries(data.entries || [], readOfflineQueue());
+    writeCachedEntries();
+    updateSyncIndicator();
     if(document.getElementById('screen-list').classList.contains('active')) renderList();
-  } catch(e) {}
+  } catch(e) { updateSyncIndicator(!navigator.onLine); }
 }
 
 async function fetchAllEntries(){
+  entries = readCachedEntries();
+  if(!navigator.onLine){ updateSyncIndicator(true); return entries; }
   try {
+    await flushOfflineQueue();
     const data = await api('GET', '/api/sync');
-    entries = data.entries || [];
+    entries = mergeEntries(data.entries || [], readOfflineQueue());
+    writeCachedEntries();
+    updateSyncIndicator();
     return entries;
-  } catch(e) { console.error('fetchAllEntries', e); return []; }
+  } catch(e) { updateSyncIndicator(!navigator.onLine); return entries; }
 }
 
 // ── Enter app ──────────────────────────────────────────────────────────────
@@ -207,6 +277,9 @@ async function enterApp(){
   }
   updateChicagoClock();
   showScreen('add');
+  entries = readCachedEntries();
+  writeCachedEntries();
+  updateSyncIndicator();
   entries = await fetchAllEntries();
   startSync();
   icons();
@@ -282,20 +355,20 @@ document.getElementById('entry-form').addEventListener('submit', async function(
     sent: false,
     createdAt: now
   };
-  try{
-    const res = await api('POST', '/api/entries', entry);
-    if(res && res.id) {
-      entries.unshift(res);
-      toast('✓ Saved: '+entry.unit);
-      document.getElementById('f-unit').value = '';
-      document.getElementById('f-value').value = '';
-      document.getElementById('f-unit').focus();
-    } else {
-      toast('Invalid response from server');
-    }
-  } catch(err) {
-    if(err.message === 'unauthorized'){ forceRelogin('Your session has expired — please sign in again'); }
-    else toast('Error saving: ' + (err.message || 'try again'));
+  // Save locally first. The record is never lost just because the network is down.
+  entries = mergeEntries([entry], entries);
+  writeCachedEntries();
+  queueEntry(entry);
+  document.getElementById('f-unit').value = '';
+  document.getElementById('f-value').value = '';
+  document.getElementById('f-unit').focus();
+  updateSyncIndicator();
+  if(navigator.onLine){
+    await flushOfflineQueue();
+    writeCachedEntries();
+    toast('✓ Saved: '+entry.unit);
+  } else {
+    toast('✓ Saved offline: '+entry.unit);
   }
 });
 
@@ -343,7 +416,7 @@ function renderList(){
         <div class="entry">
           <div class="type-badge"><span class="ph ph-${typeIcon(e.type)}"></span></div>
           <div class="info">
-            <div class="unit-num">#${escapeHtml(e.unit)}</div>
+            <button class="unit-num unit-history-link" type="button" onclick='showUnitHistory(${JSON.stringify(e.unit)})'>#${escapeHtml(e.unit)}</button>
             <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)} · added ${formatAddedAt(e.createdAt)}</div>
           </div>
           <div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div>
@@ -377,7 +450,7 @@ function renderTable(container, filtered){
             <tr>
               <td class="mono">${formatDate(e.date)}</td>
               <td><span class="type-tag"><span class="ph ph-${typeIcon(e.type)}"></span>${typeLabel(e.type)}</span></td>
-              <td class="mono strong">#${escapeHtml(e.unit)}</td>
+              <td class="mono strong"><button class="unit-history-link table-unit-link" type="button" onclick='showUnitHistory(${JSON.stringify(e.unit)})'>#${escapeHtml(e.unit)}</button></td>
               <td class="num">${Number(e.value).toLocaleString('en-US')} <small>${unitSuffix(e.unitOfValue)}</small></td>
               <td class="dim">${escapeHtml(e.addedBy)}</td>
               <td class="dim">${formatAddedAt(e.createdAt)}</td>
@@ -404,12 +477,23 @@ function formatAddedAt(ts){
 
 async function deleteEntry(id){
   if(!confirm('Delete this record permanently?')) return;
+  // If it has not synced yet, deleting it locally is enough — remove it from
+  // the queue so it can never appear on the server later.
+  if(readOfflineQueue().some(e=>e.id===id)){
+    removeQueuedEntry(id);
+    entries = entries.filter(e=>e.id!==id);
+    writeCachedEntries();
+    renderList();
+    toast('Deleted');
+    return;
+  }
   try{
     await api('DELETE', '/api/entries/' + id);
     entries = entries.filter(e=>e.id!==id);
+    writeCachedEntries();
     renderList();
     toast('Deleted');
-  } catch(e){ toast('Error deleting'); }
+  } catch(e){ toast(navigator.onLine ? 'Error deleting' : 'Offline — try again when connected'); }
 }
 
 function buildListText(list){
@@ -495,6 +579,22 @@ function shareList(){
   } else {
     navigator.clipboard.writeText(txt).then(()=> toast('Copied')).catch(()=> toast('Could not copy'));
   }
+}
+
+function showUnitHistory(unit){
+  const overlay=document.getElementById('unit-history-overlay'), list=document.getElementById('unit-history-list');
+  if(!overlay || !list) return;
+  const clean=String(unit||'').trim();
+  const rows=entries.filter(e=>String(e.unit||'').trim().toLowerCase()===clean.toLowerCase())
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+  document.getElementById('unit-history-title').textContent = clean ? '#'+clean : 'Unit history';
+  document.getElementById('unit-history-summary').textContent = `${rows.length} oil change${rows.length===1?'':'s'} recorded`;
+  list.innerHTML = rows.length ? rows.map(e=>`<div class="history-row"><div><strong>${formatDate(e.date)}</strong><span>${typeLabel(e.type)} · ${formatAddedAt(e.createdAt)}</span></div><div class="history-reading">${Number(e.value).toLocaleString('en-US')} <small>${unitSuffix(e.unitOfValue)}</small></div></div>`).join('') : '<div class="empty-state"><span class="ph ph-tray"></span><p>No history for this unit.</p></div>';
+  overlay.classList.remove('hidden');
+}
+function closeUnitHistory(e){
+  const overlay=document.getElementById('unit-history-overlay');
+  if(overlay) overlay.classList.add('hidden');
 }
 
 function renderSettings(){
