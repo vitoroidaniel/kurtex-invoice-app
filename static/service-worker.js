@@ -7,10 +7,10 @@ const CACHE = 'oillog-v10';
 const SHELL = './';
 const ASSETS = [
   './',
-  './css/app-base.css?v=9',
-  './css/app-mobile.css?v=9',
+  './css/app-base.css?v=10',
+  './css/app-mobile.css?v=10',
   './css/app-desktop.css?v=10',
-  './js/app.js?v=9',
+  './js/app.js?v=10',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

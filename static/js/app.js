@@ -4,7 +4,7 @@ const USER_KEY = 'oillog_user_v4';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '9';
+const APP_BUILD = '10';
 
 let user = null;
 let entries = [];
@@ -187,7 +187,7 @@ async function enterApp(){
   document.getElementById('f-date').value = '';
   const fDateDisp = document.getElementById('f-date-display');
   if(fDateDisp){ fDateDisp.textContent = 'Select date'; fDateDisp.classList.add('placeholder'); }
-  showScreen(isDesktop() ? 'list' : 'add');
+  showScreen('add');
   entries = await fetchAllEntries();
   startSync();
   icons();
@@ -213,23 +213,6 @@ function showScreen(name){
     headTitle.textContent = meta.title;
     document.getElementById('head-sub').textContent = meta.sub;
   }
-  // The sidebar ADD button becomes the save action while the form is open
-  const sideBtn = document.getElementById('side-add-btn');
-  if(sideBtn){
-    const onAdd = (name === 'add');
-    sideBtn.classList.toggle('save-mode', onAdd);
-    const ico = sideBtn.querySelector('.side-add-ico');
-    const lbl = sideBtn.querySelector('.side-add-lbl');
-    if(ico) ico.className = 'ph side-add-ico ' + (onAdd ? 'ph-check' : 'ph-plus');
-    if(lbl) lbl.textContent = onAdd ? 'Save record' : 'Add record';
-  }
-  // Mobile: the ADD tab turns green while it is acting as "save"
-  const addTab = document.querySelector('.navbtn[data-screen="add"]');
-  if(addTab){
-    const onAdd = (name === 'add');
-    addTab.classList.toggle('save-mode', onAdd);
-    addTab.title = onAdd ? 'Tap to save this entry' : 'Add a record';
-  }
   if(name==='list'){ fetchAllEntries().then(list=>{ entries=list; renderList(); }); }
   if(name==='settings') renderSettings();
 }
@@ -248,7 +231,7 @@ function selectUnit(u){
 }
 
 // ── Single ADD action ──────────────────────────────────────────────────────
-// ADD opens the form from anywhere; when the form is already open, ADD saves the entry.
+// Opens the add form. Saving is handled by the central form button.
 function addOrSave(){
   if(document.getElementById('screen-add').classList.contains('active')){
     const form = document.getElementById('entry-form');
@@ -325,7 +308,7 @@ function renderList(){
 
   if(filtered.length===0){
     container.innerHTML = isDesktop()
-      ? `<div class="table-empty"><span class="ph ph-tray"></span><p>No records yet.<br>Use <strong>Add record</strong> in the sidebar to log the first oil change.</p></div>`
+      ? `<div class="table-empty"><span class="ph ph-tray"></span><p>No records yet.<br>Open the add form to log the first oil change.</p></div>`
       : `<div class="empty-state"><span class="ph ph-tray"></span><p>No records yet.<br>Add your first oil change from the "Add" tab.</p></div>`;
     return;
   }

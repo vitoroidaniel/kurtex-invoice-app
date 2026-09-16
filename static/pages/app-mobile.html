@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="css/app-base.css?v=9">
-<link rel="stylesheet" href="css/app-mobile.css?v=9">
+<link rel="stylesheet" href="css/app-mobile.css?v=10">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -97,6 +97,9 @@
           </div>
         </div>
       </div>
+      <button type="submit" class="btn btn-primary add-record-btn">
+        <span class="ph ph-plus"></span> Add record
+      </button>
     </form>
   </div>
 
@@ -147,7 +150,6 @@
   <!-- ── Bottom navigation ───────────────────────────────── -->
   <div class="bottomnav hidden" id="bottomnav">
     <div class="bottomnav-inner">
-      <button class="navbtn active" data-screen="add" onclick="addOrSave()"><span class="ph ph-plus-circle navbtn-ico"></span><span class="navbtn-lbl">ADD</span></button>
       <button class="navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list navbtn-ico"></span><span class="navbtn-lbl">LIST</span></button>
       <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six navbtn-ico"></span><span class="navbtn-lbl">SETTINGS</span></button>
     </div>
@@ -155,6 +157,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=9"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>

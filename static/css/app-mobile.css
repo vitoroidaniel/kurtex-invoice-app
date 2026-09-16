@@ -5,9 +5,9 @@
    ========================================================================== */
 
 html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
-body{display:flex;justify-content:center;-webkit-user-select:none;user-select:none;}
+body{display:block;-webkit-user-select:none;user-select:none;}
 #app{
-  width:100%;max-width:480px;
+  width:100%;max-width:none;
   height:100vh;height:100dvh;
   display:flex;flex-direction:column;
   background:var(--bg);position:relative;overflow:hidden;
@@ -46,6 +46,7 @@ p.page-sub{font-size:12px;margin:0 0 14px;}
 
 /* ── Add form: single column, roomy touch targets ──────── */
 #screen-add .card{padding:15px;margin-bottom:12px;}
+#screen-add .add-record-btn{width:100%;margin-top:2px;padding:14px 18px;}
 #screen-add .field{margin-bottom:15px;}
 #screen-add .field:last-child{margin-bottom:0;}
 #screen-add .date-trigger,#screen-add input[type=text],#screen-add input[type=number]{
@@ -89,8 +90,6 @@ html[data-theme="dark"] .bottomnav-inner{background:rgba(28,28,28,.96);}
 }
 .navbtn .ph,.navbtn i,.navbtn svg{font-size:21px;}
 .navbtn.active{color:var(--red);}
-/* The ADD tab doubles as "save" while the form is open */
-.navbtn[data-screen="add"].save-mode{color:var(--green);}
 
 /* ── Toast / banner placement ──────────────────────────── */
 .toast{bottom:calc(84px + env(safe-area-inset-bottom));max-width:calc(100% - 32px);white-space:normal;text-align:center;}

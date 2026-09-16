@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="css/app-base.css?v=9">
-<link rel="stylesheet" href="css/app-desktop.css?v=10">
+<link rel="stylesheet" href="css/app-desktop.css?v=11">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -39,9 +39,6 @@
   <!-- ── Sidebar ────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
     <div class="side-brand">OIL<span>LOG</span></div>
-    <button type="button" class="btn side-add" id="side-add-btn" onclick="addOrSave()">
-      <span class="ph ph-plus side-add-ico"></span><span class="side-add-lbl">Add record</span>
-    </button>
     <nav class="side-nav">
       <button type="button" class="side-navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list"></span>Records</button>
       <button type="button" class="side-navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six"></span>Settings</button>
@@ -120,10 +117,13 @@
                 <div class="chip" data-unit="hr" onclick="selectUnit('hr')"><span class="ph ph-clock"></span>ENGINE HOURS</div>
               </div>
             </div>
-            <div class="field span-2 last-row">
+            <div class="field form-actions">
+              <button type="submit" class="btn btn-primary add-record-btn">
+                <span class="ph ph-plus"></span> Add record
+              </button>
               <div class="form-note">
                 <span class="ph ph-info"></span>
-                <span>Press <strong>Add record</strong> in the sidebar to save this entry to the list.</span>
+                <span>Save this oil change to the records list.</span>
               </div>
             </div>
           </div>
@@ -197,6 +197,6 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="js/app.js?v=9"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>
