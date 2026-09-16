@@ -271,20 +271,16 @@ def register():
         "name": name,
         "password_hash": _hash_password(password),
         "role": role,
+        "approved": False,
         "createdAt": int(time.time() * 1000),
     }
     _save_passwords(users)
 
-    session["user"] = {
-        "id": username,
-        "first_name": name,
-        "username": username,
-        "photo_url": "",
-        "auth_date": str(int(time.time())),
-        "role": role,
-        "method": "password",
-    }
-    return jsonify({"ok": True, "user": session["user"]})
+    return jsonify({
+        "ok": True,
+        "pending": True,
+        "user": {"username": username, "name": name},
+    })
 
 
 @app.route("/auth/password", methods=["POST"])
@@ -300,6 +296,9 @@ def password_login():
     user = users.get(username)
     if not user or not _verify_password(password, user.get("password_hash", "")):
         return jsonify({"error": "invalid_credentials"}), 401
+
+    if not user.get("approved", True):
+        return jsonify({"error": "pending_approval"}), 403
 
     role = user.get("role", "agent")
 
@@ -359,6 +358,7 @@ def api_list_users():
             "username": username,
             "name": u.get("name", username),
             "role": u.get("role", "agent"),
+            "approved": u.get("approved", True),
             "createdAt": u.get("createdAt", 0),
         })
     result.sort(key=lambda x: x["username"])
@@ -389,11 +389,12 @@ def api_create_user():
         "name": name,
         "password_hash": _hash_password(password),
         "role": role,
+        "approved": True,
         "createdAt": int(time.time() * 1000),
     }
     _save_passwords(users)
     return jsonify({"ok": True, "user": {
-        "username": username, "name": name, "role": role,
+        "username": username, "name": name, "role": role, "approved": True,
         "createdAt": users[username]["createdAt"],
     }}), 201
 
@@ -426,6 +427,18 @@ def api_update_user(username):
         "username": username, "name": user.get("name", username),
         "role": user.get("role", "agent"), "createdAt": user.get("createdAt", 0),
     }})
+
+
+@app.route("/api/users/<username>/approve", methods=["POST"])
+@admin_required
+def api_approve_user(username):
+    username = username.strip().lower()
+    users = _load_passwords()
+    if username not in users:
+        return jsonify({"error": "not_found"}), 404
+    users[username]["approved"] = True
+    _save_passwords(users)
+    return jsonify({"ok": True})
 
 
 @app.route("/api/users/<username>", methods=["DELETE"])
@@ -529,6 +542,10 @@ FRONTEND_DIR = Path(__file__).parent
 @app.route("/")
 def serve_index():
     return send_from_directory(str(FRONTEND_DIR), "oillog-mobile.html")
+
+@app.route("/login")
+def serve_login():
+    return send_from_directory(str(FRONTEND_DIR), "oillog-login.html")
 
 @app.route("/admin-login")
 def serve_admin_login():
