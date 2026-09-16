@@ -193,3 +193,5 @@ table.data .row-del .ph,table.data .row-del i,table.data .row-del svg{font-size:
 .update-banner span{font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:7px;}
 .update-banner span .ph,.update-banner span i,.update-banner span svg{font-size:15px;color:var(--red);flex-shrink:0;}
 .update-banner button{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:8px 16px;font-family:var(--fd);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;flex-shrink:0;}
+/* Live Chicago / Central time shown beside the Live indicator. */
+.chicago-time{font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.2px;white-space:nowrap;}

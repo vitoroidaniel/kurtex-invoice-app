@@ -113,3 +113,6 @@ html[data-theme="dark"] .bottomnav-inner{background:rgba(28,28,28,.96);}
   .login-title{font-size:26px;}
   .screen{padding-bottom:calc(62px + env(safe-area-inset-bottom));}
 }
+/* ── Chicago live clock ───────────────────────────────── */
+.chicago-time{font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.15px;white-space:nowrap;}
+@media (max-width:380px){.chicago-time{font-size:8px;}}

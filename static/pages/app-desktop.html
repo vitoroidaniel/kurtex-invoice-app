@@ -40,6 +40,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="side-brand">OIL<span>LOG</span></div>
     <nav class="side-nav">
+      <button type="button" class="side-navbtn" data-screen="add" onclick="showScreen('add')"><span class="ph ph-plus-circle"></span>Add record</button>
       <button type="button" class="side-navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list"></span>Records</button>
       <button type="button" class="side-navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six"></span>Settings</button>
     </nav>
@@ -63,7 +64,7 @@
         <p class="head-sub" id="head-sub">Complete after each invoice from the shop.</p>
       </div>
       <div class="head-right">
-        <span class="live-pill"><span class="s-dot"></span> Live</span>
+        <span class="live-pill"><span class="s-dot"></span> Live <span class="chicago-time" id="chicago-time">--:-- -- CT</span></span>
         <div class="userchip"><span class="ph ph-user"></span><span class="userchip-name">—</span></div>
       </div>
     </header>
@@ -185,7 +186,7 @@
             <p class="card-sub">Session and workspace details.</p>
             <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
             <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
-            <div class="settings-row"><div class="l">Version</div><div class="r" data-build>9</div></div>
+            <div class="settings-row"><div class="l">Version</div><div class="r" data-build>11</div></div>
           </div>
         </div>
         <div class="settings-foot">
@@ -197,6 +198,6 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="js/app.js?v=10"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>

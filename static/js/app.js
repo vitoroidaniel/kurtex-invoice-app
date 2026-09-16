@@ -4,7 +4,7 @@ const USER_KEY = 'oillog_user_v4';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '10';
+const APP_BUILD = '11';
 
 let user = null;
 let entries = [];
@@ -35,6 +35,19 @@ function enforceDeviceShell(){
   return true;
 }
 function icons(){ /* Phosphor webfont — icons are pure CSS, nothing to re-render */ }
+
+function updateChicagoClock(){
+  const els = document.querySelectorAll('.chicago-time');
+  if(!els.length) return;
+  const now = new Date();
+  const time = new Intl.DateTimeFormat('en-US', {
+    timeZone:'America/Chicago', hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true
+  }).format(now);
+  els.forEach(el => el.textContent = time + ' CT');
+}
+updateChicagoClock();
+setInterval(updateChicagoClock, 1000);
+
 function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -184,9 +197,15 @@ async function enterApp(){
   if(roleEl) roleEl.textContent = user && user.role ? user.role.replace(/_/g,' ') : 'Agent';
   const wipeBtn = document.getElementById('wipe-btn');
   if(wipeBtn) wipeBtn.classList.toggle('hidden', !user || !ADMIN_ROLES.includes(user.role));
-  document.getElementById('f-date').value = '';
+  const chicagoDate = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Chicago', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
+  document.getElementById('f-date').value = chicagoDate;
   const fDateDisp = document.getElementById('f-date-display');
-  if(fDateDisp){ fDateDisp.textContent = 'Select date'; fDateDisp.classList.add('placeholder'); }
+  if(fDateDisp){
+    const d = new Date(chicagoDate + 'T00:00:00');
+    fDateDisp.textContent = d.toLocaleDateString('en-US',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    fDateDisp.classList.remove('placeholder');
+  }
+  updateChicagoClock();
   showScreen('add');
   entries = await fetchAllEntries();
   startSync();
