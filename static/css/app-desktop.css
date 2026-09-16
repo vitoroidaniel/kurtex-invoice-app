@@ -13,9 +13,20 @@ body{background:var(--bg);display:block;}
    the shell never depends on a JS-toggled class. */
 #app{
   display:grid;
-  grid-template-columns:272px minmax(0,1fr);
+  grid-template-columns:250px minmax(0,1fr);
+  width:100%;
+  min-width:100%;
   min-height:100vh;
+  margin:0;
+  padding:0;
 }
+
+/* Never create a centered desktop canvas/frame. The main column owns every
+   pixel to the right of the sidebar and all app content is fluid. */
+html,body{width:100%;max-width:none;overflow-x:hidden;}
+.main{width:100%;max-width:none;min-width:0;margin:0;padding:0;}
+.content > *{width:100%;max-width:none;margin-left:0;margin-right:0;}
+
 
 /* ── Sidebar (navy) ────────────────────────────────────── */
 .sidebar{
@@ -90,7 +101,7 @@ body{background:var(--bg);display:block;}
 .app-header{
   position:sticky;top:0;z-index:25;
   display:flex;align-items:center;justify-content:space-between;gap:20px;
-  padding:20px 38px;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:18px 28px;background:var(--surface);border-bottom:1px solid var(--border);
 }
 .app-header .head-title{
   font-family:var(--fd);font-size:22px;font-weight:600;letter-spacing:1px;
@@ -100,7 +111,7 @@ body{background:var(--bg);display:block;}
 .head-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
 
 /* Content area */
-.content{flex:1;padding:30px 38px 64px;min-width:0;width:100%;}
+.content{flex:1;padding:26px 28px 56px;min-width:0;width:100%;max-width:none;margin:0;}
 
 /* ── Login: the ONLY state that hides the console chrome ─ */
 /* Detected straight from the DOM, so a missing/old JS class can never leave
@@ -177,13 +188,13 @@ body:has(#screen-login.active) .content{flex:1;display:flex;align-items:center;j
 
 /* ─ Responsive desktop tiers ──────────────────────────── */
 @media (max-width:1100px){
-  #app{grid-template-columns:232px minmax(0,1fr);}
-  .app-header{padding:16px 24px;}
-  .content{padding:22px 24px 50px;}
-  .sidebar{padding:20px 13px 16px;}
+  #app{grid-template-columns:220px minmax(0,1fr);}
+  .app-header{padding:16px 22px;}
+  .content{padding:22px 22px 50px;}
+  .sidebar{padding:20px 12px 16px;}
 }
 @media (max-width:1100px){
-  #screen-add .card{grid-template-columns:repeat(2,minmax(260px,1fr));}
+  #screen-add .card{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 
 @media (max-width:760px){
@@ -215,3 +226,16 @@ body:has(#screen-login.active) .content{flex:1;display:flex;align-items:center;j
   table.data{min-width:640px;}
 }
 /* stat cards use auto-fit — they already collapse on narrow windows */
+
+/* ── Full-width desktop guarantee ─────────────────────── */
+@media (min-width:761px){
+  body{width:100%;min-width:0;}
+  #app{width:100vw;min-width:100vw;}
+  .main,.content{width:100%;max-width:none;}
+  .content{box-sizing:border-box;}
+  #screen-add .card,
+  #screen-list .table-wrap,
+  #screen-list .table-empty,
+  #screen-settings .settings-grid,
+  #screen-settings .settings-foot{width:100%;max-width:none;}
+}

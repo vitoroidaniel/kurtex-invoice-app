@@ -46,7 +46,7 @@ BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric) — set in Railway env
 # Build stamp — bump this with every release. It is exposed at /api/version and
 # echoed by the front-end, so a stale deployment or a stuck service-worker cache
 # is instantly visible instead of silently serving an old layout.
-APP_BUILD = "9"
+APP_BUILD = "10"
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
