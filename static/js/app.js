@@ -6,7 +6,7 @@ const OFFLINE_QUEUE_KEY = 'oillog_offline_queue_v1';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '14';
+const APP_BUILD = '16';
 
 let user = null;
 let entries = [];
@@ -14,6 +14,10 @@ let currentType = 'T';
 let currentUnit = 'mi';
 let currentFilter = 'all';
 let currentScope = 'mine';
+let searchType = 'all';
+let searchResults = [];
+let activityEntries = [];
+let editingEntryId = null;
 let syncTimer = null;
 
 function loadUser(){ try{ return JSON.parse(localStorage.getItem(USER_KEY)) || null; }catch(e){ return null; } }
@@ -289,6 +293,8 @@ async function enterApp(){
 const SCREEN_META = {
   add:      { title:'New oil change',  sub:'Complete after each invoice from the shop.' },
   list:     { title:'Oil change list', sub:'Every record logged by the team.' },
+  search:   { title:'Search records',  sub:'Find units, filter dates, and open unit history.' },
+  activity: { title:'Activity',        sub:'Recent changes made in OILLOG.' },
   settings: { title:'Settings',        sub:'Your profile and workspace details.' },
   login:    { title:'Sign in',         sub:'' },
 };
@@ -306,7 +312,59 @@ function showScreen(name){
     document.getElementById('head-sub').textContent = meta.sub;
   }
   if(name==='list'){ fetchAllEntries().then(list=>{ entries=list; renderList(); }); }
+  if(name==='search'){ fetchAllEntries().then(list=>{ entries=list; renderSearch(); }); }
+  if(name==='activity'){ loadActivity(); }
+  updateListQuickActions(name);
   if(name==='settings') renderSettings();
+}
+
+function updateListQuickActions(name){
+  const visible=name==='list';
+  // Desktop has no list-only Download/Share actions. Keep these actions on mobile navigation.
+  const mobileActions=document.getElementById('mobile-list-actions');
+  if(mobileActions) mobileActions.classList.toggle('hidden', !visible);
+  const mobileDownload=document.getElementById('mobile-download-action');
+  const mobileShare=document.getElementById('mobile-share-action');
+  if(mobileDownload) mobileDownload.classList.toggle('hidden', !visible);
+  if(mobileShare) mobileShare.classList.toggle('hidden', !visible);
+}
+
+function resetAddForm(){
+  editingEntryId=null;
+  const btn=document.querySelector('#screen-add .add-record-btn');
+  if(btn) btn.innerHTML='<span class="ph ph-plus"></span> Add record';
+  const cancel=document.querySelector('#screen-add .edit-cancel');
+  if(cancel) cancel.classList.add('hidden');
+  const title=document.getElementById('head-title');
+  const sub=document.getElementById('head-sub');
+  if(title && document.getElementById('screen-add')?.classList.contains('active')){ title.textContent='New oil change'; sub.textContent='Complete after each invoice from the shop.'; }
+}
+function editEntry(id){
+  const e=entries.find(x=>String(x.id)===String(id));
+  if(!e) return;
+  if(!navigator.onLine){ toast('Connect to the internet to edit a saved record'); return; }
+  editingEntryId=e.id;
+  document.getElementById('f-date').value=e.date;
+  const d=new Date(e.date+'T00:00:00');
+  const disp=document.getElementById('f-date-display');
+  disp.textContent=d.toLocaleDateString('en-US',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  disp.classList.remove('placeholder');
+  document.getElementById('f-unit').value=e.unit||'';
+  document.getElementById('f-value').value=e.value||'';
+  selectType(e.type||'T');
+  selectUnit(e.unitOfValue||'mi');
+  const btn=document.querySelector('#screen-add .add-record-btn');
+  if(btn) btn.innerHTML='<span class="ph ph-floppy-disk"></span> Save changes';
+  const cancel=document.querySelector('#screen-add .edit-cancel');
+  if(cancel) cancel.classList.remove('hidden');
+  showScreen('add');
+  const title=document.getElementById('head-title'); const sub=document.getElementById('head-sub');
+  if(title){ title.textContent='Edit record'; sub.textContent='Update the oil change details.'; }
+}
+function cancelEdit(){
+  if(!editingEntryId) return;
+  resetAddForm();
+  showScreen('list');
 }
 
 function selectType(t){
@@ -338,39 +396,39 @@ function addOrSave(){
 document.getElementById('entry-form').addEventListener('submit', async function(e){
   e.preventDefault();
   const dateField = document.getElementById('f-date');
-  if(!dateField.value){
-    toast('⚠ Select the oil change date first');
-    openDatePicker();
+  const unit = document.getElementById('f-unit').value.trim();
+  const valueRaw = document.getElementById('f-value').value.trim();
+  const value = Number(valueRaw);
+  if(!dateField.value){ toast('⚠ Select the oil change date first'); openDatePicker(); return; }
+  if(!unit){ toast('⚠ Enter a unit number'); document.getElementById('f-unit').focus(); return; }
+  if(!valueRaw || !Number.isFinite(value) || value < 0){ toast('⚠ Enter a valid mileage / engine hours value'); document.getElementById('f-value').focus(); return; }
+  if(dateField.value > chicagoTodayISO()){ toast('⚠ Date cannot be in the future'); return; }
+
+  if(editingEntryId){
+    const old=entries.find(x=>String(x.id)===String(editingEntryId));
+    if(!old) return;
+    const updated={...old,date:dateField.value,type:currentType,unit,unitOfValue:currentUnit,value:String(value),editedAt:Date.now()};
+    try{
+      await api('PUT','/api/entries/'+encodeURIComponent(editingEntryId),updated);
+      entries=entries.map(x=>String(x.id)===String(editingEntryId)?updated:x);
+      writeCachedEntries();
+      resetAddForm();
+      toast('✓ Changes saved');
+      showScreen('list');
+    }catch(err){ toast(navigator.onLine ? 'Error saving changes' : 'Offline — changes not saved'); }
     return;
   }
-  const now = Date.now();
-  const entry = {
-    id: now + '_' + Math.random().toString(36).slice(2,8),
-    date: dateField.value,
-    type: currentType,
-    unit: document.getElementById('f-unit').value.trim(),
-    unitOfValue: currentUnit,
-    value: document.getElementById('f-value').value.trim(),
-    addedBy: user ? user.name : 'Unknown',
-    sent: false,
-    createdAt: now
-  };
-  // Save locally first. The record is never lost just because the network is down.
-  entries = mergeEntries([entry], entries);
-  writeCachedEntries();
-  queueEntry(entry);
-  document.getElementById('f-unit').value = '';
-  document.getElementById('f-value').value = '';
-  document.getElementById('f-unit').focus();
-  updateSyncIndicator();
-  if(navigator.onLine){
-    await flushOfflineQueue();
-    writeCachedEntries();
-    toast('✓ Saved: '+entry.unit);
-  } else {
-    toast('✓ Saved offline: '+entry.unit);
-  }
+
+  const now=Date.now();
+  const entry={id:now+'_'+Math.random().toString(36).slice(2,8),date:dateField.value,type:currentType,unit,unitOfValue:currentUnit,value:String(value),addedBy:user?user.name:'Unknown',sent:false,createdAt:now};
+  entries=mergeEntries([entry],entries); writeCachedEntries(); queueEntry(entry);
+  document.getElementById('f-unit').value=''; document.getElementById('f-value').value=''; document.getElementById('f-unit').focus(); updateSyncIndicator();
+  if(navigator.onLine){ await flushOfflineQueue(); writeCachedEntries(); toast('✓ Saved: '+entry.unit); } else toast('✓ Saved offline: '+entry.unit);
 });
+
+function chicagoTodayISO(){
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
 
 function setFilter(f){
   currentFilter = f;
@@ -420,6 +478,7 @@ function renderList(){
             <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)} · added ${formatAddedAt(e.createdAt)}</div>
           </div>
           <div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div>
+          <button class="edit-mini" onclick="editEntry('${e.id}')" title="Edit"><span class="ph ph-pencil-simple"></span></button>
           <button class="del" onclick="deleteEntry('${e.id}')"><span class="ph ph-x"></span></button>
         </div>
       `).join('')}
@@ -454,7 +513,7 @@ function renderTable(container, filtered){
               <td class="num">${Number(e.value).toLocaleString('en-US')} <small>${unitSuffix(e.unitOfValue)}</small></td>
               <td class="dim">${escapeHtml(e.addedBy)}</td>
               <td class="dim">${formatAddedAt(e.createdAt)}</td>
-              <td class="actions"><button class="row-del" title="Delete" onclick="deleteEntry('${e.id}')"><span class="ph ph-trash"></span></button></td>
+              <td class="actions"><button class="row-edit" title="Edit" onclick="editEntry('${e.id}')"><span class="ph ph-pencil-simple"></span></button><button class="row-del" title="Delete" onclick="deleteEntry('${e.id}')"><span class="ph ph-trash"></span></button></td>
             </tr>
           `).join('')}
         </tbody>
@@ -495,6 +554,74 @@ async function deleteEntry(id){
     toast('Deleted');
   } catch(e){ toast(navigator.onLine ? 'Error deleting' : 'Offline — try again when connected'); }
 }
+
+function setSearchType(type){
+  searchType=type;
+  document.querySelectorAll('[data-search-type]').forEach(el=>el.classList.toggle('active',el.dataset.searchType===type));
+  renderSearch();
+}
+function chicagoCalendarDate(){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const o={}; parts.forEach(p=>o[p.type]=p.value);
+  return new Date(Date.UTC(Number(o.year),Number(o.month)-1,Number(o.day)));
+}
+function utcISODate(d){ return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
+function setSearchRange(kind){
+  const base=chicagoCalendarDate(); const today=utcISODate(base);
+  let from=today,to=today;
+  if(kind==='yesterday'){ const d=new Date(base); d.setUTCDate(d.getUTCDate()-1); from=to=utcISODate(d); }
+  if(kind==='week'){ const d=new Date(base); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day); from=utcISODate(d); }
+  if(kind==='month'){ const d=new Date(base); d.setUTCDate(1); from=utcISODate(d); }
+  document.getElementById('search-from').value=from; document.getElementById('search-to').value=to; renderSearch();
+}
+function clearSearch(){
+  ['search-unit','search-from','search-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  setSearchType('all');
+}
+function getSearchResults(){
+  const q=(document.getElementById('search-unit')?.value||'').trim().toLowerCase();
+  const from=document.getElementById('search-from')?.value||''; const to=document.getElementById('search-to')?.value||'';
+  return entries.filter(e=>{
+    if(q && !String(e.unit||'').toLowerCase().includes(q)) return false;
+    if(from && e.date<from) return false; if(to && e.date>to) return false;
+    if(searchType!=='all' && e.type!==searchType) return false;
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+}
+function renderSearch(){
+  const results=getSearchResults(); searchResults=results;
+  setCount('search-count',results.length);
+  setCount('search-units',new Set(results.map(e=>String(e.unit||'').toLowerCase())).size);
+  setCount('search-trucks',results.filter(e=>e.type==='T').length);
+  setCount('search-reefers',results.filter(e=>e.type==='R').length);
+  const sub=document.getElementById('search-results-sub'); if(sub) sub.textContent=results.length===1?'1 matching record':'Click a unit to open its history.';
+  const out=document.getElementById('search-results'); if(!out)return;
+  if(!results.length){out.innerHTML='<div class="table-empty"><span class="ph ph-magnifying-glass"></span><p>No matching records.<br>Try a different unit or date range.</p></div>';return;}
+  out.innerHTML=isDesktop()?`<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Type</th><th>Unit</th><th class="num">Reading</th><th>Added by</th><th>Logged</th><th></th></tr></thead><tbody>${results.map(e=>`<tr><td class="mono">${formatDate(e.date)}</td><td><span class="type-tag"><span class="ph ph-${typeIcon(e.type)}"></span>${typeLabel(e.type)}</span></td><td class="mono strong"><button class="unit-history-link table-unit-link" type="button" onclick='showUnitHistory(${JSON.stringify(e.unit)})'>#${escapeHtml(e.unit)}</button></td><td class="num">${Number(e.value).toLocaleString('en-US')} <small>${unitSuffix(e.unitOfValue)}</small></td><td class="dim">${escapeHtml(e.addedBy)}</td><td class="dim">${formatAddedAt(e.createdAt)}</td><td class="actions"><button class="row-edit" title="Edit" onclick="editEntry('${e.id}')"><span class="ph ph-pencil-simple"></span></button></td></tr>`).join('')}</tbody></table></div>`:results.map(e=>`<div class="entry"><div class="type-badge"><span class="ph ph-${typeIcon(e.type)}"></span></div><div class="info"><button class="unit-num unit-history-link" type="button" onclick='showUnitHistory(${JSON.stringify(e.unit)})'>#${escapeHtml(e.unit)}</button><div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)}</div></div><div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div><button class="edit-mini" onclick="editEntry('${e.id}')"><span class="ph ph-pencil-simple"></span></button></div>`).join('');
+}
+async function exportSearchXLSX(){
+  const oldFilter=currentFilter, oldScope=currentScope;
+  const list=searchResults.length?searchResults:getSearchResults();
+  if(!list.length){toast('No records');return;}
+  // Export the actual search result set, independent of Records tab filters.
+  const rows=[...list].sort((a,b)=>a.date.localeCompare(b.date));
+  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('Search Results',{views:[{state:'frozen',ySplit:1}]});
+  ws.columns=[{header:'Date',key:'date',width:13},{header:'Unit Type',key:'type',width:12},{header:'Unit Number',key:'unit',width:14},{header:'Value',key:'value',width:14},{header:'Unit',key:'unitOfValue',width:10},{header:'Added By',key:'addedBy',width:18}];
+  rows.forEach(e=>ws.addRow({date:e.date,type:typeLabel(e.type),unit:e.unit,value:Number(e.value),unitOfValue:e.unitOfValue==='hr'?'Hours':'Miles',addedBy:e.addedBy}));
+  const buf=await wb.xlsx.writeBuffer(); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); a.download='oillog-search.xlsx'; a.click(); URL.revokeObjectURL(a.href); toast('Excel downloaded');
+}
+async function loadActivity(){
+  const box=document.getElementById('activity-list'); if(!box)return;
+  try{ activityEntries=await api('GET','/api/activity'); renderActivity(); }catch(e){ box.innerHTML='<div class="table-empty"><span class="ph ph-warning"></span><p>Activity could not be loaded.</p></div>'; }
+}
+function renderActivity(){
+  const box=document.getElementById('activity-list'); if(!box)return;
+  const q=(document.getElementById('activity-unit')?.value||'').trim().toLowerCase(); const action=document.getElementById('activity-action')?.value||'all';
+  const rows=activityEntries.filter(a=>(!q||String(a.unit||'').toLowerCase().includes(q))&&(action==='all'||a.action===action));
+  if(!rows.length){box.innerHTML='<div class="table-empty"><span class="ph ph-clock-counter-clockwise"></span><p>No activity found.</p></div>';return;}
+  box.innerHTML=rows.map(a=>`<div class="activity-row"><div class="activity-icon"><span class="ph ph-${a.action==='added'?'plus':a.action==='edited'?'pencil-simple':'trash'}"></span></div><div class="activity-main"><strong>${escapeHtml(a.description||a.action)}</strong><span>${escapeHtml(a.user||'Unknown')} · ${formatActivityTime(a.timestamp)}</span></div><span class="activity-action">${escapeHtml(a.action)}</span></div>`).join('');
+}
+function formatActivityTime(ts){ if(!ts)return '—'; return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'2-digit',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(ts))+' CT'; }
 
 function buildListText(list){
   const rows = [...list].sort((a,b)=> a.date.localeCompare(b.date));
@@ -751,7 +878,7 @@ function saveName(){
     closeDatePicker();
   };
   window.dpSelectToday = function(){
-    dpSelectDate(new Date().toISOString().slice(0,10));
+    dpSelectDate(chicagoTodayISO());
   };
 
   const addScreen = document.getElementById('screen-add');

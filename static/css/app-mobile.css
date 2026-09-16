@@ -60,7 +60,9 @@ p.page-sub{font-size:12px;margin:0 0 14px;}
 .summary-bar .num{font-size:19px;}
 .filters{margin-bottom:12px;}
 .filter-pill{padding:8px 12px;}
-#list-container{padding-bottom:4px;overflow-y:auto;min-height:0;max-height:calc(100dvh - 235px);-webkit-overflow-scrolling:touch;}
+#list-container{padding-bottom:68px;overflow-y:auto;min-height:0;max-height:calc(100dvh - 235px);-webkit-overflow-scrolling:touch;}
+.mobile-list-actions{position:fixed;left:10px;right:10px;bottom:calc(62px + env(safe-area-inset-bottom));z-index:20;display:flex;gap:8px;padding:8px;background:rgba(250,250,248,.96);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(12px);}
+.mobile-list-actions .btn{flex:1;}
 .screen-list-actions{padding-top:14px;}
 
 /* ── Settings ──────────────────────────────────────────── */
@@ -136,3 +138,10 @@ button.unit-history-link{border:0;background:none;padding:0;color:inherit;font:i
 .history-row span{display:block;margin-top:3px;font-size:10px;color:var(--dim);}
 .history-reading{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;}
 .history-reading small{font-family:var(--fb);font-size:8px;color:var(--faint);text-transform:uppercase;}
+
+/* List-only quick actions sit above ADD and SETTINGS in the mobile bottom navigation. */
+.navslot{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;}
+.navslot .navbtn{width:100%;}
+.mobile-quick-action{border:0;background:none;color:var(--dim);font-family:var(--fd);font-size:8px;font-weight:700;letter-spacing:.45px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 0 1px;cursor:pointer;white-space:nowrap;}
+.mobile-quick-action .ph{font-size:11px;}
+.mobile-quick-action:hover{color:var(--red);}

@@ -46,7 +46,7 @@ BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric) — set in Railway env
 # Build stamp — bump this with every release. It is exposed at /api/version and
 # echoed by the front-end, so a stale deployment or a stuck service-worker cache
 # is instantly visible instead of silently serving an old layout.
-APP_BUILD = "14"
+APP_BUILD = "15"
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
@@ -126,6 +126,23 @@ def load_entries():
 
 def save_entries(entries):
     _write_json("entries.json", entries)
+
+def load_activity():
+    return _read_json("activity.json")
+
+def log_activity(action, description, unit="", record_id=""):
+    u = session.get("user") or {}
+    rows = load_activity()
+    rows.append({
+        "id": f"{int(time.time()*1000)}_{secrets.token_hex(4)}",
+        "action": action,
+        "description": description,
+        "unit": str(unit or ""),
+        "recordId": str(record_id or ""),
+        "user": u.get("name") or u.get("username") or "Unknown",
+        "timestamp": int(time.time()*1000),
+    })
+    _write_json("activity.json", rows[-2000:])
 
 def load_units():
     return _read_json("units.json")
@@ -480,6 +497,13 @@ def api_sync():
         "settings": settings,
     })
 
+@app.route("/api/activity", methods=["GET"])
+@login_required
+def api_activity():
+    rows = load_activity()
+    rows.sort(key=lambda a: a.get("timestamp", 0), reverse=True)
+    return jsonify(rows[:500])
+
 @app.route("/api/entries", methods=["POST"])
 @login_required
 def api_create_entry():
@@ -494,6 +518,7 @@ def api_create_entry():
             return jsonify(existing), 200
     entries.append(data)
     save_entries(entries)
+    log_activity("added", f"Added {data.get('type','').replace('T','Truck').replace('R','Reefer')} unit #{data.get('unit','')}", data.get('unit',''), data.get('id',''))
     return jsonify(data), 201
 
 @app.route("/api/entries/<entry_id>", methods=["PUT"])
@@ -505,6 +530,7 @@ def api_update_entry(entry_id):
         if e.get("id") == entry_id:
             entries[i] = data
             save_entries(entries)
+            log_activity("edited", f"Edited unit #{data.get('unit', e.get('unit',''))}", data.get('unit', e.get('unit','')), entry_id)
             return jsonify(data)
     return jsonify({"error": "not_found"}), 404
 
@@ -512,9 +538,11 @@ def api_update_entry(entry_id):
 @login_required
 def api_delete_entry(entry_id):
     entries = load_entries()
+    deleted = next((e for e in entries if e.get("id") == entry_id), None)
     new_entries = [e for e in entries if e.get("id") != entry_id]
     if len(new_entries) < len(entries):
         save_entries(new_entries)
+        log_activity("deleted", f"Deleted unit #{(deleted or {}).get('unit','')}", (deleted or {}).get('unit',''), entry_id)
         return jsonify({"ok": True})
     return jsonify({"error": "not_found"}), 404
 

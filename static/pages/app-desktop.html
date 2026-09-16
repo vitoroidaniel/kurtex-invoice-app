@@ -9,8 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=14">
-<link rel="stylesheet" href="css/app-desktop.css?v=14">
+<link rel="stylesheet" href="css/app-base.css?v=16">
+<link rel="stylesheet" href="css/app-desktop.css?v=16">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -52,6 +52,8 @@
     <nav class="side-nav">
       <button type="button" class="side-navbtn" data-screen="add" onclick="showScreen('add')"><span class="ph ph-plus-circle"></span>Add record</button>
       <button type="button" class="side-navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list"></span>Records</button>
+      <button type="button" class="side-navbtn" data-screen="search" onclick="showScreen('search')"><span class="ph ph-magnifying-glass"></span>Search</button>
+      <button type="button" class="side-navbtn" data-screen="activity" onclick="showScreen('activity')"><span class="ph ph-clock-counter-clockwise"></span>Activity</button>
       <button type="button" class="side-navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six"></span>Settings</button>
     </nav>
     <div class="side-foot">
@@ -134,6 +136,7 @@
               <button type="submit" class="btn btn-primary add-record-btn">
                 <span class="ph ph-plus"></span> Add record
               </button>
+              <button type="button" class="btn edit-cancel hidden" onclick="cancelEdit()"><span class="ph ph-x"></span> Cancel edit</button>
               <div class="form-note">
                 <span class="ph ph-info"></span>
                 <span>Save this oil change to the records list.</span>
@@ -169,13 +172,39 @@
             <div class="filter-pill" data-filter="R" onclick="setFilter('R')">Reefer</div>
           </div>
           <div class="toolbar-actions">
-            <button class="btn" onclick="exportXLSX()"><span class="ph ph-download-simple"></span>Export Excel</button>
-            <button class="btn" onclick="shareList()"><span class="ph ph-share-network"></span>Share</button>
             <button class="btn wipe-btn hidden" id="wipe-btn" onclick="wipeAll()"><span class="ph ph-trash"></span>Wipe all</button>
           </div>
         </div>
 
         <div id="list-container"></div>
+      </section>
+
+      <!-- ─ Search / Unit history ───────────────────────── -->
+      <section class="screen" id="screen-search">
+        <div class="search-stat-grid">
+          <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Matching records</span><span class="ph ph-list-checks stat-ico"></span></div><div class="stat-num" id="search-count">0</div></div>
+          <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Unique units</span><span class="ph ph-hash stat-ico"></span></div><div class="stat-num" id="search-units">0</div></div>
+          <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Trucks</span><span class="ph ph-truck stat-ico"></span></div><div class="stat-num" id="search-trucks">0</div></div>
+          <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Reefers</span><span class="ph ph-wind stat-ico"></span></div><div class="stat-num" id="search-reefers">0</div></div>
+        </div>
+        <div class="search-panel card">
+          <div class="search-fields">
+            <div class="field search-key-field"><label class="field-label" for="search-unit"><span class="ph ph-magnifying-glass"></span>Search unit</label><input type="text" id="search-unit" placeholder="Unit number" autocomplete="off"></div>
+            <div class="field"><label class="field-label" for="search-from"><span class="ph ph-calendar-blank"></span>From</label><input type="date" id="search-from"></div>
+            <div class="field"><label class="field-label" for="search-to"><span class="ph ph-calendar-blank"></span>To</label><input type="date" id="search-to"></div>
+            <div class="field"><label class="field-label"><span class="ph ph-grid-four"></span>Type</label><div class="chip-row"><div class="chip active" data-search-type="all" onclick="setSearchType('all')">All</div><div class="chip" data-search-type="T" onclick="setSearchType('T')">Truck</div><div class="chip" data-search-type="R" onclick="setSearchType('R')">Reefer</div></div></div>
+          </div>
+          <div class="search-quick"><span>Quick:</span><button type="button" onclick="setSearchRange('today')">Today</button><button type="button" onclick="setSearchRange('yesterday')">Yesterday</button><button type="button" onclick="setSearchRange('week')">This week</button><button type="button" onclick="setSearchRange('month')">This month</button><button type="button" onclick="clearSearch()">Clear</button></div>
+        </div>
+        <div class="search-results-head"><div><strong id="search-results-title">Search results</strong><span id="search-results-sub">Click a unit to open its history.</span></div><button class="btn" onclick="exportSearchXLSX()"><span class="ph ph-download-simple"></span>Download</button></div>
+        <div id="search-results"></div>
+      </section>
+
+      <!-- ─ Activity ─────────────────────────────────────── -->
+      <section class="screen" id="screen-activity">
+        <div class="activity-head"><div><h2>Activity</h2><p>Recent changes made in OILLOG.</p></div><button class="btn" onclick="loadActivity()"><span class="ph ph-arrows-clockwise"></span>Refresh</button></div>
+        <div class="activity-filters card"><input type="text" id="activity-unit" placeholder="Filter unit" oninput="renderActivity()"><select id="activity-action" onchange="renderActivity()"><option value="all">All actions</option><option value="added">Added</option><option value="edited">Edited</option><option value="deleted">Deleted</option></select></div>
+        <div id="activity-list" class="activity-list"></div>
       </section>
 
       <!-- ─ Settings ──────────────────────────────────────── -->
@@ -194,7 +223,7 @@
             <p class="card-sub">Session and workspace details.</p>
             <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
             <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
-            <div class="settings-row"><div class="l">Version</div><div class="r" data-build>13</div></div>
+            <div class="settings-row"><div class="l">Version</div><div class="r" data-build>16</div></div>
           </div>
         </div>
         <div class="settings-foot">
@@ -206,6 +235,6 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="js/app.js?v=14"></script>
+<script src="js/app.js?v=16"></script>
 </body>
 </html>

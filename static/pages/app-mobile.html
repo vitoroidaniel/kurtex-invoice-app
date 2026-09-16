@@ -13,8 +13,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=14">
-<link rel="stylesheet" href="css/app-mobile.css?v=14">
+<link rel="stylesheet" href="css/app-base.css?v=16">
+<link rel="stylesheet" href="css/app-mobile.css?v=16">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -110,6 +110,7 @@
       <button type="submit" class="btn btn-primary add-record-btn">
         <span class="ph ph-plus"></span> Add record
       </button>
+      <button type="button" class="btn edit-cancel hidden" onclick="cancelEdit()"><span class="ph ph-x"></span> Cancel edit</button>
     </form>
   </div>
 
@@ -129,13 +130,39 @@
       <div class="filter-pill" data-filter="R" onclick="setFilter('R')">Reefer</div>
     </div>
     <div id="list-container"></div>
-    <div class="screen-list-actions btn-row">
-      <button class="btn" style="flex:1" onclick="exportXLSX()"><span class="ph ph-download-simple"></span>Excel</button>
-      <button class="btn" style="flex:1" onclick="shareList()"><span class="ph ph-share-network"></span>Share</button>
+    <div class="screen-list-actions mobile-list-actions" id="mobile-list-actions">
+      <button class="btn" onclick="exportXLSX()"><span class="ph ph-download-simple"></span>Excel</button>
+      <button class="btn" onclick="shareList()"><span class="ph ph-share-network"></span>Share</button>
     </div>
     <div class="btn-row" style="margin-top:10px;">
       <button class="btn wipe-btn hidden" id="wipe-btn" style="flex:1;border-color:var(--red);color:var(--red);background:transparent;" onclick="wipeAll()"><span class="ph ph-trash"></span>Wipe all</button>
     </div>
+  </div>
+
+  <!-- ─ Search / Unit history ───────────────────────── -->
+  <div class="screen" id="screen-search">
+    <div class="topbar"><div class="brand brand-short">SEARCH</div></div>
+    <div class="search-stat-grid">
+      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Records</span><span class="ph ph-list-checks stat-ico"></span></div><div class="stat-num" id="search-count">0</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Units</span><span class="ph ph-hash stat-ico"></span></div><div class="stat-num" id="search-units">0</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Trucks</span><span class="ph ph-truck stat-ico"></span></div><div class="stat-num" id="search-trucks">0</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Reefers</span><span class="ph ph-wind stat-ico"></span></div><div class="stat-num" id="search-reefers">0</div></div>
+    </div>
+    <div class="search-panel card">
+      <div class="field"><label class="field-label"><span class="ph ph-magnifying-glass"></span>Unit</label><input type="text" id="search-unit" placeholder="Unit number" autocomplete="off"></div>
+      <div class="search-date-row"><div class="field"><label class="field-label">From</label><input type="date" id="search-from"></div><div class="field"><label class="field-label">To</label><input type="date" id="search-to"></div></div>
+      <div class="field"><label class="field-label">Type</label><div class="chip-row"><div class="chip active" data-search-type="all" onclick="setSearchType('all')">All</div><div class="chip" data-search-type="T" onclick="setSearchType('T')">Truck</div><div class="chip" data-search-type="R" onclick="setSearchType('R')">Reefer</div></div></div>
+      <div class="search-quick"><button type="button" onclick="setSearchRange('today')">Today</button><button type="button" onclick="setSearchRange('yesterday')">Yesterday</button><button type="button" onclick="setSearchRange('week')">Week</button><button type="button" onclick="setSearchRange('month')">Month</button><button type="button" onclick="clearSearch()">Clear</button></div>
+    </div>
+    <div class="search-results-head"><strong id="search-results-title">Search results</strong></div>
+    <div id="search-results"></div>
+  </div>
+
+  <!-- ─ Activity ───────────────────────────────────────── -->
+  <div class="screen" id="screen-activity">
+    <div class="topbar"><div class="brand brand-short">ACTIVITY</div></div>
+    <div class="activity-filters card"><input type="text" id="activity-unit" placeholder="Filter unit" oninput="renderActivity()"><select id="activity-action" onchange="renderActivity()"><option value="all">All actions</option><option value="added">Added</option><option value="edited">Edited</option><option value="deleted">Deleted</option></select></div>
+    <div id="activity-list" class="activity-list"></div>
   </div>
 
   <!-- ─ Settings ────────────────────────────────────────── -->
@@ -150,7 +177,7 @@
     <div class="card">
       <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
       <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
-      <div class="settings-row"><div class="l">Version</div><div class="r" data-build>13</div></div>
+      <div class="settings-row"><div class="l">Version</div><div class="r" data-build>16</div></div>
     </div>
     <p class="muted small">Data is shared with the whole team — any entry added here appears in the admin panel.</p>
     <button class="btn" style="border-color:var(--red);color:var(--red);background:transparent;" onclick="logout()"><span class="ph ph-sign-out"></span>Logout</button>
@@ -159,14 +186,22 @@
   <!-- ── Bottom navigation ───────────────────────────────── -->
   <div class="bottomnav hidden" id="bottomnav">
     <div class="bottomnav-inner">
-      <button class="navbtn" data-screen="add" onclick="showScreen('add')"><span class="ph ph-plus-circle navbtn-ico"></span><span class="navbtn-lbl">ADD</span></button>
+      <div class="navslot">
+        <button type="button" class="mobile-quick-action hidden" id="mobile-download-action" onclick="exportXLSX()"><span class="ph ph-download-simple"></span><span>Download</span></button>
+        <button class="navbtn" data-screen="add" onclick="showScreen('add')"><span class="ph ph-plus-circle navbtn-ico"></span><span class="navbtn-lbl">ADD</span></button>
+      </div>
       <button class="navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list navbtn-ico"></span><span class="navbtn-lbl">LIST</span></button>
-      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six navbtn-ico"></span><span class="navbtn-lbl">SETTINGS</span></button>
+      <button class="navbtn" data-screen="search" onclick="showScreen('search')"><span class="ph ph-magnifying-glass navbtn-ico"></span><span class="navbtn-lbl">SEARCH</span></button>
+      <button class="navbtn" data-screen="activity" onclick="showScreen('activity')"><span class="ph ph-clock-counter-clockwise navbtn-ico"></span><span class="navbtn-lbl">ACTIVITY</span></button>
+      <div class="navslot">
+        <button type="button" class="mobile-quick-action hidden" id="mobile-share-action" onclick="shareList()"><span class="ph ph-share-network"></span><span>Share</span></button>
+        <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six navbtn-ico"></span><span class="navbtn-lbl">SETTINGS</span></button>
+      </div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=14"></script>
+<script src="js/app.js?v=16"></script>
 </body>
 </html>
