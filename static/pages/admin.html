@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OILLOG — Admin Panel</title>
+<link rel="icon" href="icons/icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="css/admin.css?v=5">
+</head>
+<body>
+
+<aside class="sidebar hidden" id="sidebar">
+  <div class="s-brand"><div class="brand">OIL<span>LOG</span></div><small>Admin Panel</small></div>
+  <nav class="s-nav">
+    <div class="s-section">Main</div>
+    <button class="s-item active" data-page="dashboard" onclick="navigate('dashboard')"><i class="ph ph-squares-four"></i>Dashboard</button>
+    <button class="s-item" data-page="entries" onclick="navigate('entries')"><i class="ph ph-list"></i>Entries <span class="badge" id="nav-badge-entries">0</span></button>
+    <button class="s-item" data-page="units" onclick="navigate('units')"><i class="ph ph-truck"></i>Units</button>
+    <button class="s-item" data-page="alerts" onclick="navigate('alerts')"><i class="ph ph-bell"></i>Alerts <span class="badge hidden" id="nav-badge-alerts">0</span></button>
+    <div class="s-section">System</div>
+    <button class="s-item" data-page="users" onclick="navigate('users')"><i class="ph ph-users"></i>Users</button>
+    <button class="s-item" data-page="settings" onclick="navigate('settings')"><i class="ph ph-gear-six"></i>Settings</button>
+  </nav>
+  <div class="s-footer">OILLOG v4.0<br>&copy; Kurtex Fleet</div>
+</aside>
+
+<div class="main" id="main">
+  <div class="topbar">
+    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ph ph-list"></i></button>
+    <h1 id="topbar-title">Dashboard</h1>
+    <div class="spacer"></div>
+    <span class="clock"><i class="ph ph-clock"></i><span id="top-clock-time">--:--:--</span><span class="ctz">CT</span></span>
+    <span class="live-pill"><span class="s-dot"></span> Live</span>
+    <div style="position:relative;">
+      <button class="icon-btn" onclick="toggleNotif()" title="Active alerts"><i class="ph ph-bell"></i><span class="dot" id="notif-dot" style="display:none;"></span></button>
+      <div class="notif-pop" id="notif-pop">
+        <div class="np-head">Active alerts</div>
+        <div class="np-list" id="notif-list"><div class="np-item"><span style="color:var(--faint);">No active alerts</span></div></div>
+      </div>
+    </div>
+    <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme"><i class="ph ph-moon" id="theme-icon"></i></button>
+    <div class="admin-chip"><i class="ph ph-user"></i><b class="full" id="admin-name">—</b></div>
+    <button class="icon-btn" onclick="logoutAdmin()" title="Logout"><i class="ph ph-sign-out"></i></button>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-head">
+        <div><h2>Dashboard</h2><p id="dash-sub">Oil change records overview for the yard.</p></div>
+        <button class="btn" onclick="loadData()"><i class="ph ph-arrows-clockwise"></i>Refresh</button>
+      </div>
+      <div class="stats" id="dash-stats">
+        <div class="stat-card accent"><div class="s-icon"><i class="ph ph-database"></i></div><div class="n" id="stat-total">0</div><div class="l">Total records</div></div>
+        <div class="stat-card blue"><div class="s-icon"><i class="ph ph-truck"></i></div><div class="n" id="stat-trucks">0</div><div class="l">Trucks</div></div>
+        <div class="stat-card green"><div class="s-icon"><i class="ph ph-wind"></i></div><div class="n" id="stat-reefers">0</div><div class="l">Reefers</div></div>
+        <div class="stat-card amber"><div class="s-icon"><i class="ph ph-warning"></i></div><div class="n" id="stat-overdue">0</div><div class="l">Due now</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card" id="widget-recent">
+          <div class="card-head"><h3>Recent entries</h3><button class="link" onclick="navigate('entries')">View all &rarr;</button></div>
+          <div class="card-body recent-list" id="dash-recent"></div>
+        </div>
+        <div class="card" id="widget-alerts">
+          <div class="card-head"><h3>Active alerts</h3><button class="link" onclick="navigate('alerts')">Details &rarr;</button></div>
+          <div class="card-body alert-list" id="dash-alerts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTRIES (view + export only) -->
+    <div class="page" id="page-entries">
+      <div class="page-head">
+        <div><h2>Entries</h2><p>All oil change records — read only, sorted by date.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="openExport()"><i class="ph ph-download-simple"></i>Export</button>
+          <button class="btn" onclick="loadData()"><i class="ph ph-arrows-clockwise"></i>Refresh</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search" style="width:100%;max-width:360px;"><i class="ph ph-magnifying-glass"></i><input id="entry-search" placeholder="Search unit # or name..." oninput="render()"></div>
+        <div class="pill-group" id="type-filters">
+          <div class="pill active" data-type="all" onclick="setType('all')">All</div>
+          <div class="pill" data-type="T" onclick="setType('T')">Truck</div>
+          <div class="pill" data-type="R" onclick="setType('R')">Reefer</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sortable" onclick="setSort('date')">Date <span class="arrow" id="arrow-date"></span></th>
+            <th class="sortable" onclick="setSort('type')">Type <span class="arrow" id="arrow-type"></span></th>
+            <th class="sortable" onclick="setSort('unit')">Unit # <span class="arrow" id="arrow-unit"></span></th>
+            <th class="sortable" onclick="setSort('value')">Value <span class="arrow" id="arrow-value"></span></th>
+            <th>Added by</th>
+          </tr></thead>
+          <tbody id="tbody"><tr class="empty-row"><td colspan="5"><i class="ph ph-circle-notch"></i><div>Loading...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- UNITS (view only) -->
+    <div class="page" id="page-units">
+      <div class="page-head">
+        <div><h2>Units</h2><p>View unit status, oil change schedule and alert history.</p></div>
+        <button class="btn" onclick="loadData()"><i class="ph ph-arrows-clockwise"></i>Refresh</button>
+      </div>
+      <div class="toolbar">
+        <div class="search" style="width:100%;max-width:360px;"><i class="ph ph-magnifying-glass"></i><input id="unit-search" placeholder="Search unit #..." oninput="renderUnits()"></div>
+        <div class="pill-group" id="unit-type-filters">
+          <div class="pill active" data-utype="all" onclick="setUnitType('all')">All</div>
+          <div class="pill" data-utype="T" onclick="setUnitType('T')">Truck</div>
+          <div class="pill" data-utype="R" onclick="setUnitType('R')">Reefer</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Unit #</th><th>Type</th><th>Last oil change</th><th>Next oil change</th><th>Status</th><th style="text-align:right;">View</th>
+          </tr></thead>
+          <tbody id="units-tbody"><tr class="empty-row"><td colspan="6"><i class="ph ph-circle-notch"></i><div>Loading...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ALERTS (mark completed) -->
+    <div class="page" id="page-alerts">
+      <div class="page-head">
+        <div><h2>Alerts</h2><p>Due units — mark as completed when the oil change is done.</p></div>
+        <button class="btn" onclick="loadData()"><i class="ph ph-arrows-clockwise"></i>Refresh</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Due / overdue units</h3></div>
+        <div class="card-body alert-list" id="alerts-list"><div class="empty-mini">Loading...</div></div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-head"><h3>Completed alert history</h3></div>
+        <div class="card-body alert-list" id="completed-list"><div class="empty-mini">No completed alerts yet.</div></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="page-head">
+        <div><h2>Users</h2><p>Manage accounts for the mobile app — create, edit roles, reset passwords.</p></div>
+        <button class="btn btn-primary" onclick="openUserModal()"><i class="ph ph-user-plus"></i>Add user</button>
+      </div>
+      <div class="toolbar">
+        <div class="search" style="width:100%;max-width:360px;"><i class="ph ph-magnifying-glass"></i><input id="user-search" placeholder="Search name or username..." oninput="renderUsersPage()"></div>
+        <div class="pill-group">
+          <div class="pill" data-urole="all" onclick="setUserRoleFilter('all')">All</div>
+          <div class="pill" data-urole="agent" onclick="setUserRoleFilter('agent')">Agent</div>
+          <div class="pill" data-urole="developer" onclick="setUserRoleFilter('developer')">Developer</div>
+          <div class="pill" data-urole="super_admin" onclick="setUserRoleFilter('super_admin')">Super Admin</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Username</th><th>Name</th><th>Role</th><th>Created</th><th style="text-align:right;">Actions</th>
+          </tr></thead>
+          <tbody id="users-tbody"><tr class="empty-row"><td colspan="5"><i class="ph ph-users"></i><div>Loading users...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-head"><div><h2>Settings</h2><p>Oil change intervals, notifications and appearance.</p></div></div>
+      <div class="settings-layout">
+        <div class="settings-nav">
+          <button class="sn-item active" data-spanel="intervals" onclick="showSettingsPanel('intervals')"><i class="ph ph-gauge"></i> Intervals</button>
+          <button class="sn-item" data-spanel="notifications" onclick="showSettingsPanel('notifications')"><i class="ph ph-bell"></i> Notifications</button>
+          <button class="sn-item" data-spanel="appearance" onclick="showSettingsPanel('appearance')"><i class="ph ph-palette"></i> Appearance</button>
+          <button class="sn-item" data-spanel="account" onclick="showSettingsPanel('account')"><i class="ph ph-user"></i> Account</button>
+        </div>
+        <div>
+          <div class="settings-panel active" id="spanel-intervals">
+            <div class="settings-card">
+              <h3>Oil change intervals</h3>
+              <p class="sc-sub">Thresholds used to detect units that exceeded their service interval.</p>
+              <div class="form-row">
+                <div class="field"><label class="f-label">Truck — mileage (mi)</label><input type="number" id="s-truck"></div>
+                <div class="field"><label class="f-label">Reefer — engine hours (hr)</label><input type="number" id="s-reefer"></div>
+              </div>
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="ph ph-check"></i>Save intervals</button>
+            </div>
+          </div>
+          <div class="settings-panel" id="spanel-notifications">
+            <div class="settings-card">
+              <h3>Notifications</h3>
+              <p class="sc-sub">Choose which alerts you want.</p>
+              <div class="toggle-row"><div class="t-l"><b>Overdue alerts</b><span>Notify when a unit exceeds the interval.</span></div><label class="switch"><input type="checkbox" id="notif-overdue" onchange="saveNotifPrefs()"><span class="slider"></span></label></div>
+              <div class="toggle-row"><div class="t-l"><b>Near-interval alerts</b><span>Warn at 85% of the threshold.</span></div><label class="switch"><input type="checkbox" id="notif-warn" onchange="saveNotifPrefs()"><span class="slider"></span></label></div>
+              <div class="toggle-row"><div class="t-l"><b>Browser notifications</b><span>Desktop push alerts when allowed.</span></div><label class="switch"><input type="checkbox" id="notif-browser" onchange="saveNotifPrefs()"><span class="slider"></span></label></div>
+            </div>
+          </div>
+          <div class="settings-panel" id="spanel-appearance">
+            <div class="settings-card">
+              <h3>Appearance</h3>
+              <p class="sc-sub">Choose your preferred theme.</p>
+              <div class="theme-options">
+                <div class="theme-opt active" data-theme-choice="light" onclick="setTheme('light')"><i class="ph ph-sun"></i><b>Light</b></div>
+                <div class="theme-opt" data-theme-choice="dark" onclick="setTheme('dark')"><i class="ph ph-moon"></i><b>Dark</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-panel" id="spanel-account">
+            <div class="settings-card">
+              <h3>Account</h3>
+              <p class="sc-sub">Your administrator account information.</p>
+              <div class="toggle-row"><div class="t-l"><b>Name</b></div><div style="font-family:var(--fm);" id="acc-name">—</div></div>
+              <div class="toggle-row"><div class="t-l"><b>Role</b></div><div style="font-family:var(--fm);" id="acc-role">—</div></div>
+              <div style="margin-top:18px;"><button class="btn btn-danger" onclick="logoutAdmin()"><i class="ph ph-sign-out"></i>Logout</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Complete alert modal -->
+<div class="overlay" id="complete-overlay">
+  <div class="modal">
+    <h3>Complete oil change</h3>
+    <p class="sub" id="complete-sub">Log the value at the time of the change. The next oil change is calculated automatically.</p>
+    <div class="field">
+      <label class="f-label" id="complete-label">Value at change (mi)</label>
+      <input type="number" id="complete-value" placeholder="e.g. 304670">
+    </div>
+    <div class="history-label">Next oil change</div>
+    <div class="status-banner ok" id="complete-next">
+      <span class="ubadge ok"></span>
+      <span id="complete-next-text">—</span>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeComplete()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="confirmComplete()"><i class="ph ph-check"></i>Mark completed</button>
+    </div>
+  </div>
+</div>
+
+<!-- Unit detail modal -->
+<div class="overlay" id="unit-overlay">
+  <div class="modal unit-modal">
+    <div class="utitle"><h3 id="u-title">#—</h3></div>
+    <p class="sub" id="u-subtitle">—</p>
+    <div id="u-status-banner" class="status-banner unknown">
+      <span class="ubadge"></span>
+      <span id="u-status-text">—</span>
+    </div>
+    <div class="history-label">Oil change schedule</div>
+    <div class="history-list" id="u-schedule"></div>
+    <div class="history-label">Alert history</div>
+    <div class="history-list" id="u-alert-history"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeUnitDetail()" style="flex:none;margin-left:auto;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- User add/edit modal -->
+<div class="overlay" id="user-overlay">
+  <div class="modal">
+    <h3 id="user-modal-title">Add user</h3>
+    <p class="sub" id="user-modal-sub">Create a mobile app account with a role and password.</p>
+    <div class="field">
+      <label class="f-label">Username</label>
+      <input type="text" id="u-username" placeholder="e.g. mihai" autocomplete="off" required>
+    </div>
+    <div class="field">
+      <label class="f-label">Display name</label>
+      <input type="text" id="u-name" placeholder="e.g. Mihai Popescu">
+    </div>
+    <div class="field">
+      <label class="f-label">Role</label>
+      <select id="u-role">
+        <option value="agent">Agent</option>
+        <option value="developer">Developer</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="f-label">Password <span style="text-transform:none;font-weight:500;">(&ge; 4 characters)</span></label>
+      <input type="text" id="u-password" placeholder="••••••••" autocomplete="new-password" style="font-family:var(--fm);">
+      <button type="button" class="btn btn-sm" style="margin-top:8px;" onclick="generatePassword()"><i class="ph ph-dice-five"></i>Generate</button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeUserModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="saveUser()"><i class="ph ph-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export preview modal -->
+<div class="overlay" id="export-overlay">
+  <div class="modal" style="max-width:720px;">
+    <h3>Export Excel</h3>
+    <p class="sub">Choose the period and preview before downloading.</p>
+    <div class="form-row">
+      <div class="field"><label class="f-label">Period</label>
+        <select id="export-range" onchange="updateExportPreview()">
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="week">This week</option>
+          <option value="lastweek">Last week</option>
+          <option value="month">This month</option>
+          <option value="lastmonth">Last month</option>
+          <option value="period">Custom period</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="field" id="export-period-fields" style="display:none;">
+        <div class="row2">
+          <div class="field"><label class="f-label">From</label><input type="date" id="export-from" onchange="updateExportPreview()"></div>
+          <div class="field"><label class="f-label">To</label><input type="date" id="export-to" onchange="updateExportPreview()"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--dim);">Preview — <b id="export-count">0</b> records</div>
+      <div style="font-size:11px;color:var(--faint);" id="export-range-label">—</div>
+    </div>
+    <div class="table-wrap" style="max-height:280px;overflow-y:auto;">
+      <table style="min-width:600px;">
+        <thead><tr><th>Date</th><th>Type</th><th>Unit #</th><th>Value</th><th>Added by</th></tr></thead>
+        <tbody id="export-preview-body"><tr class="empty-row"><td colspan="5"><i class="ph ph-tray"></i><div>No records.</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeExport()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="confirmExport()"><i class="ph ph-download-simple"></i>Download Excel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/admin.js?v=5"></script>
+</body>
+</html>

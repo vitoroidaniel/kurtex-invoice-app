@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OILLOG — Admin Login</title>
+<link rel="icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="css/admin-login.css?v=5">
+</head>
+<body>
+
+  <div class="login-card">
+  <div class="login-title">OIL<span>LOG</span></div>
+  <div class="login-tag">ADMIN PANEL</div>
+  <div class="login-sub">Sign in to access the admin panel.</div>
+  <div id="login-error" class="login-error" style="display:none;"></div>
+
+  <div class="login-tabs">
+    <button class="login-tab active" onclick="showLoginTab('telegram')" id="tab-telegram">Telegram</button>
+    <button class="login-tab" onclick="showLoginTab('password')" id="tab-password">Password</button>
+  </div>
+
+  <div class="login-actions" id="login-telegram">
+    <div id="tg-login-wrap">
+      <script async src="https://telegram.org/js/telegram-widget.js?22"
+        data-telegram-login="kurtexsecuritybot"
+        data-size="large"
+        data-radius="8"
+        data-auth-url="/auth/telegram?next=/admin"
+        data-request-access="write"></script>
+    </div>
+    <p class="muted">Administrators only.</p>
+  </div>
+
+  <div class="login-actions hidden" id="login-password">
+    <form id="password-form" class="login-form" onsubmit="return false;">
+      <input type="text" id="p-username" placeholder="Username" autocomplete="username" required>
+      <input type="password" id="p-password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" class="btn btn-primary"><i class="ph ph-sign-in"></i>Sign in</button>
+    </form>
+    <p class="muted">Admin accounts are created from the admin panel.</p>
+  </div>
+
+  <button class="back-link" onclick="window.location.href='/'"><i class="ph ph-arrow-left"></i>Back to app</button>
+</div>
+
+<script src="js/admin-login.js?v=5"></script>
+</body>
+</html>
