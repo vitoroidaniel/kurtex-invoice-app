@@ -324,3 +324,20 @@ button.unit-history-link{border:0;background:none;padding:0;color:inherit;font:i
 .history-row span{display:block;margin-top:3px;font-size:11px;color:var(--dim);}
 .history-reading{font-family:var(--fm);font-size:15px;font-weight:700;color:var(--navy);white-space:nowrap;text-align:right;}
 .history-reading small{font-family:var(--fb);font-size:9px;color:var(--faint);text-transform:uppercase;}
+
+/* Edit record modal */
+.edit-record-overlay{position:fixed;inset:0;z-index:120;background:rgba(8,18,34,.48);display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px);}
+.edit-record-overlay.hidden{display:none;}
+.edit-record-modal{width:min(460px,100%);background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.edit-record-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 22px 14px;border-bottom:1px solid var(--border);}
+.edit-record-kicker{font:700 11px/1 var(--mono);letter-spacing:.12em;color:var(--red);margin-bottom:7px;}
+.edit-record-head h2{margin:0;font-size:20px;color:var(--navy);}
+.edit-record-head p{margin:4px 0 0;color:var(--dim);font-size:12px;}
+.edit-record-close{width:32px;height:32px;border:1px solid var(--border);background:var(--surface);border-radius:8px;color:var(--dim);cursor:pointer;display:grid;place-items:center;}
+.edit-record-close:hover{background:var(--navy-tint);color:var(--navy);}
+.edit-record-modal form{padding:18px 22px 20px;}
+.edit-record-fields{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.edit-record-fields .field{min-width:0;}
+.edit-record-fields input,.edit-record-fields select{width:100%;box-sizing:border-box;}
+.edit-record-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px;}
+.edit-modal-cancel{border-color:var(--border);background:transparent;color:var(--dim);}

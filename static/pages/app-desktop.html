@@ -9,8 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=16">
-<link rel="stylesheet" href="css/app-desktop.css?v=16">
+<link rel="stylesheet" href="css/app-base.css?v=18">
+<link rel="stylesheet" href="css/app-desktop.css?v=18">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -31,6 +31,24 @@
       <button type="button" class="dp-today" onclick="dpSelectToday()">Today</button>
       <button type="button" class="dp-close" onclick="closeDatePicker()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<div class="edit-record-overlay hidden" id="edit-record-overlay" onclick="closeEditModal(event)">
+  <div class="edit-record-modal" onclick="event.stopPropagation()">
+    <div class="edit-record-head">
+      <div><div class="edit-record-kicker">EDIT RECORD</div><h2>Edit oil change</h2><p>Change only the fields you need.</p></div>
+      <button type="button" class="edit-record-close" onclick="closeEditModal()"><span class="ph ph-x"></span></button>
+    </div>
+    <form id="edit-record-form" onsubmit="saveEditModal(event)">
+      <div class="edit-record-fields">
+        <div class="field"><label class="field-label" for="edit-date"><span class="ph ph-calendar-blank"></span>Date</label><input type="date" id="edit-date" required></div>
+        <div class="field"><label class="field-label" for="edit-type"><span class="ph ph-grid-four"></span>Type</label><select id="edit-type" required><option value="T">TRUCK</option><option value="R">REEFER</option></select></div>
+        <div class="field"><label class="field-label" for="edit-unit"><span class="ph ph-hash"></span>Unit number</label><input type="text" id="edit-unit" required autocomplete="off"></div>
+        <div class="field"><label class="field-label" for="edit-value"><span class="ph ph-pulse"></span>Mileage / Engine hours</label><input type="number" id="edit-value" inputmode="numeric" min="0" step="1" required></div>
+      </div>
+      <div class="edit-record-actions"><button type="button" class="btn edit-modal-cancel" onclick="closeEditModal()">Cancel</button><button type="submit" class="btn btn-primary"><span class="ph ph-floppy-disk"></span>Save changes</button></div>
+    </form>
   </div>
 </div>
 
@@ -136,7 +154,6 @@
               <button type="submit" class="btn btn-primary add-record-btn">
                 <span class="ph ph-plus"></span> Add record
               </button>
-              <button type="button" class="btn edit-cancel hidden" onclick="cancelEdit()"><span class="ph ph-x"></span> Cancel edit</button>
               <div class="form-note">
                 <span class="ph ph-info"></span>
                 <span>Save this oil change to the records list.</span>
@@ -235,6 +252,6 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="js/app.js?v=16"></script>
+<script src="js/app.js?v=18"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@ const OFFLINE_QUEUE_KEY = 'oillog_offline_queue_v1';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '16';
+const APP_BUILD = '18';
 
 let user = null;
 let entries = [];
@@ -320,9 +320,7 @@ function showScreen(name){
 
 function updateListQuickActions(name){
   const visible=name==='list';
-  // Desktop has no list-only Download/Share actions. Keep these actions on mobile navigation.
-  const mobileActions=document.getElementById('mobile-list-actions');
-  if(mobileActions) mobileActions.classList.toggle('hidden', !visible);
+  // Download / Share are mobile-only quick actions in the bottom navigation.
   const mobileDownload=document.getElementById('mobile-download-action');
   const mobileShare=document.getElementById('mobile-share-action');
   if(mobileDownload) mobileDownload.classList.toggle('hidden', !visible);
@@ -333,38 +331,58 @@ function resetAddForm(){
   editingEntryId=null;
   const btn=document.querySelector('#screen-add .add-record-btn');
   if(btn) btn.innerHTML='<span class="ph ph-plus"></span> Add record';
-  const cancel=document.querySelector('#screen-add .edit-cancel');
-  if(cancel) cancel.classList.add('hidden');
   const title=document.getElementById('head-title');
   const sub=document.getElementById('head-sub');
   if(title && document.getElementById('screen-add')?.classList.contains('active')){ title.textContent='New oil change'; sub.textContent='Complete after each invoice from the shop.'; }
 }
+
 function editEntry(id){
   const e=entries.find(x=>String(x.id)===String(id));
   if(!e) return;
   if(!navigator.onLine){ toast('Connect to the internet to edit a saved record'); return; }
   editingEntryId=e.id;
-  document.getElementById('f-date').value=e.date;
-  const d=new Date(e.date+'T00:00:00');
-  const disp=document.getElementById('f-date-display');
-  disp.textContent=d.toLocaleDateString('en-US',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-  disp.classList.remove('placeholder');
-  document.getElementById('f-unit').value=e.unit||'';
-  document.getElementById('f-value').value=e.value||'';
-  selectType(e.type||'T');
-  selectUnit(e.unitOfValue||'mi');
-  const btn=document.querySelector('#screen-add .add-record-btn');
-  if(btn) btn.innerHTML='<span class="ph ph-floppy-disk"></span> Save changes';
-  const cancel=document.querySelector('#screen-add .edit-cancel');
-  if(cancel) cancel.classList.remove('hidden');
-  showScreen('add');
-  const title=document.getElementById('head-title'); const sub=document.getElementById('head-sub');
-  if(title){ title.textContent='Edit record'; sub.textContent='Update the oil change details.'; }
+  const overlay=document.getElementById('edit-record-overlay');
+  if(!overlay) return;
+  document.getElementById('edit-date').value=e.date||'';
+  document.getElementById('edit-type').value=e.type||'T';
+  document.getElementById('edit-unit').value=e.unit||'';
+  document.getElementById('edit-value').value=e.value ?? '';
+  overlay.classList.remove('hidden');
+  setTimeout(()=>document.getElementById('edit-unit')?.focus(),50);
 }
-function cancelEdit(){
+
+function closeEditModal(event){
+  if(event && event.target!==event.currentTarget) return;
+  const overlay=document.getElementById('edit-record-overlay');
+  if(overlay) overlay.classList.add('hidden');
+  editingEntryId=null;
+}
+
+async function saveEditModal(event){
+  event.preventDefault();
   if(!editingEntryId) return;
-  resetAddForm();
-  showScreen('list');
+  const old=entries.find(x=>String(x.id)===String(editingEntryId));
+  if(!old) return;
+  if(!navigator.onLine){ toast('Connect to the internet to save changes'); return; }
+  const date=document.getElementById('edit-date').value;
+  const type=document.getElementById('edit-type').value;
+  const unit=document.getElementById('edit-unit').value.trim();
+  const valueRaw=document.getElementById('edit-value').value.trim();
+  const value=Number(valueRaw);
+  if(!date){ toast('⚠ Select a date'); return; }
+  if(date>chicagoTodayISO()){ toast('⚠ Date cannot be in the future'); return; }
+  if(!unit){ toast('⚠ Enter a unit number'); return; }
+  if(!valueRaw || !Number.isFinite(value) || value<0){ toast('⚠ Enter a valid mileage / engine hours value'); return; }
+  const updated={...old,date,type,unit,unitOfValue:type==='R'?'hr':'mi',value:String(value),editedAt:Date.now()};
+  try{
+    await api('PUT','/api/entries/'+encodeURIComponent(editingEntryId),updated);
+    entries=entries.map(x=>String(x.id)===String(editingEntryId)?updated:x);
+    writeCachedEntries();
+    closeEditModal();
+    renderList();
+    if(document.getElementById('screen-search')?.classList.contains('active')) renderSearch();
+    toast('✓ Changes saved');
+  }catch(err){ toast(navigator.onLine ? 'Error saving changes' : 'Offline — changes not saved'); }
 }
 
 function selectType(t){
@@ -404,20 +422,6 @@ document.getElementById('entry-form').addEventListener('submit', async function(
   if(!valueRaw || !Number.isFinite(value) || value < 0){ toast('⚠ Enter a valid mileage / engine hours value'); document.getElementById('f-value').focus(); return; }
   if(dateField.value > chicagoTodayISO()){ toast('⚠ Date cannot be in the future'); return; }
 
-  if(editingEntryId){
-    const old=entries.find(x=>String(x.id)===String(editingEntryId));
-    if(!old) return;
-    const updated={...old,date:dateField.value,type:currentType,unit,unitOfValue:currentUnit,value:String(value),editedAt:Date.now()};
-    try{
-      await api('PUT','/api/entries/'+encodeURIComponent(editingEntryId),updated);
-      entries=entries.map(x=>String(x.id)===String(editingEntryId)?updated:x);
-      writeCachedEntries();
-      resetAddForm();
-      toast('✓ Changes saved');
-      showScreen('list');
-    }catch(err){ toast(navigator.onLine ? 'Error saving changes' : 'Offline — changes not saved'); }
-    return;
-  }
 
   const now=Date.now();
   const entry={id:now+'_'+Math.random().toString(36).slice(2,8),date:dateField.value,type:currentType,unit,unitOfValue:currentUnit,value:String(value),addedBy:user?user.name:'Unknown',sent:false,createdAt:now};
