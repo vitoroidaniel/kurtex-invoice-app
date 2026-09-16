@@ -341,3 +341,49 @@ button.unit-history-link{border:0;background:none;padding:0;color:inherit;font:i
 .edit-record-fields input,.edit-record-fields select{width:100%;box-sizing:border-box;}
 .edit-record-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px;}
 .edit-modal-cancel{border-color:var(--border);background:transparent;color:var(--dim);}
+
+/* ── V21 activity redesign ─────────────────────────────── */
+.screen-kicker{font:700 10px/1 var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--red);margin-bottom:5px;}
+.activity-head{margin-bottom:12px;}
+.activity-head h2{font-size:24px;}
+.activity-refresh{width:auto;padding:10px 14px;}
+.activity-stat-strip{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.activity-stat-strip>div{padding:10px 14px;border-right:1px solid var(--border);}
+.activity-stat-strip>div:last-child{border-right:0;}
+.activity-stat-strip span{display:block;font:700 9px/1 var(--fd);letter-spacing:1px;color:var(--dim);}
+.activity-stat-strip strong{display:block;margin-top:4px;font:700 20px/1 var(--fm);color:var(--navy);}
+.activity-filters{display:grid;grid-template-columns:minmax(220px,1fr) 150px 145px 145px;align-items:center;gap:8px;margin-bottom:12px;padding:9px;}
+.activity-filter-search{height:38px;display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);}
+.activity-filter-search .ph{font-size:15px;color:var(--faint);}
+.activity-filter-search input{border:0 !important;padding:0 !important;box-shadow:none !important;outline:0 !important;background:transparent !important;min-width:0;}
+.activity-filters input,.activity-filters select{height:38px;box-sizing:border-box;}
+.activity-list{background:transparent;border:0;box-shadow:none;max-height:calc(100vh - 300px);overflow:auto;}
+.activity-group{margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+.activity-day{padding:8px 13px;background:var(--surface-2);border-bottom:1px solid var(--border);font:700 9px/1 var(--fm);letter-spacing:1px;color:var(--navy);}
+.activity-row{min-height:56px;padding:9px 12px;gap:10px;}
+.activity-row:hover{background:var(--surface-2);}
+.activity-icon{width:32px;height:32px;border-radius:9px;flex-basis:32px;}
+.activity-icon.action-added{color:var(--green);background:var(--green-tint);}
+.activity-icon.action-edited{color:var(--navy);background:var(--navy-tint);}
+.activity-icon.action-deleted{color:var(--red);background:var(--red-tint);}
+.activity-main strong{font-size:12.5px;line-height:1.25;}
+.activity-main span{font-size:10px;}
+.activity-action{padding:4px 7px;border-radius:999px;background:var(--surface-3);}
+.activity-action.action-added{color:var(--green);background:var(--green-tint);}
+.activity-action.action-edited{color:var(--navy);background:var(--navy-tint);}
+.activity-action.action-deleted{color:var(--red);background:var(--red-tint);}
+
+/* ── V21 edit modal redesign ───────────────────────────── */
+.edit-record-modal{width:min(520px,100%);border-radius:14px;}
+.edit-record-head{padding:18px 20px 14px;}
+.edit-record-head h2{font-size:22px;}
+.edit-record-modal form{padding:16px 20px 18px;}
+.edit-record-fields{grid-template-columns:1fr 1fr;gap:12px;}
+.edit-record-fields .field{margin-bottom:0;}
+.edit-record-fields .field-label{margin-bottom:6px;}
+.edit-type-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.edit-type-chip{height:43px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--dim);font:600 11px var(--fd);letter-spacing:.7px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
+.edit-type-chip .ph{font-size:16px;}
+.edit-type-chip.active{background:#1A1A1A;border-color:#1A1A1A;color:#fff;}
+.edit-record-actions{margin-top:16px;padding-top:13px;border-top:1px solid var(--border);}
+.edit-record-actions .btn{width:auto;min-width:120px;}

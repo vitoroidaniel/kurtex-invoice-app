@@ -6,7 +6,7 @@ const OFFLINE_QUEUE_KEY = 'oillog_offline_queue_v1';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '19';
+const APP_BUILD = '21';
 
 let user = null;
 let entries = [];
@@ -344,11 +344,18 @@ function editEntry(id){
   const overlay=document.getElementById('edit-record-overlay');
   if(!overlay) return;
   document.getElementById('edit-date').value=e.date||'';
-  document.getElementById('edit-type').value=e.type||'T';
+  setEditType(e.type||'T');
   document.getElementById('edit-unit').value=e.unit||'';
   document.getElementById('edit-value').value=e.value ?? '';
   overlay.classList.remove('hidden');
   setTimeout(()=>document.getElementById('edit-unit')?.focus(),50);
+}
+
+function setEditType(type){
+  const value=type==='R'?'R':'T';
+  const input=document.getElementById('edit-type');
+  if(input) input.value=value;
+  document.querySelectorAll('.edit-type-chip').forEach(btn=>btn.classList.toggle('active',btn.dataset.editType===value));
 }
 
 function closeEditModal(event){
@@ -618,12 +625,42 @@ async function loadActivity(){
   const box=document.getElementById('activity-list'); if(!box)return;
   try{ activityEntries=await api('GET','/api/activity'); renderActivity(); }catch(e){ box.innerHTML='<div class="table-empty"><span class="ph ph-warning"></span><p>Activity could not be loaded.</p></div>'; }
 }
+function activityDateISO(ts){
+  if(!ts) return '';
+  const d=new Date(ts);
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+}
+function activityDayLabel(iso){
+  if(!iso)return '';
+  const today=chicagoTodayISO();
+  const d=new Date(iso+'T12:00:00');
+  const y=new Date(today+'T12:00:00');
+  const diff=Math.round((y-d)/86400000);
+  if(diff===0)return 'TODAY';
+  if(diff===1)return 'YESTERDAY';
+  return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',month:'short',day:'2-digit'}).format(d).toUpperCase();
+}
 function renderActivity(){
   const box=document.getElementById('activity-list'); if(!box)return;
-  const q=(document.getElementById('activity-unit')?.value||'').trim().toLowerCase(); const action=document.getElementById('activity-action')?.value||'all';
-  const rows=activityEntries.filter(a=>(!q||String(a.unit||'').toLowerCase().includes(q))&&(action==='all'||a.action===action));
-  if(!rows.length){box.innerHTML='<div class="table-empty"><span class="ph ph-clock-counter-clockwise"></span><p>No activity found.</p></div>';return;}
-  box.innerHTML=rows.map(a=>`<div class="activity-row"><div class="activity-icon"><span class="ph ph-${a.action==='added'?'plus':a.action==='edited'?'pencil-simple':'trash'}"></span></div><div class="activity-main"><strong>${escapeHtml(a.description||a.action)}</strong><span>${escapeHtml(a.user||'Unknown')} · ${formatActivityTime(a.timestamp)}</span></div><span class="activity-action">${escapeHtml(a.action)}</span></div>`).join('');
+  const q=(document.getElementById('activity-unit')?.value||'').trim().toLowerCase();
+  const action=document.getElementById('activity-action')?.value||'all';
+  const from=document.getElementById('activity-from')?.value||'';
+  const to=document.getElementById('activity-to')?.value||'';
+  const counts={total:activityEntries.length,added:0,edited:0,deleted:0};
+  activityEntries.forEach(a=>{if(counts[a.action]!==undefined)counts[a.action]++;});
+  ['total','added','edited','deleted'].forEach(k=>{const el=document.getElementById('activity-'+k);if(el)el.textContent=counts[k];});
+  const rows=activityEntries.filter(a=>{
+    const day=activityDateISO(a.timestamp);
+    return (!q||String(a.unit||'').toLowerCase().includes(q)||String(a.description||'').toLowerCase().includes(q)) &&
+      (action==='all'||a.action===action) && (!from||day>=from) && (!to||day<=to);
+  }).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  if(!rows.length){box.innerHTML='<div class="table-empty"><span class="ph ph-clock-counter-clockwise"></span><p>No activity found.</p><small>Try a different unit, action or date range.</small></div>';return;}
+  const groups=[];
+  rows.forEach(a=>{const day=activityDateISO(a.timestamp);let g=groups.find(x=>x.day===day);if(!g){g={day,rows:[]};groups.push(g);}g.rows.push(a);});
+  box.innerHTML=groups.map(g=>`<section class="activity-group"><div class="activity-day">${activityDayLabel(g.day)}</div>${g.rows.map(a=>{
+    const icon=a.action==='added'?'plus':a.action==='edited'?'pencil-simple':'trash';
+    return `<div class="activity-row"><div class="activity-icon action-${escapeHtml(a.action)}"><span class="ph ph-${icon}"></span></div><div class="activity-main"><strong>${escapeHtml(a.description||a.action)}</strong><span>${escapeHtml(a.user||'Unknown')} · ${formatActivityTime(a.timestamp)}</span></div><span class="activity-action action-${escapeHtml(a.action)}">${escapeHtml(a.action)}</span></div>`;
+  }).join('')}</section>`).join('');
 }
 function formatActivityTime(ts){ if(!ts)return '—'; return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'2-digit',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(ts))+' CT'; }
 

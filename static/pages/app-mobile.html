@@ -13,8 +13,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=20">
-<link rel="stylesheet" href="css/app-mobile.css?v=20">
+<link rel="stylesheet" href="css/app-base.css?v=21">
+<link rel="stylesheet" href="css/app-mobile.css?v=21">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -47,7 +47,7 @@
     <form id="edit-record-form" onsubmit="saveEditModal(event)">
       <div class="edit-record-fields">
         <div class="field"><label class="field-label" for="edit-date"><span class="ph ph-calendar-blank"></span>Date</label><input type="date" id="edit-date" required></div>
-        <div class="field"><label class="field-label" for="edit-type"><span class="ph ph-grid-four"></span>Type</label><select id="edit-type" required><option value="T">TRUCK</option><option value="R">REEFER</option></select></div>
+        <div class="field edit-type-field"><label class="field-label"><span class="ph ph-grid-four"></span>Type</label><div class="edit-type-row"><button type="button" class="edit-type-chip active" data-edit-type="T" onclick="setEditType('T')"><span class="ph ph-truck"></span>Truck</button><button type="button" class="edit-type-chip" data-edit-type="R" onclick="setEditType('R')"><span class="ph ph-wind"></span>Reefer</button></div><input type="hidden" id="edit-type" value="T"></div>
         <div class="field"><label class="field-label" for="edit-unit"><span class="ph ph-hash"></span>Unit number</label><input type="text" id="edit-unit" required autocomplete="off"></div>
         <div class="field"><label class="field-label" for="edit-value"><span class="ph ph-pulse"></span>Mileage / Engine hours</label><input type="number" id="edit-value" inputmode="numeric" min="0" step="1" required></div>
       </div>
@@ -173,8 +173,18 @@
 
   <!-- ─ Activity ───────────────────────────────────────── -->
   <div class="screen" id="screen-activity">
-    <div class="topbar"><div class="brand brand-short">ACTIVITY</div></div>
-    <div class="activity-filters card"><input type="text" id="activity-unit" placeholder="Filter unit" oninput="renderActivity()"><select id="activity-action" onchange="renderActivity()"><option value="all">All actions</option><option value="added">Added</option><option value="edited">Edited</option><option value="deleted">Deleted</option></select></div>
+    <div class="topbar"><div><div class="brand brand-short">ACTIVITY</div><div class="topbar-sub">Workspace history</div></div></div>
+    <div class="activity-stat-strip">
+      <div><span>TOTAL</span><strong id="activity-total">0</strong></div>
+      <div><span>ADDED</span><strong id="activity-added">0</strong></div>
+      <div><span>EDITED</span><strong id="activity-edited">0</strong></div>
+      <div><span>DELETED</span><strong id="activity-deleted">0</strong></div>
+    </div>
+    <div class="activity-filters card">
+      <div class="activity-filter-search"><span class="ph ph-magnifying-glass"></span><input type="text" id="activity-unit" placeholder="Search unit" oninput="renderActivity()"></div>
+      <div class="activity-filter-row"><select id="activity-action" onchange="renderActivity()"><option value="all">All actions</option><option value="added">Added</option><option value="edited">Edited</option><option value="deleted">Deleted</option></select></div>
+      <div class="activity-date-row"><input type="date" id="activity-from" onchange="renderActivity()" aria-label="From date"><span>TO</span><input type="date" id="activity-to" onchange="renderActivity()" aria-label="To date"></div>
+    </div>
     <div id="activity-list" class="activity-list"></div>
   </div>
 
@@ -215,6 +225,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=20"></script>
+<script src="js/app.js?v=21"></script>
 </body>
 </html>

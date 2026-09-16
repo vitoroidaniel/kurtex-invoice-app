@@ -46,7 +46,7 @@ BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric) — set in Railway env
 # Build stamp — bump this with every release. It is exposed at /api/version and
 # echoed by the front-end, so a stale deployment or a stuck service-worker cache
 # is instantly visible instead of silently serving an old layout.
-APP_BUILD = "18"
+APP_BUILD = "21"
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
@@ -530,7 +530,13 @@ def api_update_entry(entry_id):
         if e.get("id") == entry_id:
             entries[i] = data
             save_entries(entries)
-            log_activity("edited", f"Edited unit #{data.get('unit', e.get('unit',''))}", data.get('unit', e.get('unit','')), entry_id)
+            changes=[]
+            if str(e.get('date','')) != str(data.get('date','')): changes.append(f"date {e.get('date','')} → {data.get('date','')}")
+            if str(e.get('type','')) != str(data.get('type','')): changes.append(f"type {e.get('type','')} → {data.get('type','')}")
+            if str(e.get('unit','')) != str(data.get('unit','')): changes.append(f"unit #{e.get('unit','')} → #{data.get('unit','')}")
+            if str(e.get('value','')) != str(data.get('value','')): changes.append(f"reading {e.get('value','')} → {data.get('value','')}")
+            detail = ', '.join(changes) if changes else 'record details updated'
+            log_activity("edited", f"Edited unit #{data.get('unit', e.get('unit',''))} · {detail}", data.get('unit', e.get('unit','')), entry_id)
             return jsonify(data)
     return jsonify({"error": "not_found"}), 404
 
