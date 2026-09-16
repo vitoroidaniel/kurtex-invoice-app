@@ -13,8 +13,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="css/app-base.css?v=18">
-<link rel="stylesheet" href="css/app-mobile.css?v=18">
+<link rel="stylesheet" href="css/app-base.css?v=20">
+<link rel="stylesheet" href="css/app-mobile.css?v=20">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -155,11 +155,11 @@
   <!-- ─ Search / Unit history ───────────────────────── -->
   <div class="screen" id="screen-search">
     <div class="topbar"><div class="brand brand-short">SEARCH</div></div>
-    <div class="search-stat-grid">
-      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Records</span><span class="ph ph-list-checks stat-ico"></span></div><div class="stat-num" id="search-count">0</div></div>
-      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Units</span><span class="ph ph-hash stat-ico"></span></div><div class="stat-num" id="search-units">0</div></div>
-      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Trucks</span><span class="ph ph-truck stat-ico"></span></div><div class="stat-num" id="search-trucks">0</div></div>
-      <div class="stat-card"><div class="stat-top"><span class="stat-lbl">Reefers</span><span class="ph ph-wind stat-ico"></span></div><div class="stat-num" id="search-reefers">0</div></div>
+    <div class="search-stat-strip" aria-label="Search statistics">
+      <div class="search-stat"><span>RECORDS</span><strong id="search-count">0</strong></div>
+      <div class="search-stat"><span>UNITS</span><strong id="search-units">0</strong></div>
+      <div class="search-stat"><span>TRUCKS</span><strong id="search-trucks">0</strong></div>
+      <div class="search-stat"><span>REEFERS</span><strong id="search-reefers">0</strong></div>
     </div>
     <div class="search-panel card">
       <div class="field"><label class="field-label"><span class="ph ph-magnifying-glass"></span>Unit</label><input type="text" id="search-unit" placeholder="Unit number" autocomplete="off"></div>
@@ -215,6 +215,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=18"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>
