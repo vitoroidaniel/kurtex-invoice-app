@@ -16,6 +16,24 @@ let syncTimer = null;
 
 function loadUser(){ try{ return JSON.parse(localStorage.getItem(USER_KEY)) || null; }catch(e){ return null; } }
 function saveUserLocal(u){ localStorage.setItem(USER_KEY, JSON.stringify(u)); }
+
+// Keep the two shells strict: desktop browsers always use the desktop HTML,
+// phones/tablets always use the mobile HTML. This also repairs old bookmarks
+// to /mobile or /desktop after a user reaches the login page.
+function shouldUseMobileShell(){
+  const ua = navigator.userAgent.toLowerCase();
+  const touchMobile = /android|iphone|ipad|ipod|windows phone|blackberry|mobile|silk|kindle|playbook|bb10/.test(ua);
+  return touchMobile || window.matchMedia('(max-width: 859px)').matches;
+}
+function enforceDeviceShell(){
+  const mobile = shouldUseMobileShell();
+  const path = window.location.pathname;
+  const onMobile = path === '/mobile' || document.getElementById('app')?.dataset.layout === 'mobile';
+  const onDesktop = path === '/desktop' || document.getElementById('app')?.dataset.layout === 'desktop';
+  if(mobile && onDesktop){ window.location.replace('/mobile'); return false; }
+  if(!mobile && onMobile){ window.location.replace('/desktop'); return false; }
+  return true;
+}
 function icons(){ /* Phosphor webfont — icons are pure CSS, nothing to re-render */ }
 function toast(msg){
   const t = document.getElementById('toast');
@@ -54,6 +72,7 @@ function clearLoginError(){
 
 document.getElementById('login-form').addEventListener('submit', async function(e){
   e.preventDefault();
+  if(!enforceDeviceShell()) return;
   clearLoginError();
   const username = document.getElementById('l-username').value.trim();
   const password = document.getElementById('l-password').value;
@@ -70,7 +89,8 @@ document.getElementById('login-form').addEventListener('submit', async function(
         role: su.role || 'agent',
       };
       saveUserLocal(user);
-      redirectToDeviceLayout();
+      if(!enforceDeviceShell()) return;
+      await enterApp();
     } else {
       showLoginError(res.error || 'invalid_credentials');
     }
@@ -78,24 +98,6 @@ document.getElementById('login-form').addEventListener('submit', async function(
 });
 
 function isDesktop(){ const a=document.getElementById('app'); return a && a.dataset.layout === 'desktop'; }
-
-// Keep the authenticated session, but load the dedicated HTML shell for the
-// device being used. Desktop browser windows remain desktop even when resized
-// narrow; phones/tablets use the mobile shell.
-function isMobileDevice(){
-  const ua = navigator.userAgent || '';
-  if(navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') return navigator.userAgentData.mobile;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Silk|Kindle|PlayBook|BB10/i.test(ua);
-}
-function redirectToDeviceLayout(){
-  const target = isMobileDevice() ? '/mobile' : '/desktop';
-  const current = isDesktop() ? '/desktop' : '/mobile';
-  if(window.location.pathname !== target || current !== target){
-    window.location.replace(target);
-    return;
-  }
-  enterApp();
-}
 
 // Toggle the authenticated chrome of whichever layout is loaded.
 function setAuthed(on){
@@ -511,13 +513,9 @@ function saveName(){
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async function init(){
+  if(!enforceDeviceShell()) return;
   user = loadUser();
   try {
-    const target = isMobileDevice() ? '/mobile' : '/desktop';
-    if(window.location.pathname !== target && (window.location.pathname === '/' || window.location.pathname === '/mobile' || window.location.pathname === '/desktop')){
-      window.location.replace(target);
-      return;
-    }
     const status = await api('GET', '/auth/status');
     if(status.ok && status.user) {
       const su = status.user;
