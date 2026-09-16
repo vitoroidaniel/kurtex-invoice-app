@@ -6,7 +6,7 @@ const OFFLINE_QUEUE_KEY = 'oillog_offline_queue_v1';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '21';
+const APP_BUILD = '22';
 
 let user = null;
 let entries = [];
