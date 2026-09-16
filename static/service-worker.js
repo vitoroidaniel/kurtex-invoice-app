@@ -1,5 +1,16 @@
-const CACHE = 'oillog-v5';
-const ASSETS = ['./', './pages/app.html?v=5', './css/app.css?v=5', './js/app.js?v=5', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'oillog-v6';
+const ASSETS = [
+  './',
+  './pages/app-mobile.html?v=6',
+  './pages/app-desktop.html?v=6',
+  './css/app-base.css?v=6',
+  './css/app-mobile.css?v=6',
+  './css/app-desktop.css?v=6',
+  './js/app.js?v=6',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

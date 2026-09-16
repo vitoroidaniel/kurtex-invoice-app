@@ -72,13 +72,21 @@ document.getElementById('login-form').addEventListener('submit', async function(
   } catch(err){ showLoginError('network_error'); }
 });
 
+function isDesktop(){ const a=document.getElementById('app'); return a && a.dataset.layout === 'desktop'; }
+
+// Toggle the authenticated chrome of whichever layout is loaded.
+function setAuthed(on){
+  document.body.classList.toggle('is-authed', !!on);
+  const nav = document.getElementById('bottomnav');
+  if(nav) nav.classList.toggle('hidden', !on);
+}
+
 function logout(){
   if(!confirm('Are you sure you want to logout?')) return;
   localStorage.removeItem(USER_KEY); user = null;
   stopSync();
   try { api('POST', '/logout'); } catch(e) {}
-  document.getElementById('bottomnav').classList.add('hidden');
-  document.getElementById('desktop-topbar').classList.add('hidden');
+  setAuthed(false);
   document.getElementById('login-form').reset();
   showScreen('login');
 }
@@ -89,8 +97,7 @@ function forceRelogin(msg){
   localStorage.removeItem(USER_KEY); user = null;
   stopSync();
   try { api('POST', '/logout'); } catch(e) {}
-  document.getElementById('bottomnav').classList.add('hidden');
-  document.getElementById('desktop-topbar').classList.add('hidden');
+  setAuthed(false);
   document.getElementById('login-form').reset();
   showScreen('login');
   toast(msg || 'Session expired — please sign in again');
@@ -147,23 +154,57 @@ async function enterApp(){
   }
   document.getElementById('s-name').value = user ? user.name : '';
   document.getElementById('settings-login-method').textContent = user ? 'Account ('+user.name+')' : '—';
-  document.getElementById('bottomnav').classList.remove('hidden');
-  document.getElementById('desktop-topbar').classList.remove('hidden');
+  setAuthed(true);
+  const roleEl = document.getElementById('side-role');
+  if(roleEl) roleEl.textContent = user && user.role ? user.role.replace(/_/g,' ') : 'Agent';
   const wipeBtn = document.getElementById('wipe-btn');
   if(wipeBtn) wipeBtn.classList.toggle('hidden', !user || !ADMIN_ROLES.includes(user.role));
   document.getElementById('f-date').value = '';
   const fDateDisp = document.getElementById('f-date-display');
   if(fDateDisp){ fDateDisp.textContent = 'Select date'; fDateDisp.classList.add('placeholder'); }
-  showScreen('add');
+  showScreen(isDesktop() ? 'list' : 'add');
   entries = await fetchAllEntries();
   startSync();
   icons();
 }
 
+// Screen titles for the desktop header (mobile keeps its own in-screen topbars).
+const SCREEN_META = {
+  add:      { title:'New oil change',  sub:'Complete after each invoice from the shop.' },
+  list:     { title:'Oil change list', sub:'Every record logged by the team.' },
+  settings: { title:'Settings',        sub:'Your profile and workspace details.' },
+  login:    { title:'Sign in',         sub:'' },
+};
+
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.screen===name));
+  document.querySelectorAll('.side-navbtn').forEach(b=>b.classList.toggle('active', b.dataset.screen===name));
+  // Desktop header reflects the active screen
+  const meta = SCREEN_META[name];
+  const headTitle = document.getElementById('head-title');
+  if(meta && headTitle){
+    headTitle.textContent = meta.title;
+    document.getElementById('head-sub').textContent = meta.sub;
+  }
+  // The sidebar ADD button becomes the save action while the form is open
+  const sideBtn = document.getElementById('side-add-btn');
+  if(sideBtn){
+    const onAdd = (name === 'add');
+    sideBtn.classList.toggle('save-mode', onAdd);
+    const ico = sideBtn.querySelector('.side-add-ico');
+    const lbl = sideBtn.querySelector('.side-add-lbl');
+    if(ico) ico.className = 'ph side-add-ico ' + (onAdd ? 'ph-check' : 'ph-plus');
+    if(lbl) lbl.textContent = onAdd ? 'Save record' : 'Add record';
+  }
+  // Mobile: the ADD tab turns green while it is acting as "save"
+  const addTab = document.querySelector('.navbtn[data-screen="add"]');
+  if(addTab){
+    const onAdd = (name === 'add');
+    addTab.classList.toggle('save-mode', onAdd);
+    addTab.title = onAdd ? 'Tap to save this entry' : 'Add a record';
+  }
   if(name==='list'){ fetchAllEntries().then(list=>{ entries=list; renderList(); }); }
   if(name==='settings') renderSettings();
 }
@@ -252,13 +293,19 @@ function renderList(){
   if(currentScope==='mine' && user) filtered = filtered.filter(e => e.addedBy===user.name);
   filtered.sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
 
-  document.getElementById('sum-count').textContent = filtered.length;
-  document.getElementById('sum-pending').textContent = filtered.filter(e=>!e.sent).length;
+  setCount('sum-count', filtered.length);
+  setCount('sum-pending', filtered.filter(e=>!e.sent).length);
+  setCount('sum-trucks', filtered.filter(e=>e.type==='T').length);
+  setCount('sum-reefers', filtered.filter(e=>e.type==='R').length);
 
   if(filtered.length===0){
-    container.innerHTML = `<div class="empty-state"><i class="ph ph-tray"></i><p>No records yet.<br>Add your first oil change from the "Add" tab.</p></div>`;
-    icons(); return;
+    container.innerHTML = isDesktop()
+      ? `<div class="table-empty"><span class="ph ph-tray"></span><p>No records yet.<br>Use <strong>Add record</strong> in the sidebar to log the first oil change.</p></div>`
+      : `<div class="empty-state"><span class="ph ph-tray"></span><p>No records yet.<br>Add your first oil change from the "Add" tab.</p></div>`;
+    return;
   }
+  if(isDesktop()){ renderTable(container, filtered); return; }
+
   const groups = {};
   filtered.forEach(e => { (groups[e.date] = groups[e.date]||[]).push(e); });
   const dates = Object.keys(groups).sort().reverse();
@@ -268,18 +315,54 @@ function renderList(){
       <div class="day-label">${formatDate(date)}</div>
       ${groups[date].map(e => `
         <div class="entry">
-          <div class="type-badge"><i class="ph ph-${typeIcon(e.type)}"></i></div>
+          <div class="type-badge"><span class="ph ph-${typeIcon(e.type)}"></span></div>
           <div class="info">
             <div class="unit-num">#${escapeHtml(e.unit)}</div>
             <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)} · added ${formatAddedAt(e.createdAt)}${e.sent ? ' · sent' : ''}</div>
           </div>
           <div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div>
-          <button class="del" onclick="deleteEntry('${e.id}')"><i class="ph ph-x"></i></button>
+          <button class="del" onclick="deleteEntry('${e.id}')"><span class="ph ph-x"></span></button>
         </div>
       `).join('')}
     </div>
   `).join('');
-  icons();
+}
+
+function setCount(id, n){ const el = document.getElementById(id); if(el) el.textContent = n; }
+
+// Desktop: a real data table instead of cards.
+function renderTable(container, filtered){
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Unit</th>
+            <th class="num">Reading</th>
+            <th>Added by</th>
+            <th>Logged</th>
+            <th class="num">Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(e => `
+            <tr>
+              <td class="mono">${formatDate(e.date)}</td>
+              <td><span class="type-tag"><span class="ph ph-${typeIcon(e.type)}"></span>${typeLabel(e.type)}</span></td>
+              <td class="mono strong">#${escapeHtml(e.unit)}</td>
+              <td class="num">${Number(e.value).toLocaleString('en-US')} <small>${unitSuffix(e.unitOfValue)}</small></td>
+              <td class="dim">${escapeHtml(e.addedBy)}</td>
+              <td class="dim">${formatAddedAt(e.createdAt)}</td>
+              <td class="num">${e.sent ? 'Sent' : 'Pending'}</td>
+              <td class="actions"><button class="row-del" title="Delete" onclick="deleteEntry('${e.id}')"><span class="ph ph-trash"></span></button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 function formatDate(iso){
@@ -402,19 +485,6 @@ function saveName(){
 
 // ── Init ───────────────────────────────────────────────────────────────────
 (async function init(){
-  let isAddScreenActive = false;
-  const originalShowScreen = showScreen;
-  showScreen = function(name){
-    originalShowScreen(name);
-    isAddScreenActive = (name === 'add');
-    // The header ADD button doubles as the save action while the form is open
-    const addBtn = document.getElementById('desktop-add-btn');
-    if(addBtn){
-      addBtn.innerHTML = (name === 'add') ? '<i class="ph ph-check"></i>Add' : '<i class="ph ph-plus"></i>Add';
-      icons();
-    }
-  };
-
   user = loadUser();
   try {
     const status = await api('GET', '/auth/status');

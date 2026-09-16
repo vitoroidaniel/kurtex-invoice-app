@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>OILLOG — Field Entry</title>
+<meta name="theme-color" content="#FAFAF8">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="OILLOG">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="css/app-base.css?v=6">
+<link rel="stylesheet" href="css/app-mobile.css?v=6">
+</head>
+<body>
+<div class="update-banner" id="update-banner">
+  <span><span class="ph ph-arrows-clockwise"></span>New version available</span>
+  <button type="button" onclick="applyUpdate()">Refresh</button>
+</div>
+
+<div class="dp-overlay hidden" id="date-picker-overlay" onclick="closeDatePicker(event)">
+  <div class="dp-modal" onclick="event.stopPropagation()">
+    <div class="dp-header">
+      <button type="button" class="dp-nav" onclick="dpChangeMonth(-1)"><span class="ph ph-caret-left"></span></button>
+      <div class="dp-month-label" id="dp-month-label"></div>
+      <button type="button" class="dp-nav" onclick="dpChangeMonth(1)"><span class="ph ph-caret-right"></span></button>
+    </div>
+    <div class="dp-weekdays"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+    <div class="dp-grid" id="dp-grid"></div>
+    <div class="dp-footer">
+      <button type="button" class="dp-today" onclick="dpSelectToday()">Today</button>
+      <button type="button" class="dp-close" onclick="closeDatePicker()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" data-layout="mobile">
+
+  <!-- ── Login ───────────────────────────────────────────── -->
+  <div class="screen active" id="screen-login">
+    <div class="login-card">
+      <div class="login-title">OIL<span>LOG</span></div>
+      <div class="login-tag">FIELD ENTRY</div>
+      <div class="login-sub">Sign in to log oil changes for the yard.</div>
+      <div id="login-error" class="login-error hidden"></div>
+      <form id="login-form" class="login-form" onsubmit="return false;">
+        <input type="text" id="l-username" placeholder="Username" autocomplete="username" required>
+        <input type="password" id="l-password" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary"><span class="ph ph-sign-in"></span>Sign in</button>
+      </form>
+      <p class="muted">Accounts are created by the administrator.</p>
+    </div>
+  </div>
+
+  <!-- ── Add ─────────────────────────────────────────────── -->
+  <div class="screen" id="screen-add">
+    <div class="topbar">
+      <div class="brand">OIL<span>LOG</span></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="live-pill"><span class="s-dot"></span> Live</span>
+        <div class="userchip"><span class="ph ph-user"></span><span class="userchip-name">—</span></div>
+      </div>
+    </div>
+    <h1 class="page-title">New oil change</h1>
+    <p class="page-sub">Complete after each invoice from the shop.</p>
+    <form id="entry-form">
+      <div class="card">
+        <div class="field">
+          <label class="field-label" for="f-date-trigger"><span class="ph ph-calendar-blank"></span>Date of oil change</label>
+          <button type="button" class="date-trigger" id="f-date-trigger" onclick="openDatePicker()">
+            <span id="f-date-display" class="placeholder">Select date</span>
+            <span class="ph ph-caret-down"></span>
+          </button>
+          <input type="hidden" id="f-date" required>
+        </div>
+        <div class="field">
+          <label class="field-label"><span class="ph ph-grid-four"></span>Unit type</label>
+          <div class="chip-row">
+            <div class="chip active" data-type="T" onclick="selectType('T')"><span class="ph ph-truck"></span>TRUCK</div>
+            <div class="chip" data-type="R" onclick="selectType('R')"><span class="ph ph-wind"></span>REEFER</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-unit"><span class="ph ph-hash"></span>Unit number</label>
+          <input type="text" id="f-unit" placeholder="ex. 437 / R162" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-value" id="f-value-label"><span class="ph ph-pulse"></span>Mileage</label>
+          <input type="number" inputmode="numeric" id="f-value" placeholder="ex. 304670" required>
+          <div class="unit-toggle">
+            <div class="chip active" data-unit="mi" onclick="selectUnit('mi')"><span class="ph ph-map-pin"></span>MILES</div>
+            <div class="chip" data-unit="hr" onclick="selectUnit('hr')"><span class="ph ph-clock"></span>ENGINE HOURS</div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── List ────────────────────────────────────────────── -->
+  <div class="screen" id="screen-list">
+    <div class="topbar"><div class="brand brand-short">LIST</div></div>
+    <div class="summary-bar">
+      <div><div class="num" id="sum-count">0</div><div class="lbl">records</div></div>
+      <div class="align-right"><div class="num" id="sum-pending">0</div><div class="lbl">pending</div></div>
+    </div>
+    <div class="filters">
+      <div class="filter-pill active" data-scope="mine" onclick="setScope('mine')">Mine</div>
+      <div class="filter-pill" data-scope="all" onclick="setScope('all')">All</div>
+    </div>
+    <div class="filters">
+      <div class="filter-pill active" data-filter="all" onclick="setFilter('all')">All types</div>
+      <div class="filter-pill" data-filter="T" onclick="setFilter('T')">Truck</div>
+      <div class="filter-pill" data-filter="R" onclick="setFilter('R')">Reefer</div>
+    </div>
+    <div id="list-container"></div>
+    <div class="screen-list-actions btn-row">
+      <button class="btn" style="flex:1" onclick="exportXLSX()"><span class="ph ph-download-simple"></span>Excel</button>
+      <button class="btn" style="flex:1" onclick="shareList()"><span class="ph ph-share-network"></span>Share</button>
+    </div>
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="btn wipe-btn hidden" id="wipe-btn" style="flex:1;border-color:var(--red);color:var(--red);background:transparent;" onclick="wipeAll()"><span class="ph ph-trash"></span>Wipe all</button>
+    </div>
+  </div>
+
+  <!-- ─ Settings ────────────────────────────────────────── -->
+  <div class="screen" id="screen-settings">
+    <div class="topbar"><div class="brand brand-short">SETTINGS</div></div>
+    <div class="card">
+      <div class="field" style="margin-bottom:0;">
+        <label class="field-label" for="s-name"><span class="ph ph-user"></span>Your name</label>
+        <input type="text" id="s-name" placeholder="ex. Mihai" onchange="saveName()">
+      </div>
+    </div>
+    <div class="card">
+      <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
+      <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
+      <div class="settings-row"><div class="l">Version</div><div class="r">4.0</div></div>
+    </div>
+    <p class="muted small">Data is shared with the whole team — any entry added here appears in the admin panel.</p>
+    <button class="btn" style="border-color:var(--red);color:var(--red);background:transparent;" onclick="logout()"><span class="ph ph-sign-out"></span>Logout</button>
+  </div>
+
+  <!-- ── Bottom navigation ───────────────────────────────── -->
+  <div class="bottomnav hidden" id="bottomnav">
+    <div class="bottomnav-inner">
+      <button class="navbtn active" data-screen="add" onclick="addOrSave()"><span class="ph ph-plus-circle navbtn-ico"></span><span class="navbtn-lbl">ADD</span></button>
+      <button class="navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list navbtn-ico"></span><span class="navbtn-lbl">LIST</span></button>
+      <button class="navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six navbtn-ico"></span><span class="navbtn-lbl">SETTINGS</span></button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script src="js/app.js?v=6"></script>
+</body>
+</html>

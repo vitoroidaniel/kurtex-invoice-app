@@ -538,7 +538,21 @@ PAGES_DIR = FRONTEND_DIR / "pages"
 
 @app.route("/")
 def serve_index():
-    return send_from_directory(str(PAGES_DIR), "app.html")
+    ua = request.headers.get('User-Agent', '').lower()
+    is_mobile = any(k in ua for k in ('android', 'webos', 'iphone', 'ipad', 'ipod',
+                                       'blackberry', 'windows phone', 'mobile',
+                                       'silk', 'kindle', 'playbook', 'bb10'))
+    if is_mobile or request.args.get('mode') == 'mobile':
+        return send_from_directory(str(PAGES_DIR), "app-mobile.html")
+    return send_from_directory(str(PAGES_DIR), "app-desktop.html")
+
+@app.route("/mobile")
+def serve_mobile():
+    return send_from_directory(str(PAGES_DIR), "app-mobile.html")
+
+@app.route("/desktop")
+def serve_desktop():
+    return send_from_directory(str(PAGES_DIR), "app-desktop.html")
 
 @app.route("/admin-login")
 def serve_admin_login():

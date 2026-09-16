@@ -2,12 +2,12 @@
   "name": "OILLOG - Yard Oil Change Tracker",
   "short_name": "OILLOG",
   "description": "Oil change records for trucks and reefers in the yard.",
-  "start_url": "./app.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
+  "orientation": "any",
+  "background_color": "#F4F4F2",
+  "theme_color": "#253C6D",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
