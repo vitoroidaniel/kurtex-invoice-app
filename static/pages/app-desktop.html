@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="css/app-base.css?v=9">
-<link rel="stylesheet" href="css/app-desktop.css?v=11">
+<link rel="stylesheet" href="css/app-desktop.css?v=13">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -39,11 +39,13 @@
   <!-- ── Sidebar ────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
     <div class="side-brand">OIL<span>LOG</span></div>
+    <div class="side-section-label">Workspace</div>
     <nav class="side-nav">
       <button type="button" class="side-navbtn" data-screen="add" onclick="showScreen('add')"><span class="ph ph-plus-circle"></span>Add record</button>
       <button type="button" class="side-navbtn" data-screen="list" onclick="showScreen('list')"><span class="ph ph-list"></span>Records</button>
       <button type="button" class="side-navbtn" data-screen="settings" onclick="showScreen('settings')"><span class="ph ph-gear-six"></span>Settings</button>
     </nav>
+    <div class="side-live"><span class="dot"></span><div><strong>Live system</strong><small>Chicago time · Central</small></div></div>
     <div class="side-foot">
       <div class="side-user">
         <div class="avatar"><span class="ph ph-user"></span></div>
@@ -139,10 +141,6 @@
             <div class="stat-num" id="sum-count">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-top"><span class="stat-lbl">Pending</span><span class="ph ph-hourglass-medium stat-ico"></span></div>
-            <div class="stat-num" id="sum-pending">0</div>
-          </div>
-          <div class="stat-card">
             <div class="stat-top"><span class="stat-lbl">Trucks</span><span class="ph ph-truck stat-ico"></span></div>
             <div class="stat-num" id="sum-trucks">0</div>
           </div>
@@ -186,7 +184,7 @@
             <p class="card-sub">Session and workspace details.</p>
             <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
             <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
-            <div class="settings-row"><div class="l">Version</div><div class="r" data-build>11</div></div>
+            <div class="settings-row"><div class="l">Version</div><div class="r" data-build>13</div></div>
           </div>
         </div>
         <div class="settings-foot">
@@ -198,6 +196,6 @@
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="js/app.js?v=11"></script>
+<script src="js/app.js?v=13"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="css/app-base.css?v=9">
-<link rel="stylesheet" href="css/app-mobile.css?v=11">
+<link rel="stylesheet" href="css/app-mobile.css?v=13">
 </head>
 <body>
 <div class="update-banner" id="update-banner">
@@ -108,7 +108,6 @@
     <div class="topbar"><div class="brand brand-short">LIST</div></div>
     <div class="summary-bar">
       <div><div class="num" id="sum-count">0</div><div class="lbl">records</div></div>
-      <div class="align-right"><div class="num" id="sum-pending">0</div><div class="lbl">pending</div></div>
     </div>
     <div class="filters">
       <div class="filter-pill active" data-scope="mine" onclick="setScope('mine')">Mine</div>
@@ -141,7 +140,7 @@
     <div class="card">
       <div class="settings-row"><div class="l">Login</div><div class="r" id="settings-login-method">—</div></div>
       <div class="settings-row"><div class="l">Your entries</div><div class="r" id="settings-total">0</div></div>
-      <div class="settings-row"><div class="l">Version</div><div class="r" data-build>11</div></div>
+      <div class="settings-row"><div class="l">Version</div><div class="r" data-build>13</div></div>
     </div>
     <p class="muted small">Data is shared with the whole team — any entry added here appears in the admin panel.</p>
     <button class="btn" style="border-color:var(--red);color:var(--red);background:transparent;" onclick="logout()"><span class="ph ph-sign-out"></span>Logout</button>
@@ -158,6 +157,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="js/app.js?v=11"></script>
+<script src="js/app.js?v=13"></script>
 </body>
 </html>

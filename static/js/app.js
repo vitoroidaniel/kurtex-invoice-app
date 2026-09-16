@@ -4,7 +4,7 @@ const USER_KEY = 'oillog_user_v4';
 // Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
 // compares it against /api/version on every load: if they differ, a newer
 // deploy exists and any cached shell is thrown away automatically.
-const APP_BUILD = '11';
+const APP_BUILD = '13';
 
 let user = null;
 let entries = [];
@@ -321,7 +321,6 @@ function renderList(){
   filtered.sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
 
   setCount('sum-count', filtered.length);
-  setCount('sum-pending', filtered.filter(e=>!e.sent).length);
   setCount('sum-trucks', filtered.filter(e=>e.type==='T').length);
   setCount('sum-reefers', filtered.filter(e=>e.type==='R').length);
 
@@ -345,7 +344,7 @@ function renderList(){
           <div class="type-badge"><span class="ph ph-${typeIcon(e.type)}"></span></div>
           <div class="info">
             <div class="unit-num">#${escapeHtml(e.unit)}</div>
-            <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)} · added ${formatAddedAt(e.createdAt)}${e.sent ? ' · sent' : ''}</div>
+            <div class="meta">${typeLabel(e.type)} · ${escapeHtml(e.addedBy)} · added ${formatAddedAt(e.createdAt)}</div>
           </div>
           <div class="value">${Number(e.value).toLocaleString('en-US')}<small>${unitSuffix(e.unitOfValue)}</small></div>
           <button class="del" onclick="deleteEntry('${e.id}')"><span class="ph ph-x"></span></button>
@@ -370,7 +369,6 @@ function renderTable(container, filtered){
             <th class="num">Reading</th>
             <th>Added by</th>
             <th>Logged</th>
-            <th class="num">Status</th>
             <th></th>
           </tr>
         </thead>
@@ -383,7 +381,6 @@ function renderTable(container, filtered){
               <td class="num">${Number(e.value).toLocaleString('en-US')} <small>${unitSuffix(e.unitOfValue)}</small></td>
               <td class="dim">${escapeHtml(e.addedBy)}</td>
               <td class="dim">${formatAddedAt(e.createdAt)}</td>
-              <td class="num">${e.sent ? 'Sent' : 'Pending'}</td>
               <td class="actions"><button class="row-del" title="Delete" onclick="deleteEntry('${e.id}')"><span class="ph ph-trash"></span></button></td>
             </tr>
           `).join('')}

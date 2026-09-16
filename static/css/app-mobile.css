@@ -17,7 +17,7 @@ body{display:block;-webkit-user-select:none;user-select:none;}
 .screen{
   flex:1;min-height:0;
   padding:0 16px calc(78px + env(safe-area-inset-bottom));
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overflow:hidden;
 }
 .screen::-webkit-scrollbar{display:none;}
 h1.page-title{font-size:20px;margin:14px 0 3px;}
@@ -60,7 +60,7 @@ p.page-sub{font-size:12px;margin:0 0 14px;}
 .summary-bar .num{font-size:19px;}
 .filters{margin-bottom:12px;}
 .filter-pill{padding:8px 12px;}
-#list-container{padding-bottom:4px;}
+#list-container{padding-bottom:4px;overflow-y:auto;min-height:0;max-height:calc(100dvh - 235px);-webkit-overflow-scrolling:touch;}
 .screen-list-actions{padding-top:14px;}
 
 /* ── Settings ──────────────────────────────────────────── */

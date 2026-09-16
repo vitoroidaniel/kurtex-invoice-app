@@ -4,7 +4,7 @@
    sticky header, content area with stat cards and a data table.
    ========================================================================== */
 
-html,body{min-height:100%;}
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden;}
 body{background:var(--bg);display:block;}
 
 /* ── App shell: sidebar + main ─────────────────────────── */
@@ -16,6 +16,7 @@ body{background:var(--bg);display:block;}
   grid-template-columns:190px minmax(0,1fr);
   width:100%;
   min-width:100%;
+  height:100vh;
   min-height:100vh;
   margin:0;
   padding:0;
@@ -28,61 +29,70 @@ html,body{width:100%;max-width:none;overflow-x:hidden;}
 .content > *{width:100%;max-width:none;margin-left:0;margin-right:0;}
 
 
-/* ── Sidebar (navy) ────────────────────────────────────── */
+/* ── Sidebar: compact, visual navigation ───────────────── */
 .sidebar{
   display:flex;
   flex-direction:column;
-  background:var(--sidebar-navy);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,.10), transparent 34%),
+    linear-gradient(180deg,#203967 0%,#182D57 52%,#142748 100%);
   color:#fff;
-  padding:18px 10px 14px;
-  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:18px 13px 14px;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  border-right:1px solid rgba(0,0,0,.10);
 }
-.sidebar::-webkit-scrollbar{width:8px;}
-.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:8px;}
-
+.sidebar:before{
+  content:"";position:absolute;top:0;right:0;width:3px;height:100%;
+  background:linear-gradient(180deg,var(--red),rgba(200,16,46,0));opacity:.8;
+}
 .side-brand{
-  font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:3px;
-  color:#fff;padding:0 8px;margin-bottom:12px;
+  position:relative;display:flex;align-items:center;gap:10px;
+  font-family:var(--fd);font-weight:700;font-size:21px;letter-spacing:3px;
+  color:#fff;padding:10px 9px 14px;margin:0 0 8px;
+  border-bottom:1px solid rgba(255,255,255,.12);
 }
-.side-brand span{color:var(--sidebar-accent);}
-
-/* Navigation */
-.side-nav{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
+.side-brand:before{
+  content:"";width:34px;height:34px;border-radius:10px;
+  background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.side-brand:after{
+  content:"OL";position:absolute;left:17px;top:18px;
+  font-family:var(--fm);font-size:9px;letter-spacing:-.3px;color:#fff;
+}
+.side-brand span{color:#FF7A8A;}
+.side-section-label{
+  padding:10px 9px 7px;color:rgba(255,255,255,.42);
+  font-family:var(--fd);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+}
+.side-nav{display:flex;flex-direction:column;gap:6px;margin-top:0;}
 .side-navbtn{
-  display:flex;align-items:center;gap:9px;
-  background:none;border:none;border-left:3px solid transparent;
-  color:rgba(255,255,255,.72);
-  font-family:var(--fd);font-size:12.5px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;
-  padding:10px 10px;border-radius:var(--r);cursor:pointer;text-align:left;width:100%;
-  transition:background .15s,color .15s,border-color .15s;
+  position:relative;display:flex;align-items:center;gap:11px;
+  background:rgba(255,255,255,.035);border:1px solid transparent;
+  color:rgba(255,255,255,.68);font-family:var(--fd);font-size:12.5px;font-weight:600;
+  letter-spacing:.8px;text-transform:uppercase;padding:12px 11px;border-radius:10px;
+  cursor:pointer;text-align:left;width:100%;transition:all .18s ease;
 }
-.side-navbtn .ph{font-size:17px;}
-.side-navbtn:hover{background:rgba(255,255,255,.08);color:#fff;}
-.side-navbtn.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:var(--red);}
-
-/* Sidebar footer */
-.side-foot{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);}
+.side-navbtn .ph{font-size:18px;width:20px;color:rgba(255,255,255,.55);}
+.side-navbtn:hover{background:rgba(255,255,255,.09);color:#fff;border-color:rgba(255,255,255,.08);transform:translateX(2px);}
+.side-navbtn.active{background:linear-gradient(90deg,rgba(255,255,255,.15),rgba(255,255,255,.07));color:#fff;border-color:rgba(255,255,255,.12);box-shadow:0 6px 18px rgba(0,0,0,.12);}
+.side-navbtn.active:before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:3px;border-radius:0 4px 4px 0;background:var(--red);}
+.side-navbtn.active .ph{color:#fff;}
+.side-live{
+  display:flex;align-items:center;gap:9px;margin:16px 4px 0;padding:10px 11px;
+  border:1px solid rgba(255,255,255,.10);border-radius:10px;background:rgba(0,0,0,.12);
+}
+.side-live .dot{width:7px;height:7px;border-radius:50%;background:#68C779;box-shadow:0 0 0 4px rgba(104,199,121,.10);}
+.side-live strong{display:block;font-family:var(--fd);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#fff;}
+.side-live small{display:block;margin-top:2px;font-family:var(--fm);font-size:8px;color:rgba(255,255,255,.48);}
+.side-foot{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);}
 .side-user{display:flex;align-items:center;gap:10px;padding:4px 5px 10px;}
-.side-user .avatar{
-  width:34px;height:34px;border-radius:50%;flex-shrink:0;
-  background:rgba(255,255,255,.16);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:16px;
-}
-.side-user .who{min-width:0;}
-.side-user .who .nm{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.side-user .who .rl{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.6);}
-.side-logout{
-  display:flex;align-items:center;gap:9px;width:100%;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
-  color:rgba(255,255,255,.85);border-radius:var(--r);
-  padding:9px 10px;font-family:var(--fd);font-size:10.5px;font-weight:600;
-  letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:all .15s;
-}
-.side-logout:hover{background:rgba(255,255,255,.16);color:#fff;}
-.side-logout .ph{font-size:15px;}
+.side-user .avatar{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:rgba(255,255,255,.11);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.side-user .who{min-width:0;}.side-user .who .nm{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.side-user .who .rl{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+.side-logout{display:flex;align-items:center;gap:9px;width:100%;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);color:rgba(255,255,255,.72);border-radius:10px;padding:9px 10px;font-family:var(--fd);font-size:10.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.side-logout:hover{background:rgba(200,16,46,.16);border-color:rgba(255,255,255,.14);color:#fff;}.side-logout .ph{font-size:15px;}
 
 /* ── Main column ───────────────────────────────────────── */
-.main{display:flex;flex-direction:column;min-width:0;}
+.main{display:flex;flex-direction:column;min-width:0;height:100vh;min-height:0;overflow:hidden;}
 
 /* Sticky header */
 .app-header{
@@ -98,7 +108,7 @@ html,body{width:100%;max-width:none;overflow-x:hidden;}
 .head-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
 
 /* Content area */
-.content{flex:1;padding:26px 28px 56px;min-width:0;width:100%;max-width:none;margin:0;}
+.content{flex:1;padding:26px 28px 28px;min-width:0;min-height:0;width:100%;max-width:none;margin:0;overflow:hidden;}
 
 /* ── Login: the ONLY state that hides the console chrome ─ */
 /* Detected straight from the DOM, so a missing/old JS class can never leave
@@ -117,18 +127,24 @@ body:has(#screen-login.active) .content{flex:1;display:flex;align-items:center;j
 
 /* ── In-app screens are plain blocks on desktop ────────── */
 #screen-add.active,#screen-list.active,#screen-settings.active{display:block;}
-.content .screen{flex:none;padding:0;overflow:visible;}
+.content .screen{flex:none;padding:0;overflow:hidden;}
 .content .screen::-webkit-scrollbar{display:none;}
 
-/* ── ADD: full-width form, fluid columns (uses all the space) ── */
+/* ── ADD: centered working panel ───────────────────────── */
+#screen-add{display:none;align-items:center;justify-content:center;min-height:100%;}
+#screen-add.active{display:flex;}
+#screen-add > form{width:min(100%, 600px);}
 #screen-add .card{
   display:grid;
-  grid-template-columns:minmax(0,620px);
+  grid-template-columns:minmax(0,1fr);
   gap:0;
   align-items:start;
   padding:24px 28px;
   margin-bottom:18px;
   width:100%;
+  max-width:600px;
+  margin-left:auto;
+  margin-right:auto;
 }
 #screen-add .field{margin-bottom:20px;}
 #screen-add .field:last-child{margin-bottom:0;}
@@ -171,6 +187,8 @@ body:has(#screen-login.active) .content{flex:1;display:flex;align-items:center;j
 .list-toolbar .toolbar-actions .btn .ph{font-size:14px;}
 .wipe-btn{border-color:var(--red) !important;color:var(--red) !important;background:transparent !important;}
 .wipe-btn:hover{background:var(--red-tint) !important;}
+#screen-list{min-height:0;height:100%;overflow:hidden;}
+#screen-list #list-container{min-height:0;max-height:calc(100vh - 235px);overflow:auto;}
 .table-empty{padding:52px 20px;text-align:center;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);}
 .table-empty .ph{font-size:38px;opacity:.4;display:block;margin-bottom:12px;}
 .table-empty p{font-size:13px;margin:0;line-height:1.55;}
@@ -196,7 +214,7 @@ body:has(#screen-login.active) .content{flex:1;display:flex;align-items:center;j
   .sidebar{padding:18px 9px 14px;}
 }
 @media (max-width:1100px){
-  #screen-add .card{grid-template-columns:minmax(0,620px);}
+  #screen-add > form{width:min(100%,560px);}
 }
 
 @media (max-width:760px){
