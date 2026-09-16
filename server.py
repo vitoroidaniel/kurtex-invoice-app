@@ -25,10 +25,28 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_DOMAIN'] = None
 
+# Browsers must revalidate on every load. The HTML shell is never cached at the
+# HTTP layer, and versioned assets (?v=N) are only re-fetched when their URL
+# changes — so a new deploy shows up on the very next page load.
+@app.after_request
+def _cache_headers(resp):
+    ctype = resp.headers.get("Content-Type", "")
+    if "text/html" in ctype:
+        resp.headers["Cache-Control"] = "no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+    else:
+        resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
 DATA_DIR = Path(os.getenv("OILLOG_DATA_DIR", "/app/data"))
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")  # Telegram bot token — set in Railway env
 BOT_USERNAME = os.getenv("BOT_USERNAME", "").replace("@", "")  # Bot username — set in Railway env
 BOT_ID = os.getenv("BOT_ID", "")  # Bot ID (numeric) — set in Railway env
+
+# Build stamp — bump this with every release. It is exposed at /api/version and
+# echoed by the front-end, so a stale deployment or a stuck service-worker cache
+# is instantly visible instead of silently serving an old layout.
+APP_BUILD = '9'
 
 # Roles allowed into the admin panel. Everyone else (e.g. "agent") only gets the mobile app.
 ADMIN_ROLES = {"developer", "super_admin"}
@@ -579,10 +597,19 @@ def bot_info():
         "configured": bool(BOT_USERNAME),
     })
 
+@app.route("/api/version")
+def api_version():
+    """Current build stamp. The front-end compares this with the build baked
+    into its own JS: a mismatch means a fresh deploy is live, so the page
+    clears its cached shell and reloads instead of silently showing the old
+    layout."""
+    return jsonify({"build": APP_BUILD})
+
 @app.route("/health")
 def health():
     return jsonify({
         "ok": True,
+        "build": APP_BUILD,
         "time": time.time(),
         "data_dir": str(DATA_DIR),
     })

@@ -1,6 +1,11 @@
 const API_BASE = window.location.origin;
 const USER_KEY = 'oillog_user_v4';
 
+// Must match APP_BUILD in server.py and the ?v= on the CSS/JS links. The page
+// compares it against /api/version on every load: if they differ, a newer
+// deploy exists and any cached shell is thrown away automatically.
+const APP_BUILD = '9';
+
 let user = null;
 let entries = [];
 let currentType = 'T';
@@ -65,7 +70,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
         role: su.role || 'agent',
       };
       saveUserLocal(user);
-      await enterApp();
+      redirectToDeviceLayout();
     } else {
       showLoginError(res.error || 'invalid_credentials');
     }
@@ -73,6 +78,24 @@ document.getElementById('login-form').addEventListener('submit', async function(
 });
 
 function isDesktop(){ const a=document.getElementById('app'); return a && a.dataset.layout === 'desktop'; }
+
+// Keep the authenticated session, but load the dedicated HTML shell for the
+// device being used. Desktop browser windows remain desktop even when resized
+// narrow; phones/tablets use the mobile shell.
+function isMobileDevice(){
+  const ua = navigator.userAgent || '';
+  if(navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') return navigator.userAgentData.mobile;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Silk|Kindle|PlayBook|BB10/i.test(ua);
+}
+function redirectToDeviceLayout(){
+  const target = isMobileDevice() ? '/mobile' : '/desktop';
+  const current = isDesktop() ? '/desktop' : '/mobile';
+  if(window.location.pathname !== target || current !== target){
+    window.location.replace(target);
+    return;
+  }
+  enterApp();
+}
 
 // Toggle the authenticated chrome of whichever layout is loaded.
 function setAuthed(on){
@@ -475,6 +498,9 @@ function shareList(){
 
 function renderSettings(){
   document.getElementById('settings-total').textContent = user ? entries.filter(e=>e.addedBy===user.name).length : 0;
+  // Live build stamp: if this still shows an older number after a deploy, the
+  // page you are looking at came from a cache, not from the server.
+  document.querySelectorAll('[data-build]').forEach(el => { el.textContent = APP_BUILD; });
 }
 function saveName(){
   const name = document.getElementById('s-name').value.trim() || user.name;
@@ -487,6 +513,11 @@ function saveName(){
 (async function init(){
   user = loadUser();
   try {
+    const target = isMobileDevice() ? '/mobile' : '/desktop';
+    if(window.location.pathname !== target && (window.location.pathname === '/' || window.location.pathname === '/mobile' || window.location.pathname === '/desktop')){
+      window.location.replace(target);
+      return;
+    }
     const status = await api('GET', '/auth/status');
     if(status.ok && status.user) {
       const su = status.user;
@@ -510,6 +541,39 @@ function saveName(){
     // Server unreachable — if we have a cached user, enter anyway
     if(user) await enterApp(); else icons();
   }
+  // ── Stale-build recovery ───────────────────────────────────────────────
+  // A service worker can pin an old cached shell for good. Compare the build
+  // the server is running against the build this page was loaded with, and if
+  // the server is newer: drop every cache, unregister the worker, reload once.
+  // Without this, a single stuck cache can hide a deploy indefinitely.
+  const BUILD_KEY = 'oillog_build_seen';
+  async function checkBuild(){
+    let serverBuild = null;
+    try {
+      const r = await fetch(API_BASE + '/api/version?t=' + Date.now(), { cache: 'no-store' });
+      if(r.ok) serverBuild = (await r.json()).build;
+    } catch(e) { return; }               // offline — keep working from cache
+    if(!serverBuild || String(serverBuild) === APP_BUILD) return;
+
+    // Guard against a reload loop if the server keeps reporting a new build.
+    const seen = sessionStorage.getItem(BUILD_KEY);
+    if(seen === String(serverBuild)) return;
+    sessionStorage.setItem(BUILD_KEY, String(serverBuild));
+
+    try {
+      if('caches' in window){
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if('serviceWorker' in navigator){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(reg => reg.unregister()));
+      }
+    } catch(e) {}
+    location.reload();
+  }
+  checkBuild();
+
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
       navigator.serviceWorker.register('service-worker.js').then(reg=>{
